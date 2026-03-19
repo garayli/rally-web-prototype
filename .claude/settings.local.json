@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(flutter --version)",
+      "Bash(unzip -l rallly_flutter.zip)",
+      "Bash(unzip -p rallly_flutter.zip rallly_flutter/README.md)",
+      "Bash(powershell -Command \"Expand-Archive -Path ''rallly_flutter.zip'' -DestinationPath ''.'' -Force\")",
+      "Bash(\"C:\\\\Users\\\\Leyla\\\\Documents\\\\RallyMatch\\\\rallly_flutter\\\\assets\\\\.gitkeep\")"
+    ]
+  }
+}
