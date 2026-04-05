@@ -1,0 +1,4 @@
+# IDE / local settings
+.idea/
+.claude/settings.local.json
+.claude/launch.json

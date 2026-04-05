@@ -5,6 +5,7 @@ import '../widgets/shared_widgets.dart';
 import '../models/models.dart';
 import '../services/mock_data.dart';
 import 'player_profile_screen.dart';
+import 'map_screen.dart';
 
 class MatchScreen extends StatefulWidget {
   const MatchScreen({super.key});
@@ -80,8 +81,8 @@ class _MatchScreenState extends State<MatchScreen> {
                 ],
               ),
               const SizedBox(width: 4),
-              Padding(
-                padding: const EdgeInsets.only(right: 16),
+              const Padding(
+                padding: EdgeInsets.only(right: 16),
                 child: PlayerAvatar(
                   initials: 'AW',
                   gradientStart: '#e85d3a',
@@ -90,8 +91,8 @@ class _MatchScreenState extends State<MatchScreen> {
                 ),
               ),
             ],
-            bottom: PreferredSize(
-              preferredSize: const Size.fromHeight(1),
+            bottom: const PreferredSize(
+              preferredSize: Size.fromHeight(1),
               child: Divider(height: 1, color: RallyColors.border),
             ),
           ),
@@ -160,6 +161,10 @@ class _MatchScreenState extends State<MatchScreen> {
             child: SectionHeader(
               title: '${_filteredPlayers.length} PLAYERS NEARBY',
               action: 'Map view',
+              onAction: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const MapScreen()),
+              ),
             ),
           ),
 
@@ -210,9 +215,9 @@ class _RequestSheet extends StatefulWidget {
 }
 
 class _RequestSheetState extends State<_RequestSheet> {
-  String _selectedFormat = 'Singles';
-  String _selectedTime = 'Saturday 10:00am';
-  String _selectedCourt = 'London Fields';
+  final String _selectedFormat = 'Singles';
+  final String _selectedTime = 'Saturday 10:00am';
+  final String _selectedCourt = 'London Fields';
 
   @override
   Widget build(BuildContext context) {

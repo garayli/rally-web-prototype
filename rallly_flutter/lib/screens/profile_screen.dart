@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../widgets/shared_widgets.dart';
+import '../main.dart' show supabase;
+import 'reputation_screen.dart';
+import 'achievements_screen.dart';
+import 'notifications_preferences_screen.dart';
+import 'log_result_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -41,7 +46,7 @@ class ProfileScreen extends StatelessWidget {
                 children: [
                   Stack(
                     children: [
-                      PlayerAvatar(
+                      const PlayerAvatar(
                         initials: 'AW',
                         gradientStart: '#e85d3a',
                         gradientEnd: '#f4956d',
@@ -116,7 +121,7 @@ class ProfileScreen extends StatelessWidget {
               decoration: const BoxDecoration(
                 border: Border(bottom: BorderSide(color: RallyColors.border)),
               ),
-              child: Row(
+              child: const Row(
                 children: [
                   _StatBox(value: '18', label: 'Wins', green: true),
                   _StatBox(value: '7', label: 'Losses'),
@@ -130,6 +135,25 @@ class ProfileScreen extends StatelessWidget {
           // ── Settings ───────────────────────────────────────────────────────
           SliverList(
             delegate: SliverChildListDelegate([
+              const _SettingsSection(title: 'MY GAME'),
+              _SettingsItem(
+                icon: '⭐',
+                label: 'Reputation',
+                sub: '4.9 rating · 4 reviews',
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ReputationScreen())),
+              ),
+              _SettingsItem(
+                icon: '🏆',
+                label: 'Achievements',
+                sub: '12 of 18 unlocked',
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AchievementsScreen())),
+              ),
+              _SettingsItem(
+                icon: '📝',
+                label: 'Log a Result',
+                sub: 'Record your latest match',
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LogResultScreen())),
+              ),
               const _SettingsSection(title: 'ACCOUNT'),
               _SettingsItem(
                 icon: '👤',
@@ -154,7 +178,7 @@ class ProfileScreen extends StatelessWidget {
                 icon: '🔔',
                 label: 'Notifications',
                 sub: 'Match requests, reminders',
-                onTap: () {},
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationPreferencesScreen())),
               ),
               _SettingsItem(
                 icon: '🌙',
@@ -170,12 +194,6 @@ class ProfileScreen extends StatelessWidget {
               ),
               const _SettingsSection(title: 'ABOUT'),
               _SettingsItem(
-                icon: '⭐',
-                label: 'Rate Rallly',
-                sub: 'Leave a review',
-                onTap: () {},
-              ),
-              _SettingsItem(
                 icon: '📋',
                 label: 'Terms & Privacy',
                 onTap: () {},
@@ -183,7 +201,9 @@ class ProfileScreen extends StatelessWidget {
               _SettingsItem(
                 icon: '🚪',
                 label: 'Sign Out',
-                onTap: () {},
+                onTap: () async {
+                  await supabase.auth.signOut();
+                },
                 isDestructive: true,
               ),
               const SizedBox(height: 100),

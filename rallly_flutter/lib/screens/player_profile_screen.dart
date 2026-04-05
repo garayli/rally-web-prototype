@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../widgets/shared_widgets.dart';
 import '../models/models.dart';
+import 'reputation_screen.dart';
 
 class PlayerProfileScreen extends StatelessWidget {
   final Player player;
@@ -112,15 +113,31 @@ class PlayerProfileScreen extends StatelessWidget {
               decoration: const BoxDecoration(
                 border: Border(bottom: BorderSide(color: RallyColors.border)),
               ),
-              child: Row(
+              child: Column(
                 children: [
-                  _StatBox(
-                      value: '${player.wins}', label: 'Wins', green: true),
-                  _StatBox(value: '${player.losses}', label: 'Losses'),
-                  _StatBox(
-                      value: '${player.matchesPlayed}', label: 'Played'),
-                  _StatBox(
-                      value: '${player.winRate.round()}%', label: 'Win Rate'),
+                  Row(
+                    children: [
+                      _StatBox(value: '${player.wins}', label: 'Wins', green: true),
+                      _StatBox(value: '${player.losses}', label: 'Losses'),
+                      _StatBox(value: '${player.matchesPlayed}', label: 'Played'),
+                      _StatBox(value: '${player.winRate.round()}%', label: 'Win Rate'),
+                    ],
+                  ),
+                  InkWell(
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => ReputationScreen(player: player))),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      color: RallyColors.accentLight,
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.star, size: 14, color: Color(0xFFFFD700)),
+                          SizedBox(width: 5),
+                          Text('4.9 · See all reviews', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: RallyColors.accent)),
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),

@@ -127,7 +127,7 @@ class RallyTheme {
       ),
 
       // Cards
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: isDark ? RallyColors.darkSurface : RallyColors.white,
         elevation: 0,
         shape: RoundedRectangleBorder(

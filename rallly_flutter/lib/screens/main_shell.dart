@@ -53,18 +53,18 @@ class _MainShellState extends State<MainShell> {
         child: BottomNavigationBar(
           currentIndex: _currentIndex,
           onTap: (i) => setState(() => _currentIndex = i),
-          items: [
-            const BottomNavigationBarItem(
+          items: const [
+            BottomNavigationBarItem(
               icon: Icon(Icons.sports_tennis_outlined),
               activeIcon: Icon(Icons.sports_tennis),
               label: 'Match',
             ),
-            const BottomNavigationBarItem(
+            BottomNavigationBarItem(
               icon: Icon(Icons.calendar_today_outlined),
               activeIcon: Icon(Icons.calendar_today),
               label: 'Schedule',
             ),
-            const BottomNavigationBarItem(
+            BottomNavigationBarItem(
               icon: Icon(Icons.chat_bubble_outline),
               activeIcon: Icon(Icons.chat_bubble),
               label: 'Messages',
@@ -73,8 +73,8 @@ class _MainShellState extends State<MainShell> {
               icon: Stack(
                 clipBehavior: Clip.none,
                 children: [
-                  const Icon(Icons.notifications_outlined),
-                  const Positioned(
+                  Icon(Icons.notifications_outlined),
+                  Positioned(
                     top: -2,
                     right: -4,
                     child: NotifBadge(count: 3),
@@ -84,8 +84,8 @@ class _MainShellState extends State<MainShell> {
               activeIcon: Stack(
                 clipBehavior: Clip.none,
                 children: [
-                  const Icon(Icons.notifications),
-                  const Positioned(
+                  Icon(Icons.notifications),
+                  Positioned(
                     top: -2,
                     right: -4,
                     child: NotifBadge(count: 3),
@@ -94,7 +94,7 @@ class _MainShellState extends State<MainShell> {
               ),
               label: 'Notifs',
             ),
-            const BottomNavigationBarItem(
+            BottomNavigationBarItem(
               icon: Icon(Icons.person_outline),
               activeIcon: Icon(Icons.person),
               label: 'Profile',

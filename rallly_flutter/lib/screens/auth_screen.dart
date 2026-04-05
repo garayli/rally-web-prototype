@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../theme/app_theme.dart';
 import '../widgets/shared_widgets.dart';
+import '../main.dart' show supabase;
 
 // ─── Step 1: Enter email ──────────────────────────────────────────────────────
 class AuthEmailScreen extends StatefulWidget {
@@ -34,12 +36,20 @@ class _AuthEmailScreenState extends State<AuthEmailScreen> {
     }
     setState(() { _loading = true; _error = null; });
 
-    // Replace with actual Supabase OTP call:
-    // await Supabase.instance.client.auth.signInWithOtp(email: email);
-    await Future.delayed(const Duration(seconds: 1)); // mock delay
-
-    setState(() => _loading = false);
-    widget.onOtpSent(email);
+    try {
+      await supabase.auth.signInWithOtp(
+        email: email,
+        emailRedirectTo: 'io.supabase.rallly://login-callback/',
+        shouldCreateUser: widget.isSignUp,
+      );
+      if (mounted) widget.onOtpSent(email);
+    } on AuthException catch (e) {
+      setState(() => _error = e.message);
+    } catch (_) {
+      setState(() => _error = 'Something went wrong. Please try again.');
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   @override
@@ -200,12 +210,14 @@ class _AuthEmailScreenState extends State<AuthEmailScreen> {
 // ─── Step 2: OTP verification ────────────────────────────────────────────────
 class AuthOtpScreen extends StatefulWidget {
   final String email;
+  final bool isSignUp;
   final VoidCallback onVerified;
   final VoidCallback onBack;
 
   const AuthOtpScreen({
     super.key,
     required this.email,
+    required this.isSignUp,
     required this.onVerified,
     required this.onBack,
   });
@@ -216,12 +228,13 @@ class AuthOtpScreen extends StatefulWidget {
 
 class _AuthOtpScreenState extends State<AuthOtpScreen>
     with SingleTickerProviderStateMixin {
-  static const _codeLength = 6;
+  static const _codeLength = 8;
   final _controllers = List.generate(_codeLength, (_) => TextEditingController());
   final _focusNodes = List.generate(_codeLength, (_) => FocusNode());
 
   bool _loading = false;
   bool _shake = false;
+  String? _error;
   int _resendTimer = 30;
   bool _canResend = false;
 
@@ -262,28 +275,42 @@ class _AuthOtpScreenState extends State<AuthOtpScreen>
 
   Future<void> _verify() async {
     if (_loading) return;
-    setState(() => _loading = true);
-    await Future.delayed(const Duration(milliseconds: 800));
+    setState(() { _loading = true; _error = null; });
 
-    // Demo: code 123456 always works
-    // Real: await Supabase.instance.client.auth.verifyOTP(
-    //   email: widget.email, token: _code, type: OtpType.email);
-
-    if (_code == '123456') {
-      widget.onVerified();
-    } else {
-      _shakeCtrl.forward(from: 0);
-      for (final c in _controllers) c.clear();
-      _focusNodes.first.requestFocus();
-      setState(() { _loading = false; _shake = true; });
-      Future.delayed(600.ms, () => setState(() => _shake = false));
+    try {
+      await supabase.auth.verifyOTP(
+        email: widget.email,
+        token: _code,
+        type: OtpType.email,
+      );
+      if (mounted) widget.onVerified();
+    } on AuthException catch (e) {
+      _triggerShake();
+      setState(() { _loading = false; _error = e.message; });
+    } catch (_) {
+      _triggerShake();
+      setState(() { _loading = false; _error = 'Invalid code. Please try again.'; });
     }
+  }
+
+  void _triggerShake() {
+    _shakeCtrl.forward(from: 0);
+    for (final c in _controllers) {
+      c.clear();
+    }
+    _focusNodes.first.requestFocus();
+    setState(() => _shake = true);
+    Future.delayed(600.ms, () { if (mounted) setState(() => _shake = false); });
   }
 
   @override
   void dispose() {
-    for (final c in _controllers) c.dispose();
-    for (final f in _focusNodes) f.dispose();
+    for (final c in _controllers) {
+      c.dispose();
+    }
+    for (final f in _focusNodes) {
+      f.dispose();
+    }
     _shakeCtrl.dispose();
     super.dispose();
   }
@@ -322,7 +349,7 @@ class _AuthOtpScreenState extends State<AuthOtpScreen>
                     height: 1.5,
                   ),
                   children: [
-                    const TextSpan(text: 'We sent a 6-digit code to\n'),
+                    const TextSpan(text: 'We sent an 8-digit code to\n'),
                     TextSpan(
                       text: widget.email,
                       style: const TextStyle(
@@ -351,8 +378,8 @@ class _AuthOtpScreenState extends State<AuthOtpScreen>
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: List.generate(_codeLength, (i) {
                     return SizedBox(
-                      width: 48,
-                      height: 60,
+                      width: 40,
+                      height: 56,
                       child: TextFormField(
                         controller: _controllers[i],
                         focusNode: _focusNodes[i],
@@ -363,7 +390,7 @@ class _AuthOtpScreenState extends State<AuthOtpScreen>
                           LengthLimitingTextInputFormatter(1),
                         ],
                         style: const TextStyle(
-                          fontSize: 24,
+                          fontSize: 20,
                           fontWeight: FontWeight.w700,
                           fontFamily: 'InstrumentSerif',
                         ),
@@ -399,6 +426,17 @@ class _AuthOtpScreenState extends State<AuthOtpScreen>
                 ),
               ),
 
+              if (_error != null) ...[
+                const SizedBox(height: 14),
+                Text(
+                  _error!,
+                  style: const TextStyle(
+                    color: RallyColors.accent2,
+                    fontSize: 13,
+                  ),
+                ),
+              ],
+
               const SizedBox(height: 32),
               RallyButton(
                 label: 'Verify',
@@ -410,12 +448,17 @@ class _AuthOtpScreenState extends State<AuthOtpScreen>
               Center(
                 child: _canResend
                     ? TextButton(
-                        onPressed: () {
+                        onPressed: () async {
                           setState(() {
                             _resendTimer = 30;
                             _canResend = false;
                           });
                           _startResendTimer();
+                          await supabase.auth.signInWithOtp(
+                            email: widget.email,
+                            emailRedirectTo: 'io.supabase.rallly://login-callback/',
+                            shouldCreateUser: widget.isSignUp,
+                          );
                         },
                         child: const Text(
                           'Resend code',
@@ -432,26 +475,6 @@ class _AuthOtpScreenState extends State<AuthOtpScreen>
                           fontSize: 13,
                         ),
                       ),
-              ),
-
-              const SizedBox(height: 16),
-              Center(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: RallyColors.surface2,
-                    borderRadius: BorderRadius.circular(100),
-                    border: Border.all(color: RallyColors.border2),
-                  ),
-                  child: const Text(
-                    '💡 Demo: use code 123456',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: RallyColors.textSecondary,
-                    ),
-                  ),
-                ),
               ),
             ],
           ),

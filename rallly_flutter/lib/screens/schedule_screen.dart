@@ -5,6 +5,8 @@ import '../theme/app_theme.dart';
 import '../widgets/shared_widgets.dart';
 import '../models/models.dart';
 import '../services/mock_data.dart';
+import 'games_screen.dart';
+import 'create_game_screen.dart';
 
 class ScheduleScreen extends StatefulWidget {
   const ScheduleScreen({super.key});
@@ -54,23 +56,26 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                 style: TextStyle(
                     fontFamily: 'InstrumentSerif', fontSize: 22)),
             actions: [
-              Stack(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.notifications_outlined),
-                    onPressed: () {},
-                  ),
-                  const Positioned(
-                    top: 8,
-                    right: 8,
-                    child: NotifBadge(count: 3),
-                  ),
-                ],
+              TextButton.icon(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const GamesScreen()),
+                ),
+                icon: const Icon(Icons.sports_tennis, size: 16),
+                label: const Text('Games', style: TextStyle(fontWeight: FontWeight.w700)),
+                style: TextButton.styleFrom(foregroundColor: RallyColors.accent),
+              ),
+              IconButton(
+                icon: const Icon(Icons.add_circle_outline),
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const CreateGameScreen()),
+                ),
               ),
               const SizedBox(width: 8),
             ],
-            bottom: PreferredSize(
-              preferredSize: const Size.fromHeight(1),
+            bottom: const PreferredSize(
+              preferredSize: Size.fromHeight(1),
               child: Divider(height: 1, color: RallyColors.border),
             ),
           ),

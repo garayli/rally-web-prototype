@@ -187,7 +187,7 @@ class PlayerCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      Icon(Icons.location_on_outlined,
+                      const Icon(Icons.location_on_outlined,
                           size: 12, color: RallyColors.muted),
                       const SizedBox(width: 3),
                       Text(player.location,

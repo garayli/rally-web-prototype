@@ -142,14 +142,14 @@ class LandingScreen extends StatelessWidget {
                 const Spacer(),
 
                 // ── Stats row ────────────────────────────────────────────────
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 28),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 28),
                   child: Row(
                     children: [
                       _StatChip(value: '2,400+', label: 'Players'),
-                      const SizedBox(width: 10),
+                      SizedBox(width: 10),
                       _StatChip(value: '98%', label: 'Match rate'),
-                      const SizedBox(width: 10),
+                      SizedBox(width: 10),
                       _StatChip(value: '4.9★', label: 'Rating'),
                     ],
                   ),
