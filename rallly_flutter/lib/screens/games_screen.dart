@@ -4,7 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../theme/app_theme.dart';
 import '../widgets/shared_widgets.dart';
 import '../models/models.dart';
-import '../services/mock_data.dart';
+import '../services/data_service.dart';
 import 'create_game_screen.dart';
 import 'log_result_screen.dart';
 import 'player_profile_screen.dart';
@@ -76,7 +76,7 @@ class _GamesScreenState extends State<GamesScreen>
 class _UpcomingTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final sessions = MockData.upcomingSessions;
+    final sessions = dataService.getUpcomingSessions();
     if (sessions.isEmpty) {
       return const _EmptyGames(
         icon: '📅',
@@ -213,29 +213,32 @@ class _UpcomingCard extends StatelessWidget {
 
 // ─── Past tab ─────────────────────────────────────────────────────────────────
 class _PastTab extends StatelessWidget {
-  static final List<Map<String, dynamic>> _pastGames = [
-    {
-      'opponent': MockData.players[0],
-      'date': DateTime.now().subtract(const Duration(days: 5)),
-      'court': 'Highbury Fields',
-      'result': 'Won',
-      'score': '6-4, 7-5',
-    },
-    {
-      'opponent': MockData.players[2],
-      'date': DateTime.now().subtract(const Duration(days: 12)),
-      'court': "Regent's Park",
-      'result': 'Lost',
-      'score': '4-6, 5-7',
-    },
-    {
-      'opponent': MockData.players[3],
-      'date': DateTime.now().subtract(const Duration(days: 20)),
-      'court': 'Shoreditch Park',
-      'result': 'Won',
-      'score': '6-2, 6-3',
-    },
-  ];
+  static final List<Map<String, dynamic>> _pastGames = () {
+    final players = dataService.getPlayers();
+    return [
+      {
+        'opponent': players[0],
+        'date': DateTime.now().subtract(const Duration(days: 5)),
+        'court': 'Highbury Fields',
+        'result': 'Won',
+        'score': '6-4, 7-5',
+      },
+      {
+        'opponent': players[2],
+        'date': DateTime.now().subtract(const Duration(days: 12)),
+        'court': "Regent's Park",
+        'result': 'Lost',
+        'score': '4-6, 5-7',
+      },
+      {
+        'opponent': players[3],
+        'date': DateTime.now().subtract(const Duration(days: 20)),
+        'court': 'Shoreditch Park',
+        'result': 'Won',
+        'score': '6-2, 6-3',
+      },
+    ];
+  }();
 
   @override
   Widget build(BuildContext context) {

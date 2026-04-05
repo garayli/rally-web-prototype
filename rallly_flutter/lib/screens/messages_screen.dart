@@ -4,7 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../theme/app_theme.dart';
 import '../widgets/shared_widgets.dart';
 import '../models/models.dart';
-import '../services/mock_data.dart';
+import '../services/data_service.dart';
 
 // ─── Inbox screen ────────────────────────────────────────────────────────────
 class MessagesScreen extends StatelessWidget {
@@ -20,15 +20,20 @@ class MessagesScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.edit_outlined),
-            onPressed: () {},
+            onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Edit conversations coming soon'),
+                behavior: SnackBarBehavior.floating,
+              ),
+            ),
           ),
           const SizedBox(width: 8),
         ],
       ),
       body: ListView.builder(
-        itemCount: MockData.conversations.length,
+        itemCount: dataService.getConversations().length,
         itemBuilder: (context, i) {
-          final convo = MockData.conversations[i];
+          final convo = dataService.getConversations()[i];
           return _InboxTile(
             conversation: convo,
             onTap: () => Navigator.push(
@@ -65,7 +70,7 @@ class _InboxTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final last = conversation.lastMessage;
-    final unread = conversation.unreadCount > 0;
+    final unread = conversation.unreadCount(dataService.currentUserId) > 0;
 
     return InkWell(
       onTap: onTap,
@@ -158,7 +163,7 @@ class _InboxTile extends StatelessWidget {
                     style: const TextStyle(
                         fontSize: 11, color: RallyColors.muted),
                   ),
-                if (conversation.unreadCount > 0) ...[
+                if (conversation.unreadCount(dataService.currentUserId) > 0) ...[
                   const SizedBox(height: 4),
                   Container(
                     padding: const EdgeInsets.symmetric(
@@ -168,7 +173,7 @@ class _InboxTile extends StatelessWidget {
                       borderRadius: BorderRadius.circular(100),
                     ),
                     child: Text(
-                      '${conversation.unreadCount}',
+                      '${conversation.unreadCount(dataService.currentUserId)}',
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 10,
@@ -215,7 +220,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
         0,
         ChatMessage(
           id: DateTime.now().toIso8601String(),
-          senderId: 'me',
+          senderId: dataService.currentUserId,
           text: text,
           timestamp: DateTime.now(),
           isRead: false,
@@ -276,7 +281,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
               itemCount: _messages.length,
               itemBuilder: (context, i) {
                 final msg = _messages[i];
-                final isMe = msg.senderId == 'me';
+                final isMe = msg.senderId == dataService.currentUserId;
                 return Align(
                   alignment:
                       isMe ? Alignment.centerRight : Alignment.centerLeft,

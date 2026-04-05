@@ -4,7 +4,7 @@ import 'package:intl/intl.dart';
 import '../theme/app_theme.dart';
 import '../widgets/shared_widgets.dart';
 import '../models/models.dart';
-import '../services/mock_data.dart';
+import '../services/data_service.dart';
 
 class DoublesOrganiseScreen extends StatefulWidget {
   final bool isSingles;
@@ -109,7 +109,7 @@ class _DoublesOrganiseScreenState extends State<DoublesOrganiseScreen> {
             // Opponent
             _SectionLabel(widget.isSingles ? 'CHOOSE OPPONENT' : 'CHOOSE OPPONENT'),
             ..._playerList(
-              players: MockData.players,
+              players: dataService.getPlayers(),
               selected: _opponent,
               onSelect: (p) => setState(() => _opponent = p),
             ),
@@ -118,7 +118,7 @@ class _DoublesOrganiseScreenState extends State<DoublesOrganiseScreen> {
               const SizedBox(height: 20),
               const _SectionLabel('YOUR PARTNER'),
               ..._playerList(
-                players: MockData.players.where((p) => p != _opponent).toList(),
+                players: dataService.getPlayers().where((p) => p != _opponent).toList(),
                 selected: _partner,
                 onSelect: (p) => setState(() => _partner = p),
               ),

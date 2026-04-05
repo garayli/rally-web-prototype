@@ -5,7 +5,7 @@ import 'package:latlong2/latlong.dart';
 import '../theme/app_theme.dart';
 import '../widgets/shared_widgets.dart';
 import '../models/models.dart';
-import '../services/mock_data.dart';
+import '../services/data_service.dart';
 import 'player_profile_screen.dart';
 
 class MapScreen extends StatefulWidget {
@@ -21,12 +21,15 @@ class _MapScreenState extends State<MapScreen> {
   // London-area coordinates (matching the mock data in the HTML prototype)
   static const _center = LatLng(51.5461, -0.1059); // Islington
 
-  static final List<_MapPlayer> _mapPlayers = [
-    _MapPlayer(pos: const LatLng(51.5461, -0.1059), player: MockData.players[0]),
-    _MapPlayer(pos: const LatLng(51.5350, -0.0576), player: MockData.players[1]),
-    _MapPlayer(pos: const LatLng(51.5297, -0.1409), player: MockData.players[2]),
-    _MapPlayer(pos: const LatLng(51.5236, -0.0786), player: MockData.players[3]),
-  ];
+  static final List<_MapPlayer> _mapPlayers = () {
+    final players = dataService.getPlayers();
+    return [
+      _MapPlayer(pos: const LatLng(51.5461, -0.1059), player: players[0]),
+      _MapPlayer(pos: const LatLng(51.5350, -0.0576), player: players[1]),
+      _MapPlayer(pos: const LatLng(51.5297, -0.1409), player: players[2]),
+      _MapPlayer(pos: const LatLng(51.5236, -0.0786), player: players[3]),
+    ];
+  }();
 
   static const _courts = [
     _MapCourt(pos: LatLng(51.5461, -0.1085), name: 'Highbury Fields'),

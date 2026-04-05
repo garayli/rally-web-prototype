@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../models/models.dart';
-import '../services/mock_data.dart';
+import '../services/data_service.dart';
+import '../theme/app_theme.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -17,7 +18,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   @override
   void initState() {
     super.initState();
-    _notifs = List.from(MockData.notifications);
+    _notifs = dataService.getNotifications();
   }
 
   void _accept(AppNotification n) {
@@ -61,7 +62,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     final groupOrder = ['Today', 'Yesterday', 'This Week'];
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F0E8),
+      backgroundColor: RallyColors.bg,
       appBar: AppBar(
         title: const Text('Notifications',
             style: TextStyle(fontFamily: 'InstrumentSerif', fontSize: 22)),
@@ -81,7 +82,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     )).toList()),
             child: const Text('Mark all read',
                 style: TextStyle(
-                    color: Color(0xFF5A8A00), fontWeight: FontWeight.w600)),
+                    color: RallyColors.accent, fontWeight: FontWeight.w600)),
           ),
         ],
       ),
@@ -118,7 +119,7 @@ class _GroupHeader extends StatelessWidget {
         style: const TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w700,
-          color: Color(0xFF9CA3AF),
+          color: RallyColors.muted,
           letterSpacing: 1,
         ),
       ),
@@ -139,8 +140,13 @@ class _NotifTile extends StatelessWidget {
   });
 
   static Color _hex(String hex) {
-    final h = hex.replaceFirst('#', '');
-    return Color(int.parse('FF$h', radix: 16));
+    try {
+      final h = hex.replaceFirst('#', '');
+      if (h.length != 6) return RallyColors.muted;
+      return Color(int.parse('FF$h', radix: 16));
+    } catch (_) {
+      return RallyColors.muted;
+    }
   }
 
   IconData get _icon {
@@ -158,16 +164,16 @@ class _NotifTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final avatarColor = notif.avatarColor != null
+    final Color avatarColor = notif.avatarColor != null
         ? _hex(notif.avatarColor!)
-        : const Color(0xFF5A8A00);
+        : RallyColors.accent;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
-        color: notif.isRead ? Colors.white : const Color(0xFFF0F6F0),
+        color: notif.isRead ? Colors.white : RallyColors.accentLight,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: const Color(0xFFE0D8CC)),
+        border: Border.all(color: RallyColors.border),
       ),
       child: Padding(
         padding: const EdgeInsets.all(14),
@@ -224,7 +230,7 @@ class _NotifTile extends StatelessWidget {
                               height: 7,
                               decoration: const BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: Color(0xFF5A8A00),
+                                color: RallyColors.accent,
                               ),
                             ),
                         ],
@@ -233,7 +239,7 @@ class _NotifTile extends StatelessWidget {
                       Text(notif.body,
                           style: const TextStyle(
                             fontSize: 13,
-                            color: Color(0xFF4B5563),
+                            color: RallyColors.textSecondary,
                             height: 1.4,
                           )),
                       const SizedBox(height: 5),
@@ -241,7 +247,7 @@ class _NotifTile extends StatelessWidget {
                         _timeAgo(notif.timestamp),
                         style: const TextStyle(
                           fontSize: 11,
-                          color: Color(0xFF9CA3AF),
+                          color: RallyColors.muted,
                         ),
                       ),
                     ],
@@ -305,12 +311,12 @@ class _ActionBtn extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 9),
         decoration: BoxDecoration(
-          color: outlined ? Colors.transparent : const Color(0xFF5A8A00),
+          color: outlined ? Colors.transparent : RallyColors.accent,
           borderRadius: BorderRadius.circular(100),
           border: Border.all(
             color: outlined
                 ? const Color(0xFFD4C8B8)
-                : const Color(0xFF5A8A00),
+                : RallyColors.accent,
             width: 1.5,
           ),
         ),

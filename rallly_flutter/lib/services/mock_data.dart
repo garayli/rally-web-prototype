@@ -1,6 +1,9 @@
 import '../models/models.dart';
 
-// ─── Mock data (replace with real Supabase calls) ────────────────────────────
+// ─── Mock data ────────────────────────────────────────────────────────────────
+// Do not call MockData directly from screens — use dataService (data_service.dart).
+// senderId: 'me' is a sentinel for the current user. When Supabase is wired,
+// replace with supabase.auth.currentUser!.id everywhere.
 class MockData {
   MockData._();
 
@@ -186,7 +189,7 @@ class MockData {
         ),
         ChatMessage(
           id: 'msg2',
-          senderId: 'me',
+          senderId: 'me', // sentinel: current user (not a player ID)
           text: 'Same here! Court 3 at 7pm?',
           timestamp: DateTime.now().subtract(const Duration(minutes: 10)),
           isRead: true,
@@ -200,7 +203,7 @@ class MockData {
       messages: [
         ChatMessage(
           id: 'msg3',
-          senderId: 'me',
+          senderId: 'me', // sentinel: current user (not a player ID)
           text: 'Good game yesterday! Rematch next week?',
           timestamp: DateTime.now().subtract(const Duration(hours: 2)),
           isRead: true,

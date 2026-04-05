@@ -4,9 +4,10 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../theme/app_theme.dart';
 import '../widgets/shared_widgets.dart';
 import '../models/models.dart';
-import '../services/mock_data.dart';
+import '../services/data_service.dart';
 import 'games_screen.dart';
 import 'create_game_screen.dart';
+import 'match_screen.dart';
 
 class ScheduleScreen extends StatefulWidget {
   const ScheduleScreen({super.key});
@@ -28,14 +29,14 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   }
 
   List<MatchSession> get _sessionsForDay =>
-      MockData.upcomingSessions.where((s) {
+      dataService.getUpcomingSessions().where((s) {
         final d = s.dateTime;
         return d.year == _selectedDay.year &&
             d.month == _selectedDay.month &&
             d.day == _selectedDay.day;
       }).toList();
 
-  bool _hasEvent(DateTime day) => MockData.upcomingSessions.any((s) {
+  bool _hasEvent(DateTime day) => dataService.getUpcomingSessions().any((s) {
         final d = s.dateTime;
         return d.year == day.year &&
             d.month == day.month &&
@@ -210,7 +211,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                     RallyButton(
                       label: 'Find a new match',
                       icon: Icons.search,
-                      onPressed: () {},
+                      onPressed: () => Navigator.push(context,
+                          MaterialPageRoute(builder: (_) => const MatchScreen())),
                     ),
                   ],
                 ),
@@ -229,7 +231,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           // ── Find new match banner ──────────────────────────────────────────
           SliverToBoxAdapter(
             child: GestureDetector(
-              onTap: () {},
+              onTap: () => Navigator.push(context,
+                  MaterialPageRoute(builder: (_) => const MatchScreen())),
               child: Container(
                 margin: const EdgeInsets.fromLTRB(20, 12, 20, 0),
                 padding: const EdgeInsets.all(18),

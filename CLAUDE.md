@@ -77,6 +77,62 @@ Reusable components to use across screens:
 
 Plain `StatefulWidget` + `setState`. `flutter_riverpod` is in `pubspec.yaml` but not yet wired up — do not introduce Riverpod unless explicitly asked.
 
+## Agent Execution Protocol
+
+When a task is given, all agents run conceptually in parallel — each produces output independently without waiting for others. Every agent focuses only on its own responsibility.
+
+### Agents
+
+| Agent | Responsibility |
+|---|---|
+| **Research** | Best practices, similar patterns, library trade-offs, feasibility |
+| **Plan Reviewer** | Challenges complexity, enforces simplicity, flags over-engineering |
+| **Developer** | Implements the validated plan following project conventions |
+| **Code Reviewer** | Reviews output for correctness, null safety, convention compliance |
+| **Tester** | Writes and runs `flutter analyze` + widget/unit tests |
+
+### Output structure
+
+Every response using the agent workflow must be structured as:
+
+```
+[Agent: Research]
+...findings...
+
+[Agent: Plan Reviewer]
+...verdict and required changes...
+
+[Agent: Developer]
+...implementation summary...
+
+[Agent: Code Reviewer]
+...APPROVED or CHANGES REQUIRED...
+
+[Agent: Tester]
+...ALL TESTS PASS or FAILURES FOUND...
+```
+
+### Synthesis step
+
+After all agents respond, a final **Synthesis** block combines results:
+- What was built
+- Any unresolved issues from review or testing
+- Next recommended action
+
+### When to skip agents
+
+- **Research** — skip for tasks where the approach is already established in the codebase
+- **Plan Reviewer** — skip for single-line fixes with no architectural impact
+- **Tester** — skip for purely cosmetic changes (color swaps, label text)
+
+Always include at minimum: Developer + Code Reviewer.
+
+### Agent definitions
+
+Live in `.claude/agents/` — one file per agent with its system prompt and allowed tools.
+
+---
+
 ## pubspec.yaml Notes
 
 Key dependencies that are declared but not yet actively used in screen code:

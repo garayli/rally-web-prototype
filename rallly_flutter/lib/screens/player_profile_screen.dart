@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../widgets/shared_widgets.dart';
 import '../models/models.dart';
+import '../services/data_service.dart';
 import 'reputation_screen.dart';
+import 'messages_screen.dart';
 
 class PlayerProfileScreen extends StatelessWidget {
   final Player player;
@@ -189,7 +191,15 @@ class PlayerProfileScreen extends StatelessWidget {
                     child: RallyButton(
                       label: 'Request Match',
                       icon: Icons.sports_tennis,
-                      onPressed: () {},
+                      onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Match request sent to ${player.name}!'),
+                          backgroundColor: RallyColors.accent,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12)),
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -197,7 +207,19 @@ class PlayerProfileScreen extends StatelessWidget {
                     width: 52,
                     height: 52,
                     child: OutlinedButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        final existing = dataService.getConversations()
+                            .where((c) => c.other.id == player.id)
+                            .firstOrNull;
+                        final convo = existing ??
+                            Conversation(
+                              id: 'new_${player.id}',
+                              other: player,
+                              messages: const [],
+                            );
+                        Navigator.push(context, MaterialPageRoute(
+                            builder: (_) => ConversationScreen(conversation: convo)));
+                      },
                       style: OutlinedButton.styleFrom(
                         padding: EdgeInsets.zero,
                         shape: const CircleBorder(),
@@ -212,7 +234,12 @@ class PlayerProfileScreen extends StatelessWidget {
                     width: 52,
                     height: 52,
                     child: OutlinedButton(
-                      onPressed: () {},
+                      onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Player saved — coming soon'),
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      ),
                       style: OutlinedButton.styleFrom(
                         padding: EdgeInsets.zero,
                         shape: const CircleBorder(),

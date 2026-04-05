@@ -3,9 +3,10 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../theme/app_theme.dart';
 import '../widgets/shared_widgets.dart';
 import '../models/models.dart';
-import '../services/mock_data.dart';
+import '../services/data_service.dart';
 import 'player_profile_screen.dart';
 import 'map_screen.dart';
+import 'notifications_screen.dart';
 
 class MatchScreen extends StatefulWidget {
   const MatchScreen({super.key});
@@ -16,13 +17,27 @@ class MatchScreen extends StatefulWidget {
 
 class _MatchScreenState extends State<MatchScreen> {
   String _filter = 'All';
+  String _searchQuery = '';
   final _filters = ['All', 'Beginner', 'Intermediate', 'Advanced'];
+  final _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   List<Player> get _filteredPlayers {
-    if (_filter == 'All') return MockData.players;
-    return MockData.players
-        .where((p) => p.skillLabel == _filter)
-        .toList();
+    var list = _filter == 'All'
+        ? dataService.getPlayers()
+        : dataService.getPlayers().where((p) => p.skillLabel == _filter).toList();
+    if (_searchQuery.isNotEmpty) {
+      final q = _searchQuery.toLowerCase();
+      list = list.where((p) =>
+          p.name.toLowerCase().contains(q) ||
+          p.location.toLowerCase().contains(q)).toList();
+    }
+    return list;
   }
 
   @override
@@ -71,7 +86,8 @@ class _MatchScreenState extends State<MatchScreen> {
                 children: [
                   IconButton(
                     icon: const Icon(Icons.notifications_outlined),
-                    onPressed: () {},
+                    onPressed: () => Navigator.push(context,
+                        MaterialPageRoute(builder: (_) => const NotificationsScreen())),
                   ),
                   const Positioned(
                     top: 8,
@@ -102,12 +118,19 @@ class _MatchScreenState extends State<MatchScreen> {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
               child: TextField(
+                controller: _searchController,
+                onChanged: (v) => setState(() => _searchQuery = v.trim()),
                 decoration: InputDecoration(
                   hintText: 'Search by name or location…',
                   prefixIcon: const Icon(Icons.search, size: 20),
                   suffixIcon: IconButton(
                     icon: const Icon(Icons.tune, size: 20),
-                    onPressed: () {},
+                    onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Advanced filters coming soon'),
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    ),
                   ),
                 ),
               ),

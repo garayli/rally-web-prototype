@@ -4,7 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import '../theme/app_theme.dart';
 import '../widgets/shared_widgets.dart';
 import '../models/models.dart';
-import '../services/mock_data.dart';
+import '../services/data_service.dart';
 import 'result_card_screen.dart';
 
 class LogResultScreen extends StatefulWidget {
@@ -30,35 +30,29 @@ class _LogResultScreenState extends State<LogResultScreen> {
   @override
   void initState() {
     super.initState();
-    _opponent = widget.opponent ?? MockData.players.first;
+    _opponent = widget.opponent ?? dataService.getPlayers().first;
     for (final c in [..._s1, ..._s2, ..._s3]) {
       c.addListener(_autoDetectWinner);
     }
   }
 
   void _autoDetectWinner() {
-    setState(() {}); // Refresh preview
     final s1me = int.tryParse(_s1[0].text) ?? 0;
     final s1op = int.tryParse(_s1[1].text) ?? 0;
     final s2me = int.tryParse(_s2[0].text) ?? 0;
     final s2op = int.tryParse(_s2[1].text) ?? 0;
     int meSets = 0, opSets = 0;
-    if (s1me > s1op) {
-      meSets++;
-    } else if (s1op > s1me) opSets++;
-    if (s2me > s2op) {
-      meSets++;
-    } else if (s2op > s2me) opSets++;
+    if (s1me > s1op) meSets++; else if (s1op > s1me) opSets++;
+    if (s2me > s2op) meSets++; else if (s2op > s2me) opSets++;
     if (_showSet3) {
       final s3me = int.tryParse(_s3[0].text) ?? 0;
       final s3op = int.tryParse(_s3[1].text) ?? 0;
-      if (s3me > s3op) {
-        meSets++;
-      } else if (s3op > s3me) opSets++;
+      if (s3me > s3op) meSets++; else if (s3op > s3me) opSets++;
     }
-    if (meSets > opSets) {
-      setState(() => _winner = 'me');
-    } else if (opSets > meSets) setState(() => _winner = 'opponent');
+    String? newWinner;
+    if (meSets > opSets) newWinner = 'me';
+    else if (opSets > meSets) newWinner = 'opponent';
+    setState(() => _winner = newWinner);
   }
 
   bool get _canSubmit {
@@ -75,10 +69,10 @@ class _LogResultScreenState extends State<LogResultScreen> {
     Future.delayed(const Duration(milliseconds: 600), () {
       if (!mounted) return;
       final sets = <SetScore>[
-        SetScore(int.parse(_s1[0].text), int.parse(_s1[1].text)),
-        SetScore(int.parse(_s2[0].text), int.parse(_s2[1].text)),
+        SetScore(int.tryParse(_s1[0].text) ?? 0, int.tryParse(_s1[1].text) ?? 0),
+        SetScore(int.tryParse(_s2[0].text) ?? 0, int.tryParse(_s2[1].text) ?? 0),
         if (_showSet3 && _s3[0].text.isNotEmpty)
-          SetScore(int.parse(_s3[0].text), int.parse(_s3[1].text)),
+          SetScore(int.tryParse(_s3[0].text) ?? 0, int.tryParse(_s3[1].text) ?? 0),
       ];
       final result = MatchResult(
         winnerId: _winner == 'me' ? 'me' : (_opponent?.id ?? ''),
@@ -128,10 +122,10 @@ class _LogResultScreenState extends State<LogResultScreen> {
               height: 56,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
-                itemCount: MockData.players.length,
+                itemCount: dataService.getPlayers().length,
                 separatorBuilder: (_, __) => const SizedBox(width: 8),
                 itemBuilder: (context, i) {
-                  final p = MockData.players[i];
+                  final p = dataService.getPlayers()[i];
                   final sel = _opponent?.id == p.id;
                   return GestureDetector(
                     onTap: () => setState(() => _opponent = p),

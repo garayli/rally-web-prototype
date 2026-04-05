@@ -24,7 +24,12 @@ class ProfileScreen extends StatelessWidget {
             actions: [
               IconButton(
                 icon: const Icon(Icons.settings_outlined),
-                onPressed: () {},
+                onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Settings coming soon'),
+                    behavior: SnackBarBehavior.floating,
+                  ),
+                ),
               ),
               const SizedBox(width: 8),
             ],
@@ -159,19 +164,25 @@ class ProfileScreen extends StatelessWidget {
                 icon: '👤',
                 label: 'Edit Profile',
                 sub: 'Update name, photo, bio',
-                onTap: () {},
+                onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Edit profile coming soon'), behavior: SnackBarBehavior.floating),
+                ),
               ),
               _SettingsItem(
                 icon: '🎾',
                 label: 'Playing Preferences',
                 sub: 'Level, court type, format',
-                onTap: () {},
+                onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Playing preferences coming soon'), behavior: SnackBarBehavior.floating),
+                ),
               ),
               _SettingsItem(
                 icon: '📅',
                 label: 'Availability',
                 sub: 'Set your weekly schedule',
-                onTap: () {},
+                onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Availability settings coming soon'), behavior: SnackBarBehavior.floating),
+                ),
               ),
               const _SettingsSection(title: 'APP'),
               _SettingsItem(
@@ -184,19 +195,25 @@ class ProfileScreen extends StatelessWidget {
                 icon: '🌙',
                 label: 'Appearance',
                 sub: 'Light / Dark mode',
-                onTap: () {},
+                onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Appearance settings coming soon'), behavior: SnackBarBehavior.floating),
+                ),
               ),
               _SettingsItem(
                 icon: '🔒',
                 label: 'Privacy & Safety',
                 sub: 'Profile visibility',
-                onTap: () {},
+                onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Privacy settings coming soon'), behavior: SnackBarBehavior.floating),
+                ),
               ),
               const _SettingsSection(title: 'ABOUT'),
               _SettingsItem(
                 icon: '📋',
                 label: 'Terms & Privacy',
-                onTap: () {},
+                onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Terms & Privacy coming soon'), behavior: SnackBarBehavior.floating),
+                ),
               ),
               _SettingsItem(
                 icon: '🚪',

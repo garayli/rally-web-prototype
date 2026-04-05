@@ -18,8 +18,13 @@ class PlayerAvatar extends StatelessWidget {
   });
 
   static Color _hex(String hex) {
-    final h = hex.replaceFirst('#', '');
-    return Color(int.parse('FF$h', radix: 16));
+    try {
+      final h = hex.replaceFirst('#', '');
+      if (h.length != 6) return const Color(0xFF9CA3AF);
+      return Color(int.parse('FF$h', radix: 16));
+    } catch (_) {
+      return const Color(0xFF9CA3AF); // RallyColors.muted fallback
+    }
   }
 
   @override
