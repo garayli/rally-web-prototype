@@ -298,6 +298,9 @@ class _StatBox extends StatelessWidget {
           children: [
             Text(
               value,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 fontFamily: 'InstrumentSerif',
                 fontSize: 26,
@@ -309,6 +312,9 @@ class _StatBox extends StatelessWidget {
             const SizedBox(height: 3),
             Text(
               label.toUpperCase(),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 fontSize: 9,
                 color: RallyColors.muted,

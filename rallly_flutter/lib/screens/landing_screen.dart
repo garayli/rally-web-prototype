@@ -232,6 +232,9 @@ class _StatChip extends StatelessWidget {
           children: [
             Text(
               value,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 fontFamily: 'InstrumentSerif',
                 fontSize: 20,
@@ -241,6 +244,9 @@ class _StatChip extends StatelessWidget {
             ),
             Text(
               label,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 fontSize: 10,
                 color: Colors.white54,
