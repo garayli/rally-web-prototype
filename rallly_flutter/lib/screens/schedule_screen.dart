@@ -369,11 +369,15 @@ class _SessionCard extends StatelessWidget {
                   'vs ${session.opponent.name}',
                   style: const TextStyle(
                       fontWeight: FontWeight.w600, fontSize: 14),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
                 ),
                 Text(
                   session.court,
                   style: const TextStyle(
                       fontSize: 12, color: RallyColors.muted),
+                  overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
                 ),
               ],
             ),

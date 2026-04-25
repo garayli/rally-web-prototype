@@ -134,15 +134,21 @@ class _UpcomingCard extends StatelessWidget {
                       Text(
                         'vs ${session.opponent.name}',
                         style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
                       ),
                       const SizedBox(height: 3),
                       Text(
                         '${DateFormat('EEE, MMM d').format(session.dateTime)} · ${DateFormat('h:mm a').format(session.dateTime)}',
                         style: const TextStyle(fontSize: 12, color: RallyColors.muted),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
                       ),
                       Text(
                         session.court,
                         style: const TextStyle(fontSize: 12, color: RallyColors.muted),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
                       ),
                     ],
                   ),
@@ -276,9 +282,9 @@ class _PastTab extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('vs ${player.name}', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
-                    Text(DateFormat('EEE, MMM d').format(g['date'] as DateTime), style: const TextStyle(fontSize: 12, color: RallyColors.muted)),
-                    Text(g['court'] as String, style: const TextStyle(fontSize: 12, color: RallyColors.muted)),
+                    Text('vs ${player.name}', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15), overflow: TextOverflow.ellipsis, maxLines: 1),
+                    Text(DateFormat('EEE, MMM d').format(g['date'] as DateTime), style: const TextStyle(fontSize: 12, color: RallyColors.muted), overflow: TextOverflow.ellipsis, maxLines: 1),
+                    Text(g['court'] as String, style: const TextStyle(fontSize: 12, color: RallyColors.muted), overflow: TextOverflow.ellipsis, maxLines: 1),
                   ],
                 ),
               ),

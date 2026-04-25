@@ -7,6 +7,7 @@ import '../services/data_service.dart';
 import 'player_profile_screen.dart';
 import 'map_screen.dart';
 import 'notifications_screen.dart';
+import 'profile_screen.dart';
 
 class MatchScreen extends StatefulWidget {
   const MatchScreen({super.key});
@@ -97,13 +98,20 @@ class _MatchScreenState extends State<MatchScreen> {
                 ],
               ),
               const SizedBox(width: 4),
-              const Padding(
-                padding: EdgeInsets.only(right: 16),
-                child: PlayerAvatar(
-                  initials: 'AW',
-                  gradientStart: '#e85d3a',
-                  gradientEnd: '#f4956d',
-                  size: 34,
+              InkWell(
+                borderRadius: BorderRadius.circular(17),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ProfileScreen()),
+                ),
+                child: const Padding(
+                  padding: EdgeInsets.only(right: 16),
+                  child: PlayerAvatar(
+                    initials: 'AW',
+                    gradientStart: '#e85d3a',
+                    gradientEnd: '#f4956d',
+                    size: 34,
+                  ),
                 ),
               ),
             ],

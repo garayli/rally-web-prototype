@@ -2,3 +2,7 @@
 .idea/
 .claude/settings.local.json
 .claude/launch.json
+
+# Local test/secret scripts
+test_figma.ps1
+export_prototype_components.ps1

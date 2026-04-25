@@ -255,13 +255,15 @@ class _PlayerMapSheet extends StatelessWidget {
                         children: [
                           Row(
                             children: [
-                              Text(player.name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                              Expanded(
+                                child: Text(player.name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16), overflow: TextOverflow.ellipsis, maxLines: 1),
+                              ),
                               const SizedBox(width: 8),
                               SkillBadge(label: player.skillLabel),
                             ],
                           ),
                           const SizedBox(height: 3),
-                          Text(player.location, style: const TextStyle(fontSize: 13, color: RallyColors.muted)),
+                          Text(player.location, style: const TextStyle(fontSize: 13, color: RallyColors.muted), overflow: TextOverflow.ellipsis, maxLines: 1),
                         ],
                       ),
                     ),

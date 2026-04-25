@@ -132,11 +132,15 @@ class _GameTypeCard extends StatelessWidget {
                   Text(
                     title,
                     style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 18, fontFamily: 'InstrumentSerif'),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
                   const SizedBox(height: 3),
                   Text(
                     subtitle,
                     style: TextStyle(color: Colors.white.withValues(alpha: 0.85), fontSize: 13),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 2,
                   ),
                 ],
               ),

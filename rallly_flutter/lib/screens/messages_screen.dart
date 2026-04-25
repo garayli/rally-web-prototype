@@ -121,6 +121,8 @@ class _InboxTile extends StatelessWidget {
                               unread ? FontWeight.w700 : FontWeight.w600,
                           fontSize: 14,
                         ),
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 1,
                       ),
                       if (unread) ...[
                         const SizedBox(width: 6),

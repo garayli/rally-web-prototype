@@ -291,9 +291,9 @@ class _ScoreHeader extends StatelessWidget {
       children: [
         const SizedBox(width: 60),
         const SizedBox(width: 14),
-        Expanded(child: Center(child: Text(myLabel, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)))),
+        Expanded(child: Center(child: Text(myLabel, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14), overflow: TextOverflow.ellipsis, maxLines: 1))),
         const SizedBox(width: 10),
-        Expanded(child: Center(child: Text(opponentLabel, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: RallyColors.textSecondary)))),
+        Expanded(child: Center(child: Text(opponentLabel, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14, color: RallyColors.textSecondary), overflow: TextOverflow.ellipsis, maxLines: 1))),
       ],
     );
   }

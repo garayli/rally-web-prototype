@@ -178,11 +178,15 @@ class PlayerCard extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      Text(
-                        player.name,
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          fontSize: 15,
+                      Expanded(
+                        child: Text(
+                          player.name,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            fontSize: 15,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -195,9 +199,13 @@ class PlayerCard extends StatelessWidget {
                       const Icon(Icons.location_on_outlined,
                           size: 12, color: RallyColors.muted),
                       const SizedBox(width: 3),
-                      Text(player.location,
-                          style: const TextStyle(
-                              fontSize: 12, color: RallyColors.muted)),
+                      Expanded(
+                        child: Text(player.location,
+                            style: const TextStyle(
+                                fontSize: 12, color: RallyColors.muted),
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1),
+                      ),
                       const SizedBox(width: 10),
                       Text('NTRP ${player.ntrpDisplay}',
                           style: const TextStyle(
