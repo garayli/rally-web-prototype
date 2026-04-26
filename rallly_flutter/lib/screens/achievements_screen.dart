@@ -114,7 +114,7 @@ class AchievementsScreen extends StatelessWidget {
                 crossAxisCount: 3,
                 crossAxisSpacing: 10,
                 mainAxisSpacing: 10,
-                childAspectRatio: 0.85,
+                childAspectRatio: 0.68,
               ),
               delegate: SliverChildBuilderDelegate(
                 (context, i) => _BadgeCard(badge: earned[i]).animate().fadeIn(delay: (i * 40).ms),
@@ -140,7 +140,7 @@ class AchievementsScreen extends StatelessWidget {
                 crossAxisCount: 3,
                 crossAxisSpacing: 10,
                 mainAxisSpacing: 10,
-                childAspectRatio: 0.85,
+                childAspectRatio: 0.68,
               ),
               delegate: SliverChildBuilderDelegate(
                 (context, i) => _BadgeCard(badge: locked[i]).animate().fadeIn(delay: (i * 40).ms),
@@ -161,7 +161,7 @@ class _BadgeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
         color: badge.earned ? RallyColors.white : RallyColors.surface2,
         borderRadius: BorderRadius.circular(16),
@@ -179,8 +179,8 @@ class _BadgeCard extends StatelessWidget {
             alignment: Alignment.center,
             children: [
               Container(
-                width: 52,
-                height: 52,
+                width: 46,
+                height: 46,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: badge.earned ? badge.color.withValues(alpha: 0.12) : RallyColors.muted2.withValues(alpha: 0.3),
@@ -211,6 +211,8 @@ class _BadgeCard extends StatelessWidget {
           Text(
             badge.title,
             textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: TextStyle(
               fontWeight: FontWeight.w700,
               fontSize: 11,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../services/data_service.dart';
 import '../theme/app_theme.dart';
 
 class NotificationPreferencesScreen extends StatefulWidget {
@@ -10,26 +11,17 @@ class NotificationPreferencesScreen extends StatefulWidget {
 }
 
 class _NotificationPreferencesScreenState extends State<NotificationPreferencesScreen> {
-  final _prefs = <String, bool>{
-    'match_requests': true,
-    'match_confirmations': true,
-    'match_reminders': true,
-    'match_cancellations': true,
-    'messages': true,
-    'new_reviews': true,
-    'result_confirmed': true,
-    'nearby_players': false,
-    'marketing': false,
-  };
+  late final Map<String, bool> _prefs = dataService.getNotifPrefs();
 
   bool _saved = false;
 
   void _save() {
+    dataService.saveNotifPrefs(_prefs);
     setState(() => _saved = true);
     Future.delayed(const Duration(seconds: 2), () {
       if (mounted) setState(() => _saved = false);
     });
-    // TODO: save to Supabase profiles.notification_prefs
+    // TODO: persist to Supabase profiles.notification_prefs
   }
 
   @override

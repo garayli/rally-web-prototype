@@ -25,6 +25,22 @@ Project configuration, credentials, and constants.
 | InstrumentSerif Font | Google Fonts |
 | Plus Jakarta Sans | Google Fonts |
 
+## Figma MCP
+
+| Key | Value |
+|-----|-------|
+| Account | leyla.garayli@gmail.com |
+| Team | Lei La's team (Starter plan) |
+| Seat | View (read-only) |
+| Token scope | Read only — write-back unavailable on free plan |
+| Token storage | Environment variable `$env:FIGMA_TOKEN` in local scripts only — never commit |
+
+## Connected Devices
+
+| Device | ID |
+|--------|----|
+| SM A566B (Android 16) | `R5CY41DEJZZ` |
+
 ---
 
 ## Notes

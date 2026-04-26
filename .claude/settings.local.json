@@ -89,7 +89,9 @@
       "Bash(grep -v \"^$\")",
       "Bash(python3 -c ':*)",
       "Bash(python -c ':*)",
-      "Bash(node -e ':*)"
+      "Bash(node -e ':*)",
+      "mcp__claude_ai_Supabase__apply_migration",
+      "mcp__claude_ai_Supabase__execute_sql"
     ]
   }
 }

@@ -68,18 +68,22 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             style: TextStyle(fontFamily: 'InstrumentSerif', fontSize: 22)),
         actions: [
           TextButton(
-            onPressed: () => setState(
-                () => _notifs = _notifs.map((n) => AppNotification(
-                      id: n.id,
-                      type: n.type,
-                      title: n.title,
-                      body: n.body,
-                      timestamp: n.timestamp,
-                      isRead: true,
-                      avatarInitials: n.avatarInitials,
-                      avatarColor: n.avatarColor,
-                      actionId: n.actionId,
-                    )).toList()),
+            onPressed: () {
+              dataService.markAllRead();
+              setState(() => _notifs = _notifs
+                  .map((n) => AppNotification(
+                        id: n.id,
+                        type: n.type,
+                        title: n.title,
+                        body: n.body,
+                        timestamp: n.timestamp,
+                        isRead: true,
+                        avatarInitials: n.avatarInitials,
+                        avatarColor: n.avatarColor,
+                        actionId: n.actionId,
+                      ))
+                  .toList());
+            },
             child: const Text('Mark all read',
                 style: TextStyle(
                     color: RallyColors.accent, fontWeight: FontWeight.w600)),

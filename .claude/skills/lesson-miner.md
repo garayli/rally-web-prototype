@@ -32,6 +32,18 @@ Examples of valuable lessons:
 - "We should always do A before B because..."
 - "This pattern is preferred over that pattern for reason Z"
 
+### Flutter-specific patterns to watch for
+- `const` on a service global blocks mutable state — flag if a service needs mutation
+- `BottomNavigationBar items: const [...]` blocks dynamic values inside items — note the fix pattern
+- Hardcoded badge/count values that should derive from a shared data layer
+- `GestureDetector` inside AppBar actions — prefer `InkWell` for reliability
+- `IndexedStack` screens don't rebuild on tab switch — use `ValueNotifier` + `ValueListenableBuilder` for cross-screen reactive state
+- Bottom sheet padding: always `viewInsets.bottom + padding.bottom` — never `viewInsets.bottom` alone (misses system nav bar)
+- Per-session state (sent requests, read conversations, prefs) must live in `DataService`, not local widget `State`
+- Any player name/avatar display should be tappable to `PlayerProfileScreen` by default
+- Supabase FK constraints require real `auth.users` rows — design nullable receiver-side FKs for gradual onboarding
+- Always capture `Navigator.of(context)` and `ScaffoldMessenger.of(context)` before async gaps to avoid `use_build_context_synchronously` lint errors
+
 ## How to analyze
 
 1. Review the conversation history for:
@@ -71,10 +83,20 @@ Present your findings to the user in this format:
 Would you like me to apply these changes to CLAUDE.md?
 ```
 
+## Where to record lessons
+
+Route each lesson to the right file:
+
+| Lesson type | Target file |
+|-------------|-------------|
+| Coding patterns, Flutter conventions, agent rules | `CLAUDE.md` |
+| Bug encountered + fix + prevention | `docs/project_notes/bugs.md` |
+| Architectural or tooling decision with rationale | `docs/project_notes/decisions.md` |
+| Config, credentials, device IDs, external services | `docs/project_notes/key_facts.md` |
+
 ## Important constraints
 
-- **DO NOT** modify any files except CLAUDE.md
-- **DO NOT** propose changes to other documentation files
 - **WAIT** for user confirmation before making any changes
 - If no valuable lessons found, say "No lessons to extract this session"
-- Keep proposals concise — CLAUDE.md should remain readable
+- Keep entries concise and scannable
+- Never write secrets or tokens into any file

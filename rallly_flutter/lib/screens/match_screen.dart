@@ -21,6 +21,7 @@ class _MatchScreenState extends State<MatchScreen> {
   String _searchQuery = '';
   final _filters = ['All', 'Beginner', 'Intermediate', 'Advanced'];
   final _searchController = TextEditingController();
+  final _sentRequests = <String>{}; // tracks player IDs already requested
 
   @override
   void dispose() {
@@ -83,19 +84,22 @@ class _MatchScreenState extends State<MatchScreen> {
               ),
             ),
             actions: [
-              Stack(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.notifications_outlined),
-                    onPressed: () => Navigator.push(context,
-                        MaterialPageRoute(builder: (_) => const NotificationsScreen())),
-                  ),
-                  const Positioned(
-                    top: 8,
-                    right: 8,
-                    child: NotifBadge(count: 3),
-                  ),
-                ],
+              ValueListenableBuilder<int>(
+                valueListenable: dataService.unreadNotifier,
+                builder: (context, count, _) => Stack(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.notifications_outlined),
+                      onPressed: () => Navigator.push(context,
+                          MaterialPageRoute(builder: (_) => const NotificationsScreen())),
+                    ),
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: NotifBadge(count: count),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(width: 4),
               InkWell(
@@ -231,7 +235,11 @@ class _MatchScreenState extends State<MatchScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _RequestSheet(player: player),
+      builder: (_) => _RequestSheet(
+        player: player,
+        alreadySent: _sentRequests.contains(player.id),
+        onSent: () => setState(() => _sentRequests.add(player.id)),
+      ),
     );
   }
 }
@@ -239,7 +247,9 @@ class _MatchScreenState extends State<MatchScreen> {
 // ─── Request match bottom sheet ───────────────────────────────────────────────
 class _RequestSheet extends StatefulWidget {
   final Player player;
-  const _RequestSheet({required this.player});
+  final bool alreadySent;
+  final VoidCallback onSent;
+  const _RequestSheet({required this.player, required this.alreadySent, required this.onSent});
 
   @override
   State<_RequestSheet> createState() => _RequestSheetState();
@@ -249,6 +259,7 @@ class _RequestSheetState extends State<_RequestSheet> {
   final String _selectedFormat = 'Singles';
   final String _selectedTime = 'Saturday 10:00am';
   final String _selectedCourt = 'London Fields';
+  late bool _sent = widget.alreadySent;
 
   @override
   Widget build(BuildContext context) {
@@ -258,7 +269,10 @@ class _RequestSheetState extends State<_RequestSheet> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       padding: EdgeInsets.fromLTRB(
-        24, 16, 24, MediaQuery.of(context).viewInsets.bottom + 28),
+        24, 16, 24,
+        MediaQuery.of(context).viewInsets.bottom +
+            MediaQuery.of(context).padding.bottom +
+            28),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -328,20 +342,27 @@ class _RequestSheetState extends State<_RequestSheet> {
 
           const SizedBox(height: 24),
           RallyButton(
-            label: 'Send Request 🎾',
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                      'Match request sent to ${widget.player.name}!'),
-                  backgroundColor: RallyColors.accent,
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              );
+            label: _sent ? 'Request Sent ✓' : 'Send Request 🎾',
+            onPressed: _sent ? null : () {
+              setState(() => _sent = true);
+              widget.onSent();
+              final nav = Navigator.of(context);
+              final messenger = ScaffoldMessenger.of(context);
+              Future.delayed(const Duration(milliseconds: 1200), () {
+                if (mounted) {
+                  nav.pop();
+                  messenger.showSnackBar(
+                    SnackBar(
+                      content: Text('Match request sent to ${widget.player.name}!'),
+                      backgroundColor: RallyColors.accent,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  );
+                }
+              });
             },
           ),
         ],

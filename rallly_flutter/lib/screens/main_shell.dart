@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../services/data_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/shared_widgets.dart';
 import 'match_screen.dart';
@@ -50,56 +51,59 @@ class _MainShellState extends State<MainShell> {
             ),
           ],
         ),
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: (i) => setState(() => _currentIndex = i),
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.sports_tennis_outlined),
-              activeIcon: Icon(Icons.sports_tennis),
-              label: 'Match',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.calendar_today_outlined),
-              activeIcon: Icon(Icons.calendar_today),
-              label: 'Schedule',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.chat_bubble_outline),
-              activeIcon: Icon(Icons.chat_bubble),
-              label: 'Messages',
-            ),
-            BottomNavigationBarItem(
-              icon: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Icon(Icons.notifications_outlined),
-                  Positioned(
-                    top: -2,
-                    right: -4,
-                    child: NotifBadge(count: 3),
-                  ),
-                ],
+        child: ValueListenableBuilder<int>(
+          valueListenable: dataService.unreadNotifier,
+          builder: (context, unreadCount, _) => BottomNavigationBar(
+            currentIndex: _currentIndex,
+            onTap: (i) => setState(() => _currentIndex = i),
+            items: [
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.sports_tennis_outlined),
+                activeIcon: Icon(Icons.sports_tennis),
+                label: 'Match',
               ),
-              activeIcon: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Icon(Icons.notifications),
-                  Positioned(
-                    top: -2,
-                    right: -4,
-                    child: NotifBadge(count: 3),
-                  ),
-                ],
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.calendar_today_outlined),
+                activeIcon: Icon(Icons.calendar_today),
+                label: 'Schedule',
               ),
-              label: 'Notifs',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline),
-              activeIcon: Icon(Icons.person),
-              label: 'Profile',
-            ),
-          ],
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.chat_bubble_outline),
+                activeIcon: Icon(Icons.chat_bubble),
+                label: 'Messages',
+              ),
+              BottomNavigationBarItem(
+                icon: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    const Icon(Icons.notifications_outlined),
+                    Positioned(
+                      top: -2,
+                      right: -4,
+                      child: NotifBadge(count: unreadCount),
+                    ),
+                  ],
+                ),
+                activeIcon: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    const Icon(Icons.notifications),
+                    Positioned(
+                      top: -2,
+                      right: -4,
+                      child: NotifBadge(count: unreadCount),
+                    ),
+                  ],
+                ),
+                label: 'Notifs',
+              ),
+              const BottomNavigationBarItem(
+                icon: Icon(Icons.person_outline),
+                activeIcon: Icon(Icons.person),
+                label: 'Profile',
+              ),
+            ],
+          ),
         ),
       ),
     );
