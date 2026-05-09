@@ -91,4 +91,21 @@ Made `receiver_id` nullable and kept FK as a nullable reference (migration: `mak
 
 ---
 
+## ADR-005: matches.opponent_id stored as text, no FK until real profiles exist
+**Date:** 2026-05-09
+**Status:** Accepted
+
+### Context
+The `matches` table insert uses `opponent_id: widget.player.id`, but mock player IDs are short strings (`'p1'`, `'p2'`), not UUIDs. A FK constraint `opponent_id → profiles.id` would reject every insert until real player profiles are in the DB — the same problem that occurred with `messages.receiver_id` (see ADR-004).
+
+### Decision
+Define `opponent_id` as `text` (no FK) in the `matches` table for now. Once real player onboarding is built and all players have Supabase profile rows, convert to `uuid` with a FK constraint.
+
+### Consequences
+- **Positive:** Inserts succeed immediately in dev/testing with mock data.
+- **Negative:** No referential integrity on `opponent_id` until migration. Queries joining matches → profiles won't work yet.
+- **How to apply:** When adding the FK later, run a migration to cast existing `text` values to `uuid` (mock IDs will need to be cleaned up or the rows deleted).
+
+---
+
 <!-- Add new ADRs above this line -->

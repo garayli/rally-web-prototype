@@ -44,7 +44,7 @@ class PlayerProfileScreen extends StatelessWidget {
                         Icon(Icons.arrow_back_ios_new,
                             size: 14, color: RallyColors.textSecondary),
                         SizedBox(width: 4),
-                        Text('Back',
+                        Text('Geri',
                             style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
@@ -119,10 +119,10 @@ class PlayerProfileScreen extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      _StatBox(value: '${player.wins}', label: 'Wins', green: true),
-                      _StatBox(value: '${player.losses}', label: 'Losses'),
-                      _StatBox(value: '${player.matchesPlayed}', label: 'Played'),
-                      _StatBox(value: '${player.winRate.round()}%', label: 'Win Rate'),
+                      _StatBox(value: '${player.wins}', label: 'Galibiyet', green: true),
+                      _StatBox(value: '${player.losses}', label: 'Mağlubiyet'),
+                      _StatBox(value: '${player.matchesPlayed}', label: 'Oynandı'),
+                      _StatBox(value: '${player.winRate.round()}%', label: 'Kazanma %'),
                     ],
                   ),
                   InkWell(
@@ -135,7 +135,7 @@ class PlayerProfileScreen extends StatelessWidget {
                         children: [
                           Icon(Icons.star, size: 14, color: Color(0xFFFFD700)),
                           SizedBox(width: 5),
-                          Text('4.9 · See all reviews', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: RallyColors.accent)),
+                          Text('4.9 · Tüm değerlendirmeleri gör', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: RallyColors.accent)),
                         ],
                       ),
                     ),
@@ -152,7 +152,7 @@ class PlayerProfileScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const _InfoTitle('ABOUT'),
+                  const _InfoTitle('HAKKINDA'),
                   const SizedBox(height: 10),
                   Text(
                     player.about,
@@ -163,11 +163,11 @@ class PlayerProfileScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 22),
-                  const _InfoTitle('AVAILABILITY'),
+                  const _InfoTitle('MÜSAİTLİK'),
                   const SizedBox(height: 12),
                   _AvailabilityGrid(availability: player.availability),
                   const SizedBox(height: 22),
-                  const _InfoTitle('PREFERRED COURTS'),
+                  const _InfoTitle('TERCİH EDİLEN KORTLAR'),
                   const SizedBox(height: 10),
                   Wrap(
                     spacing: 8,
@@ -189,11 +189,11 @@ class PlayerProfileScreen extends StatelessWidget {
                 children: [
                   Expanded(
                     child: RallyButton(
-                      label: 'Request Match',
+                      label: 'Maç İste',
                       icon: Icons.sports_tennis,
                       onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('Match request sent to ${player.name}!'),
+                          content: Text('${player.name} oyuncusuna maç isteği gönderildi!'),
                           backgroundColor: RallyColors.accent,
                           behavior: SnackBarBehavior.floating,
                           shape: RoundedRectangleBorder(
@@ -236,7 +236,7 @@ class PlayerProfileScreen extends StatelessWidget {
                     child: OutlinedButton(
                       onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('Player saved — coming soon'),
+                          content: Text('Oyuncu kaydedildi — yakında'),
                           behavior: SnackBarBehavior.floating,
                         ),
                       ),
@@ -351,7 +351,7 @@ class _AvailabilityGrid extends StatelessWidget {
   final List<String> availability;
   const _AvailabilityGrid({required this.availability});
 
-  static const _days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  static const _days = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
 
   String _slotFor(String day) {
     final match = availability.firstWhere(
@@ -359,9 +359,9 @@ class _AvailabilityGrid extends StatelessWidget {
       orElse: () => '',
     );
     if (match.isEmpty) return '';
-    if (match.contains('Full')) return 'Full';
-    if (match.contains('AM')) return 'AM';
-    if (match.contains('PM')) return 'PM';
+    if (match.contains('Tam')) return 'Tam';
+    if (match.contains('ÖÖ')) return 'ÖÖ';
+    if (match.contains('ÖS')) return 'ÖS';
     return '';
   }
 
@@ -372,9 +372,9 @@ class _AvailabilityGrid extends StatelessWidget {
         final slot = _slotFor(day);
         Color bg = RallyColors.surface2;
         Color fg = RallyColors.muted;
-        if (slot == 'Full') { bg = RallyColors.accent; fg = Colors.white; }
-        else if (slot == 'AM') { bg = RallyColors.accentLight; fg = RallyColors.accent; }
-        else if (slot == 'PM') { bg = const Color(0xFFFFF4E6); fg = const Color(0xFFC46A00); }
+        if (slot == 'Tam') { bg = RallyColors.accent; fg = Colors.white; }
+        else if (slot == 'ÖÖ') { bg = RallyColors.accentLight; fg = RallyColors.accent; }
+        else if (slot == 'ÖS') { bg = const Color(0xFFFFF4E6); fg = const Color(0xFFC46A00); }
 
         return Expanded(
           child: Column(

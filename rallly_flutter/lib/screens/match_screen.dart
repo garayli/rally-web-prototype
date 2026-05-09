@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:intl/intl.dart';
 import '../theme/app_theme.dart';
 import '../widgets/shared_widgets.dart';
 import '../models/models.dart';
 import '../services/data_service.dart';
+import '../main.dart' show supabase;
 import 'player_profile_screen.dart';
 import 'map_screen.dart';
 import 'notifications_screen.dart';
 import 'profile_screen.dart';
+import 'open_lobby_screen.dart';
 
 class MatchScreen extends StatefulWidget {
   const MatchScreen({super.key});
@@ -17,11 +20,19 @@ class MatchScreen extends StatefulWidget {
 }
 
 class _MatchScreenState extends State<MatchScreen> {
-  String _filter = 'All';
+  String _filter = 'Tümü';
   String _searchQuery = '';
-  final _filters = ['All', 'Beginner', 'Intermediate', 'Advanced'];
+  final _filters = ['Tümü', 'Başlangıç', 'Orta Seviye', 'İleri Seviye'];
   final _searchController = TextEditingController();
-  final _sentRequests = <String>{}; // tracks player IDs already requested
+  final _sentRequests = <String>{};
+  List<Map<String, dynamic>> _lobbies = [];
+  bool _lobbiesLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLobbies();
+  }
 
   @override
   void dispose() {
@@ -29,8 +40,27 @@ class _MatchScreenState extends State<MatchScreen> {
     super.dispose();
   }
 
+  Future<void> _loadLobbies() async {
+    try {
+      final data = await supabase
+          .from('lobbies')
+          .select()
+          .eq('is_public', true)
+          .eq('status', 'open')
+          .order('date_time');
+      if (mounted) {
+        setState(() {
+          _lobbies = List<Map<String, dynamic>>.from(data);
+          _lobbiesLoading = false;
+        });
+      }
+    } catch (_) {
+      if (mounted) setState(() => _lobbiesLoading = false);
+    }
+  }
+
   List<Player> get _filteredPlayers {
-    var list = _filter == 'All'
+    var list = _filter == 'Tümü'
         ? dataService.getPlayers()
         : dataService.getPlayers().where((p) => p.skillLabel == _filter).toList();
     if (_searchQuery.isNotEmpty) {
@@ -111,9 +141,9 @@ class _MatchScreenState extends State<MatchScreen> {
                 child: const Padding(
                   padding: EdgeInsets.only(right: 16),
                   child: PlayerAvatar(
-                    initials: 'AW',
-                    gradientStart: '#e85d3a',
-                    gradientEnd: '#f4956d',
+                    initials: 'LG',
+                    gradientStart: '#7b4fa6',
+                    gradientEnd: '#a97fcb',
                     size: 34,
                   ),
                 ),
@@ -133,13 +163,13 @@ class _MatchScreenState extends State<MatchScreen> {
                 controller: _searchController,
                 onChanged: (v) => setState(() => _searchQuery = v.trim()),
                 decoration: InputDecoration(
-                  hintText: 'Search by name or location…',
+                  hintText: 'İsim veya konum ara…',
                   prefixIcon: const Icon(Icons.search, size: 20),
                   suffixIcon: IconButton(
                     icon: const Icon(Icons.tune, size: 20),
                     onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('Advanced filters coming soon'),
+                        content: Text('Gelişmiş filtreler yakında'),
                         behavior: SnackBarBehavior.floating,
                       ),
                     ),
@@ -191,11 +221,45 @@ class _MatchScreenState extends State<MatchScreen> {
             ),
           ),
 
+          // ── Open lobbies ───────────────────────────────────────────────────
+          if (_lobbiesLoading || _lobbies.isNotEmpty)
+            SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SectionHeader(
+                    title: 'AÇIK LOBİLER',
+                    action: 'Lobi Oluştur',
+                    onAction: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const OpenLobbyScreen()),
+                    ).then((_) => _loadLobbies()),
+                  ),
+                  if (_lobbiesLoading)
+                    const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 20),
+                      child: Center(child: CircularProgressIndicator()),
+                    )
+                  else
+                    SizedBox(
+                      height: 180,
+                      child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        padding: const EdgeInsets.fromLTRB(20, 4, 20, 8),
+                        itemCount: _lobbies.length,
+                        itemBuilder: (context, i) =>
+                            _LobbyCard(lobby: _lobbies[i]),
+                      ),
+                    ),
+                ],
+              ),
+            ),
+
           // ── Players header ─────────────────────────────────────────────────
           SliverToBoxAdapter(
             child: SectionHeader(
-              title: '${_filteredPlayers.length} PLAYERS NEARBY',
-              action: 'Map view',
+              title: '${_filteredPlayers.length} YAKINDA OYUNCU',
+              action: 'Harita',
               onAction: () => Navigator.push(
                 context,
                 MaterialPageRoute(builder: (_) => const MapScreen()),
@@ -256,10 +320,53 @@ class _RequestSheet extends StatefulWidget {
 }
 
 class _RequestSheetState extends State<_RequestSheet> {
-  final String _selectedFormat = 'Singles';
-  final String _selectedTime = 'Saturday 10:00am';
-  final String _selectedCourt = 'London Fields';
+  final String _selectedFormat = 'Tekler';
+  final String _selectedTime = 'Cumartesi 10:00';
+  final String _selectedCourt = 'Caddebostan Tenis Kortları';
   late bool _sent = widget.alreadySent;
+  bool _loading = false;
+
+  Future<void> _sendRequest() async {
+    if (_sent || _loading) return;
+    setState(() => _loading = true);
+    try {
+      final userId = supabase.auth.currentUser?.id;
+      final proposedDate = DateTime.now().add(const Duration(days: 7));
+      await supabase.from('matches').insert({
+        'player1_id': userId,
+        'player2_id': null, // mock player IDs are not UUIDs — populated when real profiles exist
+        'date_time': proposedDate.toUtc().toIso8601String(),
+        'court': _selectedCourt,
+        'status': 'pending',
+        'format': _selectedFormat == 'Tekler' ? 'singles' : 'doubles',
+      });
+      if (!mounted) return;
+      setState(() { _sent = true; _loading = false; });
+      widget.onSent();
+      final nav = Navigator.of(context);
+      final messenger = ScaffoldMessenger.of(context);
+      Future.delayed(const Duration(milliseconds: 1200), () {
+        if (mounted) {
+          nav.pop();
+          messenger.showSnackBar(SnackBar(
+            content: Text('${widget.player.name} oyuncusuna maç isteği gönderildi!'),
+            backgroundColor: RallyColors.accent,
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          ));
+        }
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _loading = false);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('İstek gönderilemedi: $e'),
+        backgroundColor: RallyColors.accent2,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ));
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -301,7 +408,7 @@ class _RequestSheetState extends State<_RequestSheet> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Request match',
+                    'Maç İsteği',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.w700,
                         ),
@@ -328,42 +435,115 @@ class _RequestSheetState extends State<_RequestSheet> {
           const Divider(height: 1),
           _SheetRow(
             icon: Icons.schedule,
-            label: 'Time',
+            label: 'Saat',
             value: _selectedTime,
             onTap: () {},
           ),
           const Divider(height: 1),
           _SheetRow(
             icon: Icons.location_on_outlined,
-            label: 'Court',
+            label: 'Kort',
             value: _selectedCourt,
             onTap: () {},
           ),
 
           const SizedBox(height: 24),
           RallyButton(
-            label: _sent ? 'Request Sent ✓' : 'Send Request 🎾',
-            onPressed: _sent ? null : () {
-              setState(() => _sent = true);
-              widget.onSent();
-              final nav = Navigator.of(context);
-              final messenger = ScaffoldMessenger.of(context);
-              Future.delayed(const Duration(milliseconds: 1200), () {
-                if (mounted) {
-                  nav.pop();
-                  messenger.showSnackBar(
-                    SnackBar(
-                      content: Text('Match request sent to ${widget.player.name}!'),
-                      backgroundColor: RallyColors.accent,
-                      behavior: SnackBarBehavior.floating,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                  );
-                }
-              });
-            },
+            label: _sent ? 'İstek Gönderildi ✓' : 'İstek Gönder 🎾',
+            loading: _loading,
+            onPressed: (_sent || _loading) ? null : _sendRequest,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Open lobby card ─────────────────────────────────────────────────────────
+class _LobbyCard extends StatelessWidget {
+  final Map<String, dynamic> lobby;
+  const _LobbyCard({required this.lobby});
+
+  static const _sportEmojis = {
+    'Tenis': '🎾', 'Padel': '🏓', 'Badminton': '🏸', 'Squash': '🟡',
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    final dt = DateTime.tryParse(lobby['date_time'] as String? ?? '')?.toLocal();
+    final sport = lobby['sport'] as String? ?? 'Tenis';
+    final court = lobby['court'] as String? ?? '';
+    final skill = lobby['skill_level'] as String? ?? '';
+
+    return Container(
+      width: 178,
+      margin: const EdgeInsets.only(right: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: RallyColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: RallyColors.border),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(_sportEmojis[sport] ?? '🎾', style: const TextStyle(fontSize: 18)),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(sport,
+                    style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+                    overflow: TextOverflow.ellipsis),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+            decoration: BoxDecoration(
+              color: RallyColors.accentLight,
+              borderRadius: BorderRadius.circular(100),
+            ),
+            child: Text(skill,
+                style: const TextStyle(
+                    fontSize: 10, fontWeight: FontWeight.w600, color: RallyColors.accent)),
+          ),
+          const SizedBox(height: 8),
+          Text(court,
+              style: const TextStyle(fontSize: 11, color: RallyColors.muted),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis),
+          if (dt != null) ...[
+            const SizedBox(height: 3),
+            Text(DateFormat('EEE d MMM, HH:mm').format(dt),
+                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600)),
+          ],
+          const SizedBox(height: 8),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: () => ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content: Text('$sport lobisine katılma isteği gönderildi!'),
+                backgroundColor: RallyColors.accent,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              )),
+              style: FilledButton.styleFrom(
+                backgroundColor: RallyColors.accent,
+                minimumSize: const Size(0, 32),
+                padding: EdgeInsets.zero,
+                textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+              ),
+              child: const Text('Katıl'),
+            ),
           ),
         ],
       ),

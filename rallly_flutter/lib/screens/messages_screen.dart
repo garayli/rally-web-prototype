@@ -22,14 +22,14 @@ class _MessagesScreenState extends State<MessagesScreen> {
     return Scaffold(
       backgroundColor: RallyColors.bg,
       appBar: AppBar(
-        title: const Text('Messages',
+        title: const Text('Mesajlar',
             style: TextStyle(fontFamily: 'InstrumentSerif', fontSize: 22)),
         actions: [
           IconButton(
             icon: const Icon(Icons.edit_outlined),
             onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Edit conversations coming soon'),
+                content: Text('Konuşma düzenleme yakında'),
                 behavior: SnackBarBehavior.floating,
               ),
             ),
@@ -294,7 +294,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                       style: const TextStyle(
                           fontWeight: FontWeight.w700, fontSize: 15)),
                   if (widget.conversation.isOnline)
-                    const Text('Online',
+                    const Text('Çevrimiçi',
                         style: TextStyle(
                           fontSize: 12,
                           color: Color(0xFF4CAF50),
@@ -307,21 +307,21 @@ class _ConversationScreenState extends State<ConversationScreen> {
         ),
         actions: [
           IconButton(
-            tooltip: 'Video Call',
+            tooltip: 'Görüntülü Arama',
             icon: const Icon(Icons.videocam_outlined),
             onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text('Video calls coming soon'),
+                content: Text('Görüntülü aramalar yakında'),
                 behavior: SnackBarBehavior.floating,
               ),
             ),
           ),
           IconButton(
-            tooltip: 'Request Match',
+            tooltip: 'Maç İste',
             icon: const Icon(Icons.sports_tennis),
             onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('Match request sent to ${widget.conversation.other.name.split(' ').first}! 🎾'),
+                content: Text('${widget.conversation.other.name.split(' ').first} oyuncusuna maç isteği gönderildi! 🎾'),
                 backgroundColor: RallyColors.accent,
                 behavior: SnackBarBehavior.floating,
               ),
@@ -413,7 +413,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                   child: TextField(
                     controller: _controller,
                     decoration: InputDecoration(
-                      hintText: 'Message ${widget.conversation.other.name.split(' ').first}…',
+                      hintText: '${widget.conversation.other.name.split(' ').first} ile mesajlaş…',
                       contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 10),
                       border: OutlineInputBorder(

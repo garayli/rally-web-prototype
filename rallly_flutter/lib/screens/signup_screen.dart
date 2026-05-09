@@ -33,24 +33,24 @@ class _SignupScreenState extends State<SignupScreen> {
   bool _loading = false;
 
   static const _sports = [
-    ('🎾', 'Tennis', 'Singles & doubles'),
-    ('🏓', 'Padel', 'Racquet sport'),
-    ('🏸', 'Badminton', 'Indoor & outdoor'),
-    ('🔲', 'Squash', 'Court sport'),
+    ('🎾', 'Tenis', 'Tekler & çiftler'),
+    ('🏓', 'Padel', 'Raket sporu'),
+    ('🏸', 'Badminton', 'İç mekan & açık alan'),
+    ('🔲', 'Squash', 'Kort sporu'),
   ];
 
   static const _skills = [
-    ('🟢', 'Beginner', 'Under 1 year playing'),
-    ('🟡', 'Intermediate', '1–4 years experience'),
-    ('🟠', 'Advanced', 'Competitive play'),
-    ('🔴', 'Expert', 'Tournament level'),
+    ('🟢', 'Başlangıç', '1 yıldan az oynayan'),
+    ('🟡', 'Orta Seviye', '1–4 yıl deneyim'),
+    ('🟠', 'İleri Seviye', 'Rekabetçi oyun'),
+    ('🔴', 'Uzman', 'Turnuva seviyesi'),
   ];
 
-  static const _days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  static const _days = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
   static const _times = [
-    ('🌅', 'Morning', '6am–12pm'),
-    ('☀️', 'Afternoon', '12pm–6pm'),
-    ('🌙', 'Evening', '6pm–11pm'),
+    ('🌅', 'Sabah', '06:00–12:00'),
+    ('☀️', 'Öğleden Sonra', '12:00–18:00'),
+    ('🌙', 'Akşam', '18:00–23:00'),
   ];
 
   void _next() {
@@ -202,7 +202,7 @@ class _SignupScreenState extends State<SignupScreen> {
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
               child: RallyButton(
-                label: _step == 3 ? 'Finish — Let\'s play 🎾' : 'Continue',
+                label: _step == 3 ? 'Bitir — Oynayalım 🎾' : 'Devam',
                 onPressed: _canProceed ? _next : null,
                 loading: _loading,
               ),
@@ -230,12 +230,12 @@ class _Step1 extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Tell us about yourself',
+            'Kendinizden bahsedin',
             style: TextStyle(fontFamily: 'InstrumentSerif', fontSize: 32, letterSpacing: -1.5, height: 1.1),
           ).animate().fadeIn().slideY(begin: 0.1, end: 0),
           const SizedBox(height: 8),
           const Text(
-            'Help players find and connect with you',
+            'Oyuncuların sizi bulmasına yardımcı olun',
             style: TextStyle(color: RallyColors.textSecondary, fontSize: 15, height: 1.5),
           ).animate().fadeIn(delay: 80.ms),
           const SizedBox(height: 32),
@@ -244,8 +244,8 @@ class _Step1 extends StatelessWidget {
             onChanged: (_) => onChanged(),
             textCapitalization: TextCapitalization.words,
             decoration: const InputDecoration(
-              labelText: 'FULL NAME',
-              hintText: 'e.g. Alex Wilson',
+              labelText: 'AD SOYAD',
+              hintText: 'örn. Leyla Garayli',
               prefixIcon: Icon(Icons.person_outline, size: 18),
             ),
           ).animate().fadeIn(delay: 120.ms),
@@ -254,8 +254,8 @@ class _Step1 extends StatelessWidget {
             controller: locationCtrl,
             onChanged: (_) => onChanged(),
             decoration: const InputDecoration(
-              labelText: 'NEIGHBOURHOOD / CITY',
-              hintText: 'e.g. Islington, London',
+              labelText: 'MAHALLE / ŞEHİR',
+              hintText: 'örn. Beşiktaş, İstanbul',
               prefixIcon: Icon(Icons.location_on_outlined, size: 18),
             ),
           ).animate().fadeIn(delay: 160.ms),
@@ -273,10 +273,10 @@ class _Step2 extends StatelessWidget {
   const _Step2({required this.selected, required this.onChanged});
 
   static const _sports = [
-    ('🎾', 'Tennis', 'Singles & doubles'),
-    ('🏓', 'Padel', 'Racquet sport'),
-    ('🏸', 'Badminton', 'Indoor & outdoor'),
-    ('🔲', 'Squash', 'Court sport'),
+    ('🎾', 'Tenis', 'Tekler & çiftler'),
+    ('🏓', 'Padel', 'Raket sporu'),
+    ('🏸', 'Badminton', 'İç mekan & açık alan'),
+    ('🔲', 'Squash', 'Kort sporu'),
   ];
 
   @override
@@ -287,12 +287,12 @@ class _Step2 extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'Which sports do you play?',
+            'Hangi sporları oynuyorsunuz?',
             style: TextStyle(fontFamily: 'InstrumentSerif', fontSize: 32, letterSpacing: -1.5, height: 1.1),
           ).animate().fadeIn(),
           const SizedBox(height: 8),
           const Text(
-            'Select all that apply',
+            'Uygun olanları seçin',
             style: TextStyle(color: RallyColors.textSecondary, fontSize: 15),
           ).animate().fadeIn(delay: 80.ms),
           const SizedBox(height: 28),
@@ -353,10 +353,10 @@ class _Step3 extends StatelessWidget {
   const _Step3({required this.selected, required this.onSelect});
 
   static const _skills = [
-    ('🟢', 'Beginner', 'Under 1 year — learning the basics'),
-    ('🟡', 'Intermediate', '1–4 years — comfortable rallying'),
-    ('🟠', 'Advanced', 'Competitive — strong all-round game'),
-    ('🔴', 'Expert', 'Tournament-level — top of the game'),
+    ('🟢', 'Başlangıç', '1 yıldan az — temelleri öğreniyor'),
+    ('🟡', 'Orta Seviye', '1–4 yıl — rahatça ralli yapıyor'),
+    ('🟠', 'İleri Seviye', 'Rekabetçi — güçlü genel oyun'),
+    ('🔴', 'Uzman', 'Turnuva seviyesi — en iyi oyun'),
   ];
 
   @override
@@ -367,12 +367,12 @@ class _Step3 extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'What\'s your skill level?',
+            'Seviyeniz nedir?',
             style: TextStyle(fontFamily: 'InstrumentSerif', fontSize: 32, letterSpacing: -1.5, height: 1.1),
           ).animate().fadeIn(),
           const SizedBox(height: 8),
           const Text(
-            'Be honest — it helps find the best matches',
+            'Dürüst olun — bu en iyi maçları bulmaya yardımcı olur',
             style: TextStyle(color: RallyColors.textSecondary, fontSize: 15),
           ).animate().fadeIn(delay: 80.ms),
           const SizedBox(height: 28),
@@ -438,11 +438,11 @@ class _Step4 extends StatelessWidget {
 
   const _Step4({required this.selectedDays, required this.selectedTimes, required this.onChanged});
 
-  static const _days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  static const _days = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
   static const _times = [
-    ('🌅', 'Morning', '6am–12pm'),
-    ('☀️', 'Afternoon', '12pm–6pm'),
-    ('🌙', 'Evening', '6pm–11pm'),
+    ('🌅', 'Sabah', '06:00–12:00'),
+    ('☀️', 'Öğleden Sonra', '12:00–18:00'),
+    ('🌙', 'Akşam', '18:00–23:00'),
   ];
 
   @override
@@ -453,18 +453,18 @@ class _Step4 extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'When are you usually free?',
+            'Genellikle ne zaman müsaitsiniz?',
             style: TextStyle(fontFamily: 'InstrumentSerif', fontSize: 32, letterSpacing: -1.5, height: 1.1),
           ).animate().fadeIn(),
           const SizedBox(height: 8),
           const Text(
-            'Select your typical availability',
+            'Tipik müsaitliğinizi seçin',
             style: TextStyle(color: RallyColors.textSecondary, fontSize: 15),
           ).animate().fadeIn(delay: 80.ms),
           const SizedBox(height: 28),
 
           // Days grid
-          const Text('DAYS', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: RallyColors.muted, letterSpacing: 0.8)),
+          const Text('GÜNLER', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: RallyColors.muted, letterSpacing: 0.8)),
           const SizedBox(height: 10),
           Row(
             children: _days.map((d) {
@@ -521,7 +521,7 @@ class _Step4 extends StatelessWidget {
           const SizedBox(height: 24),
 
           // Time preference
-          const Text('TIME OF DAY', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: RallyColors.muted, letterSpacing: 0.8)),
+          const Text('GÜNÜN SAATİ', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: RallyColors.muted, letterSpacing: 0.8)),
           const SizedBox(height: 10),
           Row(
             children: _times.map((t) {

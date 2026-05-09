@@ -12,44 +12,44 @@ class ReputationScreen extends StatelessWidget {
 
   static final _reviews = [
     _Review(
-      reviewerInitials: 'MO',
-      reviewerName: 'Marcus Osei',
+      reviewerInitials: 'EK',
+      reviewerName: 'Emre Kaya',
       gradientStart: '#e85d3a',
       gradientEnd: '#f4956d',
       rating: 5,
-      comment: 'Great rallies, very sporting — looking forward to a rematch!',
+      comment: 'Harika ralliler, çok sportif — rövanş için sabırsızlanıyorum!',
       date: DateTime.now().subtract(const Duration(days: 3)),
-      tags: ['Punctual', 'Sportsmanlike', 'Good communication'],
+      tags: ['Dakik', 'Sportif', 'İyi iletişim'],
     ),
     _Review(
-      reviewerInitials: 'SC',
-      reviewerName: 'Sophie Chen',
+      reviewerInitials: 'SD',
+      reviewerName: 'Selin Demir',
       gradientStart: '#7b4fa6',
       gradientEnd: '#a97fcb',
       rating: 5,
-      comment: 'Excellent player, always on time and very fair. Would highly recommend.',
+      comment: 'Mükemmel oyuncu, her zaman zamanında ve çok adil. Kesinlikle tavsiye ederim.',
       date: DateTime.now().subtract(const Duration(days: 14)),
-      tags: ['Punctual', 'Fair play'],
+      tags: ['Dakik', 'Adil oyun'],
     ),
     _Review(
-      reviewerInitials: 'PS',
-      reviewerName: 'Priya Sharma',
+      reviewerInitials: 'ZA',
+      reviewerName: 'Zeynep Arslan',
       gradientStart: '#5a8a00',
       gradientEnd: '#8db600',
       rating: 4,
-      comment: 'Good match, close game. Very competitive but always friendly.',
+      comment: 'Güzel maç, çekişmeli oyun. Çok rekabetçi ama her zaman dostane.',
       date: DateTime.now().subtract(const Duration(days: 28)),
-      tags: ['Competitive', 'Friendly'],
+      tags: ['Rekabetçi', 'Dostane'],
     ),
     _Review(
-      reviewerInitials: 'JW',
-      reviewerName: 'James Whitfield',
+      reviewerInitials: 'BÖ',
+      reviewerName: 'Berk Öztürk',
       gradientStart: '#1a7abf',
       gradientEnd: '#5ba8e0',
       rating: 5,
-      comment: 'Really enjoyed the match. Offered great advice too!',
+      comment: 'Maçtan gerçekten zevk aldım. Harika tavsiyeler de verdi!',
       date: DateTime.now().subtract(const Duration(days: 45)),
-      tags: ['Helpful', 'Friendly'],
+      tags: ['Yardımsever', 'Dostane'],
     ),
   ];
 
@@ -65,13 +65,13 @@ class ReputationScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final name = player?.name.split(' ').first ?? 'Your';
+    final name = player?.name.split(' ').first ?? 'İtibarım';
 
     return Scaffold(
       backgroundColor: RallyColors.bg,
       appBar: AppBar(
         title: Text(
-          '$name Reputation',
+          player == null ? 'İtibarım' : '$name İtibarı',
           style: const TextStyle(fontFamily: 'InstrumentSerif', fontSize: 22),
         ),
         leading: IconButton(
@@ -103,7 +103,7 @@ class ReputationScreen extends StatelessWidget {
                       _StarRow(rating: _avgRating.round(), size: 20),
                       const SizedBox(height: 4),
                       Text(
-                        '${_reviews.length} reviews',
+                        '${_reviews.length} değerlendirme',
                         style: const TextStyle(fontSize: 12, color: RallyColors.muted),
                       ),
                     ],

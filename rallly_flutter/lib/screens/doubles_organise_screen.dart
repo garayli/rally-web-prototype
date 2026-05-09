@@ -25,12 +25,12 @@ class _DoublesOrganiseScreenState extends State<DoublesOrganiseScreen> {
   final _courtCtrl = TextEditingController();
 
   final _courts = [
-    'Highbury Fields',
-    'London Fields',
-    "Regent's Park",
-    'Victoria Park',
-    'Parliament Hill',
-    'Shoreditch Park',
+    'Beşiktaş JK Tenis Kortları',
+    'Caddebostan Tenis Kortları',
+    'Galatasaray Tenis Kulübü',
+    'ENKA Spor Kortları',
+    'Fenerbahçe SK Tenis Kortları',
+    'Acıbadem Tenis Kulübü',
   ];
 
   Future<void> _pickDate() async {
@@ -73,8 +73,8 @@ class _DoublesOrganiseScreenState extends State<DoublesOrganiseScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(widget.isSingles
-              ? 'Match request sent to ${_opponent!.name}!'
-              : 'Doubles invites sent!'),
+              ? '${_opponent!.name} adlı oyuncuya maç isteği gönderildi!'
+              : 'Çiftler davetiyesi gönderildi!'),
           backgroundColor: RallyColors.accent,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -91,7 +91,7 @@ class _DoublesOrganiseScreenState extends State<DoublesOrganiseScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final title = widget.isSingles ? 'Singles Match' : 'Doubles Match';
+    final title = widget.isSingles ? 'Tekler Maçı' : 'Çiftler Maçı';
     return Scaffold(
       backgroundColor: RallyColors.bg,
       appBar: AppBar(
@@ -107,7 +107,7 @@ class _DoublesOrganiseScreenState extends State<DoublesOrganiseScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Opponent
-            _SectionLabel(widget.isSingles ? 'CHOOSE OPPONENT' : 'CHOOSE OPPONENT'),
+            const _SectionLabel('RAKİP SEÇ'),
             ..._playerList(
               players: dataService.getPlayers(),
               selected: _opponent,
@@ -116,7 +116,7 @@ class _DoublesOrganiseScreenState extends State<DoublesOrganiseScreen> {
 
             if (!widget.isSingles) ...[
               const SizedBox(height: 20),
-              const _SectionLabel('YOUR PARTNER'),
+              const _SectionLabel('TAKIMDAŞIN'),
               ..._playerList(
                 players: dataService.getPlayers().where((p) => p != _opponent).toList(),
                 selected: _partner,
@@ -125,7 +125,7 @@ class _DoublesOrganiseScreenState extends State<DoublesOrganiseScreen> {
             ],
 
             const SizedBox(height: 24),
-            const _SectionLabel('DATE & TIME'),
+            const _SectionLabel('TARİH & SAAT'),
             const SizedBox(height: 10),
             Row(
               children: [
@@ -133,7 +133,7 @@ class _DoublesOrganiseScreenState extends State<DoublesOrganiseScreen> {
                   child: _PickerTile(
                     icon: Icons.calendar_today_outlined,
                     label: _selectedDate == null
-                        ? 'Pick date'
+                        ? 'Tarih seç'
                         : DateFormat('EEE, MMM d').format(_selectedDate!),
                     onTap: _pickDate,
                   ),
@@ -143,7 +143,7 @@ class _DoublesOrganiseScreenState extends State<DoublesOrganiseScreen> {
                   child: _PickerTile(
                     icon: Icons.access_time_outlined,
                     label: _selectedTime == null
-                        ? 'Pick time'
+                        ? 'Saat seç'
                         : _selectedTime!.format(context),
                     onTap: _pickTime,
                   ),
@@ -152,7 +152,7 @@ class _DoublesOrganiseScreenState extends State<DoublesOrganiseScreen> {
             ).animate().fadeIn(delay: 120.ms),
 
             const SizedBox(height: 24),
-            const _SectionLabel('COURT'),
+            const _SectionLabel('KORT'),
             const SizedBox(height: 10),
             SizedBox(
               height: 40,
@@ -189,7 +189,7 @@ class _DoublesOrganiseScreenState extends State<DoublesOrganiseScreen> {
 
             const SizedBox(height: 32),
             RallyButton(
-              label: widget.isSingles ? 'Send Match Request 🎾' : 'Send Invites 🎾',
+              label: widget.isSingles ? 'Maç İsteği Gönder 🎾' : 'Davetiye Gönder 🎾',
               onPressed: _canSubmit ? _submit : null,
               loading: _loading,
             ).animate().fadeIn(delay: 200.ms),

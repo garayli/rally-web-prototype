@@ -6,24 +6,24 @@ class AchievementsScreen extends StatelessWidget {
   const AchievementsScreen({super.key});
 
   static const _badges = [
-    _Badge(icon: '🎾', title: 'First Match', desc: 'Played your first game', earned: true, color: Color(0xFF5A8A00)),
-    _Badge(icon: '🔥', title: 'Hot Streak', desc: '3 wins in a row', earned: true, color: Color(0xFFC8431A)),
-    _Badge(icon: '⭐', title: '5-Star Player', desc: 'Average rating 4.8+', earned: true, color: Color(0xFFFFD700)),
-    _Badge(icon: '🤝', title: 'Social Butterfly', desc: 'Connected with 10 players', earned: true, color: Color(0xFF7B4FA6)),
-    _Badge(icon: '📅', title: 'Regular', desc: '10+ matches played', earned: true, color: Color(0xFF1A7ABF)),
-    _Badge(icon: '🏆', title: 'Champion', desc: '25+ wins', earned: true, color: Color(0xFF8DB600)),
-    _Badge(icon: '⚡', title: 'Quick Response', desc: 'Reply to requests within 1 hour', earned: true, color: Color(0xFFC8431A)),
-    _Badge(icon: '🌍', title: 'Explorer', desc: 'Played at 5 different courts', earned: true, color: Color(0xFF5A8A00)),
-    _Badge(icon: '💬', title: 'Communicator', desc: 'Send 50 messages', earned: true, color: Color(0xFF7B4FA6)),
-    _Badge(icon: '🎯', title: 'Sharpshooter', desc: '80%+ win rate', earned: true, color: Color(0xFF1A7ABF)),
-    _Badge(icon: '📸', title: 'Share It', desc: 'Share 5 match results', earned: true, color: Color(0xFFFFD700)),
-    _Badge(icon: '🌟', title: 'Elite', desc: 'Reach Advanced level', earned: true, color: Color(0xFFFFD700)),
-    _Badge(icon: '🏅', title: 'Tournament Pro', desc: 'Enter a tournament', earned: false, color: Color(0xFF9CA3AF)),
-    _Badge(icon: '👑', title: 'Legend', desc: '100 matches played', earned: false, color: Color(0xFF9CA3AF)),
-    _Badge(icon: '🎪', title: 'Grand Slam', desc: 'Win at 4 different courts', earned: false, color: Color(0xFF9CA3AF)),
-    _Badge(icon: '🤺', title: 'Doubles King', desc: 'Win 10 doubles matches', earned: false, color: Color(0xFF9CA3AF)),
-    _Badge(icon: '🌈', title: 'All Rounder', desc: 'Play all 4 sports', earned: false, color: Color(0xFF9CA3AF)),
-    _Badge(icon: '🚀', title: 'Rocket', desc: 'Improve rating by 200+', earned: false, color: Color(0xFF9CA3AF)),
+    _Badge(icon: '🎾', title: 'İlk Maç', desc: 'İlk oyununu oynadın', earned: true, color: Color(0xFF5A8A00)),
+    _Badge(icon: '🔥', title: 'Seri Galibiyet', desc: 'Arka arkaya 3 galibiyet', earned: true, color: Color(0xFFC8431A)),
+    _Badge(icon: '⭐', title: '5 Yıldızlı Oyuncu', desc: 'Ortalama puan 4.8+', earned: true, color: Color(0xFFFFD700)),
+    _Badge(icon: '🤝', title: 'Sosyal Kelebek', desc: '10 oyuncuyla bağlantı kuruldu', earned: true, color: Color(0xFF7B4FA6)),
+    _Badge(icon: '📅', title: 'Düzenli Oyuncu', desc: '10+ maç oynandı', earned: true, color: Color(0xFF1A7ABF)),
+    _Badge(icon: '🏆', title: 'Şampiyon', desc: '25+ galibiyet', earned: true, color: Color(0xFF8DB600)),
+    _Badge(icon: '⚡', title: 'Hızlı Yanıt', desc: '1 saat içinde cevap verdi', earned: true, color: Color(0xFFC8431A)),
+    _Badge(icon: '🌍', title: 'Kaşif', desc: '5 farklı kortta oynandı', earned: true, color: Color(0xFF5A8A00)),
+    _Badge(icon: '💬', title: 'İletişimci', desc: '50 mesaj gönderildi', earned: true, color: Color(0xFF7B4FA6)),
+    _Badge(icon: '🎯', title: 'Keskin Nişancı', desc: '80%+ kazanma oranı', earned: true, color: Color(0xFF1A7ABF)),
+    _Badge(icon: '📸', title: 'Paylaş', desc: '5 maç sonucu paylaşıldı', earned: true, color: Color(0xFFFFD700)),
+    _Badge(icon: '🌟', title: 'Elit', desc: 'İleri Seviyeye ulaşıldı', earned: true, color: Color(0xFFFFD700)),
+    _Badge(icon: '🏅', title: 'Turnuva Profesyoneli', desc: 'Bir turnuvaya katıl', earned: false, color: Color(0xFF9CA3AF)),
+    _Badge(icon: '👑', title: 'Efsane', desc: '100 maç oynandı', earned: false, color: Color(0xFF9CA3AF)),
+    _Badge(icon: '🎪', title: 'Grand Slam', desc: '4 farklı kortta galibiyet', earned: false, color: Color(0xFF9CA3AF)),
+    _Badge(icon: '🤺', title: 'Çiftler Kralı', desc: '10 çiftler maçı kazanıldı', earned: false, color: Color(0xFF9CA3AF)),
+    _Badge(icon: '🌈', title: 'Çok Yönlü', desc: '4 sporun tümü oynanıldı', earned: false, color: Color(0xFF9CA3AF)),
+    _Badge(icon: '🚀', title: 'Roket', desc: 'Puan 200+ arttırıldı', earned: false, color: Color(0xFF9CA3AF)),
   ];
 
   int get _earnedCount => _badges.where((b) => b.earned).length;
@@ -36,7 +36,7 @@ class AchievementsScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: RallyColors.bg,
       appBar: AppBar(
-        title: const Text('Achievements', style: TextStyle(fontFamily: 'InstrumentSerif', fontSize: 22)),
+        title: const Text('Başarılar', style: TextStyle(fontFamily: 'InstrumentSerif', fontSize: 22)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, size: 18),
           onPressed: () => Navigator.pop(context),
@@ -69,7 +69,7 @@ class AchievementsScreen extends StatelessWidget {
                         '$_earnedCount of ${_badges.length}',
                         style: const TextStyle(fontFamily: 'InstrumentSerif', fontSize: 32, color: Colors.white, letterSpacing: -1, height: 1),
                       ),
-                      const Text('Achievements unlocked', style: TextStyle(color: Colors.white70, fontSize: 14)),
+                      const Text('Başarı kazanıldı', style: TextStyle(color: Colors.white70, fontSize: 14)),
                     ],
                   ),
                   const Spacer(),
@@ -102,7 +102,7 @@ class AchievementsScreen extends StatelessWidget {
             child: Padding(
               padding: EdgeInsets.fromLTRB(20, 4, 20, 12),
               child: Text(
-                'EARNED',
+                'KAZANILDI',
                 style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: RallyColors.muted, letterSpacing: 0.8),
               ),
             ),
@@ -128,7 +128,7 @@ class AchievementsScreen extends StatelessWidget {
             child: Padding(
               padding: EdgeInsets.fromLTRB(20, 24, 20, 12),
               child: Text(
-                'LOCKED',
+                'KİLİTLİ',
                 style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: RallyColors.muted, letterSpacing: 0.8),
               ),
             ),

@@ -10,10 +10,10 @@ class MockData {
   static final List<Player> players = [
     const Player(
       id: '1',
-      name: 'Priya Sharma',
-      initials: 'PS',
+      name: 'Zeynep Arslan',
+      initials: 'ZA',
       ntrpRating: 4.0,
-      location: 'Islington · 0.4 mi',
+      location: 'Beşiktaş · 0.4 km',
       about: 'Competitive player with 8 years experience. Love baseline rallies '
           'and serve-and-volley. Available weekday evenings and weekends.',
       wins: 24,
@@ -21,53 +21,53 @@ class MockData {
       matchesPlayed: 32,
       winRate: 75,
       matchScore: 94,
-      availability: ['Mon AM', 'Tue PM', 'Wed PM', 'Sat Full', 'Sun Full'],
-      preferredCourts: ['Highbury Fields', 'Islington Tennis Centre'],
+      availability: ['Pzt ÖÖ', 'Sal ÖS', 'Çar ÖS', 'Cmt Tam', 'Paz Tam'],
+      preferredCourts: ['Beşiktaş JK Tenis Kortları', 'Levent Tenis Kulübü'],
       avatarGradientStart: '#5a8a00',
       avatarGradientEnd: '#8db600',
     ),
     const Player(
       id: '2',
-      name: 'Marcus Osei',
-      initials: 'MO',
+      name: 'Emre Kaya',
+      initials: 'EK',
       ntrpRating: 3.5,
-      location: 'Hackney · 1.2 mi',
+      location: 'Kadıköy · 1.2 km',
       about: 'Casual competitive player. Strong forehand, working on my backhand. '
-          'Always up for a tough match and a post-game coffee.',
+          'Always up for a tough match and a post-game tea.',
       wins: 18,
       losses: 14,
       matchesPlayed: 32,
       winRate: 56,
       matchScore: 87,
-      availability: ['Wed AM', 'Thu PM', 'Fri PM', 'Sat AM'],
-      preferredCourts: ['London Fields', 'Victoria Park'],
+      availability: ['Çar ÖÖ', 'Per ÖS', 'Cum ÖS', 'Cmt ÖÖ'],
+      preferredCourts: ['Caddebostan Tenis Kortları', 'Fenerbahçe SK Tenis Kortları'],
       avatarGradientStart: '#e85d3a',
       avatarGradientEnd: '#f4956d',
     ),
     const Player(
       id: '3',
-      name: 'Sophie Chen',
-      initials: 'SC',
+      name: 'Selin Demir',
+      initials: 'SD',
       ntrpRating: 4.5,
-      location: 'Camden · 2.1 mi',
-      about: 'Former county player returning to competitive tennis. Big serve, '
+      location: 'Şişli · 2.1 km',
+      about: 'Former regional champion returning to competitive tennis. Big serve, '
           'net game specialist. Looking for challenging matches.',
       wins: 41,
       losses: 11,
       matchesPlayed: 52,
       winRate: 79,
       matchScore: 82,
-      availability: ['Mon Full', 'Tue Full', 'Thu AM', 'Sun PM'],
-      preferredCourts: ['Regent\'s Park', 'Parliament Hill'],
+      availability: ['Pzt Tam', 'Sal Tam', 'Per ÖÖ', 'Paz ÖS'],
+      preferredCourts: ['Galatasaray Tenis Kulübü', 'ENKA Spor Kortları'],
       avatarGradientStart: '#7b4fa6',
       avatarGradientEnd: '#a97fcb',
     ),
     const Player(
       id: '4',
-      name: 'James Whitfield',
-      initials: 'JW',
+      name: 'Berk Öztürk',
+      initials: 'BÖ',
       ntrpRating: 3.0,
-      location: 'Shoreditch · 1.8 mi',
+      location: 'Üsküdar · 1.8 km',
       about: 'Beginner-to-intermediate. Keen to improve and meet other players. '
           'Prefer relaxed but competitive games.',
       wins: 7,
@@ -75,8 +75,8 @@ class MockData {
       matchesPlayed: 20,
       winRate: 35,
       matchScore: 76,
-      availability: ['Tue AM', 'Sat PM', 'Sun AM'],
-      preferredCourts: ['Shoreditch Park', 'Haggerston Park'],
+      availability: ['Sal ÖÖ', 'Cmt ÖS', 'Paz ÖÖ'],
+      preferredCourts: ['Acıbadem Tenis Kulübü', 'Üsküdar Spor Kompleksi'],
       avatarGradientStart: '#1a7abf',
       avatarGradientEnd: '#5ba8e0',
     ),
@@ -86,70 +86,70 @@ class MockData {
     AppNotification(
       id: 'n1',
       type: NotifType.matchRequest,
-      title: 'Match Request',
-      body: 'Marcus Osei wants to play on Saturday at 10:00am · London Fields',
+      title: 'Maç İsteği',
+      body: 'Emre Kaya Cumartesi saat 10:00\'da oynamak istiyor · Caddebostan Tenis Kortları',
       timestamp: DateTime.now().subtract(const Duration(minutes: 12)),
       isRead: false,
-      avatarInitials: 'MO',
+      avatarInitials: 'EK',
       avatarColor: '#e85d3a',
       actionId: 'match_1',
     ),
     AppNotification(
       id: 'n2',
       type: NotifType.resultConfirmed,
-      title: 'Match Result Confirmed',
-      body: 'Priya Sharma confirmed your 6-4, 7-5 win. +12 rating points 🎾',
+      title: 'Maç Sonucu Onaylandı',
+      body: 'Zeynep Arslan 6-4, 7-5 galibiyetinizi onayladı. +12 puan 🎾',
       timestamp: DateTime.now().subtract(const Duration(hours: 2)),
       isRead: false,
-      avatarInitials: 'PS',
+      avatarInitials: 'ZA',
       avatarColor: '#5a8a00',
       actionId: 'match_2',
     ),
     AppNotification(
       id: 'n3',
       type: NotifType.review,
-      title: 'New Review',
-      body: 'Sophie Chen left you a review: "Great rallies, very sporting — looking forward to a rematch!"',
+      title: 'Yeni Değerlendirme',
+      body: 'Selin Demir sizi değerlendirdi: "Harika ralliler, çok sportif — rövanş bekliyorum!"',
       timestamp: DateTime.now().subtract(const Duration(hours: 5)),
       isRead: true,
-      avatarInitials: 'SC',
+      avatarInitials: 'SD',
       avatarColor: '#7b4fa6',
     ),
     AppNotification(
       id: 'n4',
       type: NotifType.reminder,
-      title: 'Match Tomorrow',
-      body: 'Reminder: Marcus Osei · 10:00am · London Fields Courts. Tap to view details.',
+      title: 'Yarın Maç Var',
+      body: 'Hatırlatma: Emre Kaya · 10:00 · Caddebostan Tenis Kortları. Detaylar için tıklayın.',
       timestamp: DateTime.now().subtract(const Duration(days: 1, hours: 2)),
       isRead: true,
-      avatarInitials: 'MO',
+      avatarInitials: 'EK',
       avatarColor: '#e85d3a',
     ),
     AppNotification(
       id: 'n5',
       type: NotifType.matchConfirmed,
-      title: 'Match Confirmed ✓',
-      body: 'Priya Sharma accepted your match request. Thursday 7:00pm at Highbury Fields.',
+      title: 'Maç Onaylandı ✓',
+      body: 'Zeynep Arslan maç isteğinizi kabul etti. Perşembe 19:00\'da Beşiktaş JK Tenis Kortları.',
       timestamp: DateTime.now().subtract(const Duration(days: 1, hours: 6)),
       isRead: true,
-      avatarInitials: 'PS',
+      avatarInitials: 'ZA',
       avatarColor: '#5a8a00',
     ),
     AppNotification(
       id: 'n6',
       type: NotifType.cancellation,
-      title: 'Match Cancelled',
-      body: 'James Whitfield cancelled Saturday\'s match. You can find a new opponent below.',
+      title: 'Maç İptal Edildi',
+      body: 'Berk Öztürk Cumartesi maçını iptal etti. Aşağıdan yeni rakip bulabilirsiniz.',
       timestamp: DateTime.now().subtract(const Duration(days: 3)),
       isRead: true,
-      avatarInitials: 'JW',
+      avatarInitials: 'BÖ',
       avatarColor: '#1a7abf',
     ),
     AppNotification(
       id: 'n7',
       type: NotifType.nearbyPlayer,
-      title: 'New Player Nearby',
-      body: '3 new players joined in Islington this week matching your skill level. Check them out!',
+      title: 'Yakında Yeni Oyuncular',
+      body: 'Bu hafta Beşiktaş\'ta seviyenize uygun 3 yeni oyuncu katıldı. Hemen inceleyin!',
       timestamp: DateTime.now().subtract(const Duration(days: 4)),
       isRead: true,
       avatarInitials: '🎾',
@@ -160,16 +160,16 @@ class MockData {
   static final List<MatchSession> upcomingSessions = [
     MatchSession(
       id: 'm1',
-      opponent: players[1],   // Marcus
+      opponent: players[1],   // Emre
       dateTime: DateTime.now().add(const Duration(days: 1, hours: 10)),
-      court: 'London Fields',
+      court: 'Caddebostan Tenis Kortları',
       status: MatchStatus.confirmed,
     ),
     MatchSession(
       id: 'm2',
-      opponent: players[0],   // Priya
+      opponent: players[0],   // Zeynep
       dateTime: DateTime.now().add(const Duration(days: 3, hours: 19)),
-      court: 'Highbury Fields',
+      court: 'Beşiktaş JK Tenis Kortları',
       status: MatchStatus.pending,
     ),
   ];
@@ -177,20 +177,20 @@ class MockData {
   static final List<Conversation> conversations = [
     Conversation(
       id: 'c1',
-      other: players[0],  // Priya
+      other: players[0],  // Zeynep
       isOnline: true,
       messages: [
         ChatMessage(
           id: 'msg1',
           senderId: '1',
-          text: 'Hey! Looking forward to our match on Thursday 🎾',
+          text: 'Merhaba! Perşembe maçımız için sabırsızlanıyorum 🎾',
           timestamp: DateTime.now().subtract(const Duration(minutes: 5)),
           isRead: false,
         ),
         ChatMessage(
           id: 'msg2',
           senderId: 'me', // sentinel: current user (not a player ID)
-          text: 'Same here! Court 3 at 7pm?',
+          text: 'Ben de! Saat 19:00\'da 3. kort?',
           timestamp: DateTime.now().subtract(const Duration(minutes: 10)),
           isRead: true,
         ),
@@ -198,13 +198,13 @@ class MockData {
     ),
     Conversation(
       id: 'c2',
-      other: players[1],  // Marcus
+      other: players[1],  // Emre
       isOnline: false,
       messages: [
         ChatMessage(
           id: 'msg3',
           senderId: 'me', // sentinel: current user (not a player ID)
-          text: 'Good game yesterday! Rematch next week?',
+          text: 'Dün güzel maçtı! Haftaya rövanş?',
           timestamp: DateTime.now().subtract(const Duration(hours: 2)),
           isRead: true,
         ),
@@ -212,13 +212,13 @@ class MockData {
     ),
     Conversation(
       id: 'c3',
-      other: players[2],  // Sophie
+      other: players[2],  // Selin
       isOnline: true,
       messages: [
         ChatMessage(
           id: 'msg4',
           senderId: '3',
-          text: 'Are you free Sunday morning? Regent\'s Park has open courts',
+          text: 'Pazar sabahı müsait misin? Galatasaray kortları boş olacak.',
           timestamp: DateTime.now().subtract(const Duration(hours: 6)),
           isRead: false,
         ),

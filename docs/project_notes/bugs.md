@@ -195,4 +195,45 @@ Replaced with `InkWell` (more reliable in Material context than `GestureDetector
 
 ---
 
+## Match Request Not Persisted to Supabase
+**Date:** 2026-05-09
+**Severity:** High
+
+### Problem
+Tapping "İstek Gönder" (Send Request) in the match request bottom sheet showed the success state UI but the Supabase `matches` table remained empty after every request.
+
+### Root Cause
+The button handler in `_RequestSheetState` only called `setState(() => _sent = true)` and `widget.onSent()` — no Supabase insert was ever made. The sent-state tracking existed purely in memory.
+
+### Solution
+- Extracted an async `_sendRequest()` method on `_RequestSheetState`
+- Calls `supabase.from('matches').insert({requester_id, opponent_id, status: 'pending', format, court, proposed_time})`
+- On success: updates state, calls `widget.onSent()`, pops sheet, shows snackbar
+- On failure: reverts `_loading` to false, shows error snackbar with reason
+- Button shows `loading: true` while the request is in flight
+- Added `import '../main.dart' show supabase;` to `match_screen.dart`
+
+### Prevention
+Any "send" / "submit" action that is supposed to persist data must call Supabase (or the data service) — UI-only state changes are not a substitute.
+
+---
+
+## Lobby Card Bottom Overflow (Match Screen)
+**Date:** 2026-05-09
+**Severity:** Low
+
+### Problem
+"Bottom Overflowed by 3.0 pixels" rendered on the Match screen after the Açık Lobiler horizontal card section was added.
+
+### Root Cause
+`_LobbyCard` used `Spacer()` inside its Column to push the "Katıl" button to the bottom. The Column's height is constrained by the `SizedBox(height: 180)` ListView minus its vertical padding — the card content was already within ~3px of that limit, so the Spacer caused an overflow rather than expanding to fill space.
+
+### Solution
+Replaced `const Spacer()` with `const SizedBox(height: 8)` in `_LobbyCard`. The button now sits a fixed 8px below the last content line; the Column is purely content-sized.
+
+### Prevention
+Never use `Spacer()` inside a Column that lives inside a height-constrained horizontal `ListView`. The cross-axis height is fixed — `Spacer` doesn't help here and will overflow if content is close to the boundary. Use a fixed `SizedBox` gap instead.
+
+---
+
 <!-- Add new bugs above this line -->

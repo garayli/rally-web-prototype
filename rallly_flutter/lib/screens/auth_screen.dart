@@ -31,7 +31,7 @@ class _AuthEmailScreenState extends State<AuthEmailScreen> {
   Future<void> _submit() async {
     final email = _emailCtrl.text.trim();
     if (!email.contains('@')) {
-      setState(() => _error = 'Please enter a valid email address.');
+      setState(() => _error = 'Lütfen geçerli bir e-posta adresi girin.');
       return;
     }
     setState(() { _loading = true; _error = null; });
@@ -46,7 +46,7 @@ class _AuthEmailScreenState extends State<AuthEmailScreen> {
     } on AuthException catch (e) {
       setState(() => _error = e.message);
     } catch (_) {
-      setState(() => _error = 'Something went wrong. Please try again.');
+      setState(() => _error = 'Bir şeyler yanlış gitti. Lütfen tekrar deneyin.');
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -114,7 +114,7 @@ class _AuthEmailScreenState extends State<AuthEmailScreen> {
                   children: [
                     const SizedBox(height: 20),
                     Text(
-                      widget.isSignUp ? 'Create account' : 'Welcome back',
+                      widget.isSignUp ? 'Hesap oluştur' : 'Tekrar hoş geldiniz',
                       style: const TextStyle(
                         fontFamily: 'InstrumentSerif',
                         fontSize: 36,
@@ -125,8 +125,8 @@ class _AuthEmailScreenState extends State<AuthEmailScreen> {
                     const SizedBox(height: 8),
                     Text(
                       widget.isSignUp
-                          ? "Enter your email and we'll send a one-time code"
-                          : "We'll send a sign-in code to your email",
+                          ? 'E-posta adresinizi girin, size tek kullanımlık kod göndereceğiz'
+                          : 'E-posta adresinize giriş kodu göndereceğiz',
                       style: const TextStyle(
                         color: RallyColors.textSecondary,
                         fontSize: 15,
@@ -143,8 +143,8 @@ class _AuthEmailScreenState extends State<AuthEmailScreen> {
                       textInputAction: TextInputAction.done,
                       onFieldSubmitted: (_) => _submit(),
                       decoration: const InputDecoration(
-                        labelText: 'EMAIL ADDRESS',
-                        hintText: 'you@example.com',
+                        labelText: 'E-POSTA ADRESİ',
+                        hintText: 'siz@ornek.com',
                         prefixIcon: Icon(Icons.mail_outline, size: 18),
                       ),
                     ).animate().fadeIn(delay: 150.ms),
@@ -162,7 +162,7 @@ class _AuthEmailScreenState extends State<AuthEmailScreen> {
 
                     const SizedBox(height: 20),
                     RallyButton(
-                      label: 'Send code',
+                      label: 'Kodu gönder',
                       onPressed: _loading ? null : _submit,
                       loading: _loading,
                       icon: Icons.send_outlined,
@@ -175,8 +175,8 @@ class _AuthEmailScreenState extends State<AuthEmailScreen> {
                         children: [
                           Text(
                             widget.isSignUp
-                                ? 'Already have an account? '
-                                : "Don't have an account? ",
+                                ? 'Zaten hesabın var mı? '
+                                : 'Hesabın yok mu? ',
                             style: const TextStyle(
                               color: RallyColors.muted,
                               fontSize: 13,
@@ -185,7 +185,7 @@ class _AuthEmailScreenState extends State<AuthEmailScreen> {
                           GestureDetector(
                             onTap: widget.onBack,
                             child: Text(
-                              widget.isSignUp ? 'Sign in' : 'Sign up',
+                              widget.isSignUp ? 'Giriş yap' : 'Kayıt ol',
                               style: const TextStyle(
                                 color: RallyColors.accent,
                                 fontSize: 13,
@@ -289,7 +289,7 @@ class _AuthOtpScreenState extends State<AuthOtpScreen>
       setState(() { _loading = false; _error = e.message; });
     } catch (_) {
       _triggerShake();
-      setState(() { _loading = false; _error = 'Invalid code. Please try again.'; });
+      setState(() { _loading = false; _error = 'Geçersiz kod. Lütfen tekrar deneyin.'; });
     }
   }
 
@@ -332,7 +332,7 @@ class _AuthOtpScreenState extends State<AuthOtpScreen>
               ),
               const SizedBox(height: 28),
               const Text(
-                'Check your email',
+                'E-postanı kontrol et',
                 style: TextStyle(
                   fontFamily: 'InstrumentSerif',
                   fontSize: 36,
@@ -349,7 +349,7 @@ class _AuthOtpScreenState extends State<AuthOtpScreen>
                     height: 1.5,
                   ),
                   children: [
-                    const TextSpan(text: 'We sent an 8-digit code to\n'),
+                    const TextSpan(text: 'E-posta adresinize 8 haneli kod gönderdik:\n'),
                     TextSpan(
                       text: widget.email,
                       style: const TextStyle(
@@ -439,7 +439,7 @@ class _AuthOtpScreenState extends State<AuthOtpScreen>
 
               const SizedBox(height: 32),
               RallyButton(
-                label: 'Verify',
+                label: 'Doğrula',
                 onPressed: _code.length == _codeLength ? _verify : null,
                 loading: _loading,
               ),
@@ -461,7 +461,7 @@ class _AuthOtpScreenState extends State<AuthOtpScreen>
                           );
                         },
                         child: const Text(
-                          'Resend code',
+                          'Kodu tekrar gönder',
                           style: TextStyle(
                             color: RallyColors.accent,
                             fontWeight: FontWeight.w700,
@@ -469,7 +469,7 @@ class _AuthOtpScreenState extends State<AuthOtpScreen>
                         ),
                       )
                     : Text(
-                        'Resend in ${_resendTimer}s',
+                        '${_resendTimer} saniye sonra tekrar gönder',
                         style: const TextStyle(
                           color: RallyColors.muted,
                           fontSize: 13,

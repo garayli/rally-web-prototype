@@ -29,7 +29,7 @@ class _NotificationPreferencesScreenState extends State<NotificationPreferencesS
     return Scaffold(
       backgroundColor: RallyColors.bg,
       appBar: AppBar(
-        title: const Text('Notifications', style: TextStyle(fontFamily: 'InstrumentSerif', fontSize: 22)),
+        title: const Text('Bildirimler', style: TextStyle(fontFamily: 'InstrumentSerif', fontSize: 22)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, size: 18),
           onPressed: () => Navigator.pop(context),
@@ -38,7 +38,7 @@ class _NotificationPreferencesScreenState extends State<NotificationPreferencesS
           TextButton(
             onPressed: _save,
             child: Text(
-              _saved ? 'Saved ✓' : 'Save',
+              _saved ? 'Kaydedildi ✓' : 'Kaydet',
               style: TextStyle(
                 color: _saved ? RallyColors.accent : RallyColors.accent,
                 fontWeight: FontWeight.w700,
@@ -51,71 +51,71 @@ class _NotificationPreferencesScreenState extends State<NotificationPreferencesS
       body: ListView(
         padding: const EdgeInsets.fromLTRB(0, 8, 0, 40),
         children: [
-          const _SectionHeader('MATCHES'),
+          const _SectionHeader('MAÇLAR'),
           _PrefTile(
             icon: '🎾',
-            title: 'Match Requests',
-            subtitle: 'When someone wants to play with you',
+            title: 'Maç İstekleri',
+            subtitle: 'Biriyle oynamak istediğinde',
             value: _prefs['match_requests']!,
             onChanged: (v) => setState(() => _prefs['match_requests'] = v),
           ).animate().fadeIn(delay: 60.ms),
           _PrefTile(
             icon: '✅',
-            title: 'Match Confirmations',
-            subtitle: 'When a request is accepted',
+            title: 'Maç Onayları',
+            subtitle: 'İstek kabul edildiğinde',
             value: _prefs['match_confirmations']!,
             onChanged: (v) => setState(() => _prefs['match_confirmations'] = v),
           ).animate().fadeIn(delay: 80.ms),
           _PrefTile(
             icon: '⏰',
-            title: 'Match Reminders',
-            subtitle: 'Reminder before your scheduled match',
+            title: 'Maç Hatırlatmaları',
+            subtitle: 'Planlanmış maçtan önce hatırlatma',
             value: _prefs['match_reminders']!,
             onChanged: (v) => setState(() => _prefs['match_reminders'] = v),
           ).animate().fadeIn(delay: 100.ms),
           _PrefTile(
             icon: '❌',
-            title: 'Cancellations',
-            subtitle: 'When a match is cancelled',
+            title: 'İptal Bildirimleri',
+            subtitle: 'Maç iptal edildiğinde',
             value: _prefs['match_cancellations']!,
             onChanged: (v) => setState(() => _prefs['match_cancellations'] = v),
           ).animate().fadeIn(delay: 120.ms),
 
-          const _SectionHeader('SOCIAL'),
+          const _SectionHeader('SOSYAL'),
           _PrefTile(
             icon: '💬',
-            title: 'Messages',
-            subtitle: 'New messages from other players',
+            title: 'Mesajlar',
+            subtitle: 'Diğer oyunculardan yeni mesajlar',
             value: _prefs['messages']!,
             onChanged: (v) => setState(() => _prefs['messages'] = v),
           ).animate().fadeIn(delay: 160.ms),
           _PrefTile(
             icon: '⭐',
-            title: 'New Reviews',
-            subtitle: 'When someone reviews you',
+            title: 'Yeni Değerlendirmeler',
+            subtitle: 'Biri sizi değerlendirdiğinde',
             value: _prefs['new_reviews']!,
             onChanged: (v) => setState(() => _prefs['new_reviews'] = v),
           ).animate().fadeIn(delay: 180.ms),
           _PrefTile(
             icon: '🏆',
-            title: 'Result Confirmed',
-            subtitle: 'When your opponent confirms a match result',
+            title: 'Sonuç Onaylandı',
+            subtitle: 'Rakibiniz maç sonucunu onayladığında',
             value: _prefs['result_confirmed']!,
             onChanged: (v) => setState(() => _prefs['result_confirmed'] = v),
           ).animate().fadeIn(delay: 200.ms),
           _PrefTile(
             icon: '👋',
-            title: 'Nearby Players',
-            subtitle: 'When new players join your area',
+            title: 'Yakındaki Oyuncular',
+            subtitle: 'Bölgenize yeni oyuncular katıldığında',
             value: _prefs['nearby_players']!,
             onChanged: (v) => setState(() => _prefs['nearby_players'] = v),
           ).animate().fadeIn(delay: 220.ms),
 
-          const _SectionHeader('UPDATES'),
+          const _SectionHeader('GÜNCELLEMELER'),
           _PrefTile(
             icon: '📢',
-            title: 'App Updates & Tips',
-            subtitle: 'New features and playing tips',
+            title: 'Uygulama Güncellemeleri & İpuçları',
+            subtitle: 'Yeni özellikler ve oyun ipuçları',
             value: _prefs['marketing']!,
             onChanged: (v) => setState(() => _prefs['marketing'] = v),
           ).animate().fadeIn(delay: 260.ms),

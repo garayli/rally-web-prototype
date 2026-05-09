@@ -60,17 +60,17 @@ class _MainShellState extends State<MainShell> {
               const BottomNavigationBarItem(
                 icon: Icon(Icons.sports_tennis_outlined),
                 activeIcon: Icon(Icons.sports_tennis),
-                label: 'Match',
+                label: 'Maç',
               ),
               const BottomNavigationBarItem(
                 icon: Icon(Icons.calendar_today_outlined),
                 activeIcon: Icon(Icons.calendar_today),
-                label: 'Schedule',
+                label: 'Takvim',
               ),
               const BottomNavigationBarItem(
                 icon: Icon(Icons.chat_bubble_outline),
                 activeIcon: Icon(Icons.chat_bubble),
-                label: 'Messages',
+                label: 'Mesajlar',
               ),
               BottomNavigationBarItem(
                 icon: Stack(
@@ -95,12 +95,12 @@ class _MainShellState extends State<MainShell> {
                     ),
                   ],
                 ),
-                label: 'Notifs',
+                label: 'Bildirim',
               ),
               const BottomNavigationBarItem(
                 icon: Icon(Icons.person_outline),
                 activeIcon: Icon(Icons.person),
-                label: 'Profile',
+                label: 'Profil',
               ),
             ],
           ),

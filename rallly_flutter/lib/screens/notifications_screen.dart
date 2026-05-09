@@ -27,7 +27,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       _notifs[i] = AppNotification(
         id: n.id,
         type: NotifType.matchConfirmed,
-        title: 'Match Accepted ✓',
+        title: 'Maç Kabul Edildi ✓',
         body: n.body,
         timestamp: n.timestamp,
         isRead: true,
@@ -46,9 +46,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   String _groupLabel(AppNotification n) {
     final now = DateTime.now();
     final diff = now.difference(n.timestamp);
-    if (diff.inHours < 24) return 'Today';
-    if (diff.inHours < 48) return 'Yesterday';
-    return 'This Week';
+    if (diff.inHours < 24) return 'Bugün';
+    if (diff.inHours < 48) return 'Dün';
+    return 'Bu Hafta';
   }
 
   @override
@@ -59,12 +59,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       final g = _groupLabel(n);
       groups.putIfAbsent(g, () => []).add(n);
     }
-    final groupOrder = ['Today', 'Yesterday', 'This Week'];
+    final groupOrder = ['Bugün', 'Dün', 'Bu Hafta'];
 
     return Scaffold(
       backgroundColor: RallyColors.bg,
       appBar: AppBar(
-        title: const Text('Notifications',
+        title: const Text('Bildirimler',
             style: TextStyle(fontFamily: 'InstrumentSerif', fontSize: 22)),
         actions: [
           TextButton(
@@ -84,7 +84,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                       ))
                   .toList());
             },
-            child: const Text('Mark all read',
+            child: const Text('Tümünü okundu işaretle',
                 style: TextStyle(
                     color: RallyColors.accent, fontWeight: FontWeight.w600)),
           ),
@@ -268,7 +268,7 @@ class _NotifTile extends StatelessWidget {
                 children: [
                   Expanded(
                     child: _ActionBtn(
-                      label: 'Decline',
+                      label: 'Reddet',
                       outlined: true,
                       onTap: onDecline,
                     ),
@@ -276,7 +276,7 @@ class _NotifTile extends StatelessWidget {
                   const SizedBox(width: 10),
                   Expanded(
                     child: _ActionBtn(
-                      label: 'Accept',
+                      label: 'Kabul Et',
                       onTap: onAccept,
                     ),
                   ),
@@ -291,9 +291,9 @@ class _NotifTile extends StatelessWidget {
 
   String _timeAgo(DateTime dt) {
     final diff = DateTime.now().difference(dt);
-    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
-    if (diff.inHours < 24) return '${diff.inHours}h ago';
-    return DateFormat('MMM d').format(dt);
+    if (diff.inMinutes < 60) return '${diff.inMinutes} dk önce';
+    if (diff.inHours < 24) return '${diff.inHours} sa önce';
+    return DateFormat('d MMM').format(dt);
   }
 }
 

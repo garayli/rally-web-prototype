@@ -47,7 +47,7 @@ class _ResultCardScreenState extends State<ResultCardScreen> {
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Could not share. Try again.')),
+          const SnackBar(content: Text('Paylaşılamadı. Tekrar deneyin.')),
         );
       }
     } finally {
@@ -66,7 +66,7 @@ class _ResultCardScreenState extends State<ResultCardScreen> {
           onPressed: () => Navigator.popUntil(context, (r) => r.isFirst || r.settings.name == '/'),
         ),
         title: const Text(
-          'Match Result',
+          'Maç Sonucu',
           style: TextStyle(fontFamily: 'InstrumentSerif', fontSize: 22, color: Colors.white),
         ),
       ),
@@ -96,15 +96,21 @@ class _ResultCardScreenState extends State<ResultCardScreen> {
               child: Column(
                 children: [
                   RallyButton(
-                    label: _sharing ? 'Sharing…' : 'Share Result 🎾',
+                    label: _sharing ? 'Paylaşılıyor…' : 'Sonucu Paylaş 🎾',
                     onPressed: _sharing ? null : _shareCard,
                     loading: _sharing,
                   ).animate().fadeIn(delay: 400.ms),
                   const SizedBox(height: 10),
-                  RallyButton(
-                    label: 'Done',
-                    outlined: true,
+                  OutlinedButton(
                     onPressed: () => Navigator.popUntil(context, (r) => r.isFirst),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      side: const BorderSide(color: Colors.white38),
+                      minimumSize: const Size(double.infinity, 52),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                    ),
+                    child: const Text('Tamam'),
                   ).animate().fadeIn(delay: 450.ms),
                 ],
               ),
@@ -162,7 +168,7 @@ class _ResultCard extends StatelessWidget {
                   border: Border.all(color: iWon ? RallyColors.accent : RallyColors.accent2),
                 ),
                 child: Text(
-                  iWon ? 'Victory 🏆' : 'Defeat',
+                  iWon ? 'Zafer 🏆' : 'Yenilgi',
                   style: TextStyle(
                     fontWeight: FontWeight.w700,
                     fontSize: 13,
@@ -179,7 +185,7 @@ class _ResultCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _CardPlayer(label: 'You', initials: 'AW', gradientStart: '#e85d3a', gradientEnd: '#f4956d', isWinner: iWon),
+              _CardPlayer(label: 'Sen', initials: 'LG', gradientStart: '#7b4fa6', gradientEnd: '#a97fcb', isWinner: iWon),
               Column(
                 children: [
                   Text(
@@ -221,7 +227,7 @@ class _ResultCard extends StatelessWidget {
               ),
               const SizedBox(width: 6),
               Text(
-                '${result.ratingDelta > 0 ? '+' : ''}${result.ratingDelta.toInt()} rating',
+                '${result.ratingDelta > 0 ? '+' : ''}${result.ratingDelta.toInt()} puan',
                 style: TextStyle(
                   fontFamily: 'InstrumentSerif',
                   fontSize: 18,

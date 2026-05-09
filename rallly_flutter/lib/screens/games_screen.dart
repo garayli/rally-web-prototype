@@ -37,7 +37,7 @@ class _GamesScreenState extends State<GamesScreen>
     return Scaffold(
       backgroundColor: RallyColors.bg,
       appBar: AppBar(
-        title: const Text('Games', style: TextStyle(fontFamily: 'InstrumentSerif', fontSize: 22)),
+        title: const Text('Maçlar', style: TextStyle(fontFamily: 'InstrumentSerif', fontSize: 22)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, size: 18),
           onPressed: () => Navigator.pop(context),
@@ -49,7 +49,7 @@ class _GamesScreenState extends State<GamesScreen>
           indicatorColor: RallyColors.accent,
           indicatorSize: TabBarIndicatorSize.label,
           labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
-          tabs: const [Tab(text: 'Upcoming'), Tab(text: 'Past')],
+          tabs: const [Tab(text: 'Yaklaşan'), Tab(text: 'Geçmiş')],
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -59,7 +59,7 @@ class _GamesScreenState extends State<GamesScreen>
         ),
         backgroundColor: RallyColors.accent,
         icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text('New Game', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+        label: const Text('Yeni Maç', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
       ),
       body: TabBarView(
         controller: _tabCtrl,
@@ -80,8 +80,8 @@ class _UpcomingTab extends StatelessWidget {
     if (sessions.isEmpty) {
       return const _EmptyGames(
         icon: '📅',
-        title: 'No upcoming games',
-        subtitle: 'Schedule a new match to get started',
+        title: 'Yaklaşan maç yok',
+        subtitle: 'Başlamak için yeni bir maç planla',
       );
     }
     return ListView.builder(
@@ -160,7 +160,7 @@ class _UpcomingCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(100),
                   ),
                   child: Text(
-                    isConfirmed ? 'Confirmed' : 'Pending',
+                    isConfirmed ? 'Onaylandı' : 'Beklemede',
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
@@ -189,7 +189,7 @@ class _UpcomingCard extends StatelessWidget {
                           borderRadius: BorderRadius.circular(100),
                         ),
                         child: const Center(
-                          child: Text('Log Result', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13)),
+                          child: Text('Sonuç Kaydet', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13)),
                         ),
                       ),
                     ),
@@ -203,7 +203,7 @@ class _UpcomingCard extends StatelessWidget {
                         border: Border.all(color: RallyColors.border2, width: 1.5),
                       ),
                       child: const Center(
-                        child: Text('Message', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                        child: Text('Mesaj', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
                       ),
                     ),
                   ),
@@ -225,22 +225,22 @@ class _PastTab extends StatelessWidget {
       {
         'opponent': players[0],
         'date': DateTime.now().subtract(const Duration(days: 5)),
-        'court': 'Highbury Fields',
-        'result': 'Won',
+        'court': 'Beşiktaş JK Tenis Kortları',
+        'result': 'Kazandı',
         'score': '6-4, 7-5',
       },
       {
         'opponent': players[2],
         'date': DateTime.now().subtract(const Duration(days: 12)),
-        'court': "Regent's Park",
-        'result': 'Lost',
+        'court': 'Galatasaray Tenis Kulübü',
+        'result': 'Kaybetti',
         'score': '4-6, 5-7',
       },
       {
         'opponent': players[3],
         'date': DateTime.now().subtract(const Duration(days: 20)),
-        'court': 'Shoreditch Park',
-        'result': 'Won',
+        'court': 'Acıbadem Tenis Kulübü',
+        'result': 'Kazandı',
         'score': '6-2, 6-3',
       },
     ];
@@ -253,7 +253,7 @@ class _PastTab extends StatelessWidget {
       itemCount: _pastGames.length,
       itemBuilder: (context, i) {
         final g = _pastGames[i];
-        final won = g['result'] == 'Won';
+        final won = g['result'] == 'Kazandı';
         final player = g['opponent'] as Player;
         return Container(
           margin: const EdgeInsets.only(bottom: 12),

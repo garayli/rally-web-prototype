@@ -6,6 +6,7 @@ import 'reputation_screen.dart';
 import 'achievements_screen.dart';
 import 'notifications_preferences_screen.dart';
 import 'log_result_screen.dart';
+import 'my_results_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -19,14 +20,14 @@ class ProfileScreen extends StatelessWidget {
           SliverAppBar(
             floating: true,
             snap: true,
-            title: const Text('My Profile',
+            title: const Text('Profilim',
                 style: TextStyle(fontFamily: 'InstrumentSerif', fontSize: 22)),
             actions: [
               IconButton(
                 icon: const Icon(Icons.settings_outlined),
                 onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
-                    content: Text('Settings coming soon'),
+                    content: Text('Ayarlar yakında'),
                     behavior: SnackBarBehavior.floating,
                   ),
                 ),
@@ -52,9 +53,9 @@ class ProfileScreen extends StatelessWidget {
                   Stack(
                     children: [
                       const PlayerAvatar(
-                        initials: 'AW',
-                        gradientStart: '#e85d3a',
-                        gradientEnd: '#f4956d',
+                        initials: 'LG',
+                        gradientStart: '#7b4fa6',
+                        gradientEnd: '#a97fcb',
                         size: 84,
                       ),
                       Positioned(
@@ -84,13 +85,13 @@ class ProfileScreen extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 14),
-                  const Text('Alex Wilson',
+                  const Text('Leyla Garayli',
                       style: TextStyle(
                           fontFamily: 'InstrumentSerif',
                           fontSize: 28,
                           letterSpacing: -1)),
                   const SizedBox(height: 4),
-                  const Text('Islington, London',
+                  const Text('Beşiktaş, İstanbul',
                       style: TextStyle(
                           fontSize: 13, color: RallyColors.textSecondary)),
                   const SizedBox(height: 12),
@@ -107,7 +108,7 @@ class ProfileScreen extends StatelessWidget {
                       children: [
                         Text('🎾 ',
                             style: TextStyle(fontSize: 14)),
-                        Text('NTRP 3.5 — Intermediate',
+                        Text('NTRP 3.5 — Orta Seviye',
                             style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
@@ -128,10 +129,10 @@ class ProfileScreen extends StatelessWidget {
               ),
               child: const Row(
                 children: [
-                  _StatBox(value: '18', label: 'Wins', green: true),
-                  _StatBox(value: '7', label: 'Losses'),
-                  _StatBox(value: '25', label: 'Played'),
-                  _StatBox(value: '4.8★', label: 'Rating'),
+                  _StatBox(value: '18', label: 'Galibiyet', green: true),
+                  _StatBox(value: '7', label: 'Mağlubiyet'),
+                  _StatBox(value: '25', label: 'Oynandı'),
+                  _StatBox(value: '4.8★', label: 'Puan'),
                 ],
               ),
             ),
@@ -140,84 +141,90 @@ class ProfileScreen extends StatelessWidget {
           // ── Settings ───────────────────────────────────────────────────────
           SliverList(
             delegate: SliverChildListDelegate([
-              const _SettingsSection(title: 'MY GAME'),
+              const _SettingsSection(title: 'OYUNUM'),
               _SettingsItem(
                 icon: '⭐',
-                label: 'Reputation',
-                sub: '4.9 rating · 4 reviews',
+                label: 'İtibar',
+                sub: '4.9 puan · 4 değerlendirme',
                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ReputationScreen())),
               ),
               _SettingsItem(
                 icon: '🏆',
-                label: 'Achievements',
-                sub: '12 of 18 unlocked',
+                label: 'Başarılar',
+                sub: '18 üzerinden 12 kazanıldı',
                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AchievementsScreen())),
               ),
               _SettingsItem(
+                icon: '📊',
+                label: 'Sonuçlarım',
+                sub: 'Maç geçmişi ve skorlar',
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MyResultsScreen())),
+              ),
+              _SettingsItem(
                 icon: '📝',
-                label: 'Log a Result',
-                sub: 'Record your latest match',
+                label: 'Sonuç Kaydet',
+                sub: 'Son maçını kaydet',
                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LogResultScreen())),
               ),
-              const _SettingsSection(title: 'ACCOUNT'),
+              const _SettingsSection(title: 'HESAP'),
               _SettingsItem(
                 icon: '👤',
-                label: 'Edit Profile',
-                sub: 'Update name, photo, bio',
+                label: 'Profili Düzenle',
+                sub: 'Ad, fotoğraf, biyografi güncelle',
                 onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Edit profile coming soon'), behavior: SnackBarBehavior.floating),
+                  const SnackBar(content: Text('Profil düzenleme yakında'), behavior: SnackBarBehavior.floating),
                 ),
               ),
               _SettingsItem(
                 icon: '🎾',
-                label: 'Playing Preferences',
-                sub: 'Level, court type, format',
+                label: 'Oyun Tercihleri',
+                sub: 'Seviye, kort türü, format',
                 onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Playing preferences coming soon'), behavior: SnackBarBehavior.floating),
+                  const SnackBar(content: Text('Oyun tercihleri yakında'), behavior: SnackBarBehavior.floating),
                 ),
               ),
               _SettingsItem(
                 icon: '📅',
-                label: 'Availability',
-                sub: 'Set your weekly schedule',
+                label: 'Müsaitlik',
+                sub: 'Haftalık programını ayarla',
                 onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Availability settings coming soon'), behavior: SnackBarBehavior.floating),
+                  const SnackBar(content: Text('Müsaitlik ayarları yakında'), behavior: SnackBarBehavior.floating),
                 ),
               ),
-              const _SettingsSection(title: 'APP'),
+              const _SettingsSection(title: 'UYGULAMA'),
               _SettingsItem(
                 icon: '🔔',
-                label: 'Notifications',
-                sub: 'Match requests, reminders',
+                label: 'Bildirimler',
+                sub: 'Maç istekleri, hatırlatmalar',
                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationPreferencesScreen())),
               ),
               _SettingsItem(
                 icon: '🌙',
-                label: 'Appearance',
-                sub: 'Light / Dark mode',
+                label: 'Görünüm',
+                sub: 'Açık / Koyu mod',
                 onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Appearance settings coming soon'), behavior: SnackBarBehavior.floating),
+                  const SnackBar(content: Text('Görünüm ayarları yakında'), behavior: SnackBarBehavior.floating),
                 ),
               ),
               _SettingsItem(
                 icon: '🔒',
-                label: 'Privacy & Safety',
-                sub: 'Profile visibility',
+                label: 'Gizlilik ve Güvenlik',
+                sub: 'Profil görünürlüğü',
                 onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Privacy settings coming soon'), behavior: SnackBarBehavior.floating),
+                  const SnackBar(content: Text('Gizlilik ayarları yakında'), behavior: SnackBarBehavior.floating),
                 ),
               ),
-              const _SettingsSection(title: 'ABOUT'),
+              const _SettingsSection(title: 'HAKKINDA'),
               _SettingsItem(
                 icon: '📋',
-                label: 'Terms & Privacy',
+                label: 'Şartlar ve Gizlilik',
                 onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Terms & Privacy coming soon'), behavior: SnackBarBehavior.floating),
+                  const SnackBar(content: Text('Şartlar ve Gizlilik yakında'), behavior: SnackBarBehavior.floating),
                 ),
               ),
               _SettingsItem(
                 icon: '🚪',
-                label: 'Sign Out',
+                label: 'Çıkış Yap',
                 onTap: () async {
                   await supabase.auth.signOut();
                 },

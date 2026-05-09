@@ -93,7 +93,7 @@ class LandingScreen extends StatelessWidget {
                       TextButton(
                         onPressed: onSignIn,
                         child: const Text(
-                          'Sign in',
+                          'Giriş Yap',
                           style: TextStyle(
                             color: Colors.white70,
                             fontWeight: FontWeight.w600,
@@ -111,7 +111,7 @@ class LandingScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Text(
-                        'Find your\nperfect match.',
+                        'Mükemmel\nrakibini bul.',
                         style: TextStyle(
                           fontFamily: 'InstrumentSerif',
                           fontSize: 52,
@@ -127,8 +127,8 @@ class LandingScreen extends StatelessWidget {
                           ),
                       const SizedBox(height: 18),
                       const Text(
-                        'Connect with tennis players at your level, '
-                        'book courts, and track your progress.',
+                        'Seviyenizde tenis oyuncuları bulun, '
+                        'kort rezervasyonu yapın ve gelişiminizi takip edin.',
                         style: TextStyle(
                           color: Colors.white70,
                           fontSize: 16,
@@ -146,11 +146,11 @@ class LandingScreen extends StatelessWidget {
                   padding: EdgeInsets.symmetric(horizontal: 28),
                   child: Row(
                     children: [
-                      _StatChip(value: '2,400+', label: 'Players'),
+                      _StatChip(value: '2.400+', label: 'Oyuncu'),
                       SizedBox(width: 10),
-                      _StatChip(value: '98%', label: 'Match rate'),
+                      _StatChip(value: '98%', label: 'Uyum oranı'),
                       SizedBox(width: 10),
-                      _StatChip(value: '4.9★', label: 'Rating'),
+                      _StatChip(value: '4.9★', label: 'Puan'),
                     ],
                   ),
                 ).animate().fadeIn(delay: 450.ms),
@@ -175,19 +175,19 @@ class LandingScreen extends StatelessWidget {
                   child: Column(
                     children: [
                       RallyButton(
-                        label: 'Get started — it\'s free',
+                        label: 'Başla — tamamen ücretsiz',
                         onPressed: onGetStarted,
                         icon: Icons.sports_tennis,
                       ),
                       const SizedBox(height: 12),
                       RallyButton(
-                        label: 'I already have an account',
+                        label: 'Zaten hesabım var',
                         onPressed: onSignIn,
                         outlined: true,
                       ),
                       const SizedBox(height: 16),
                       const Text(
-                        'By continuing you agree to our Terms & Privacy Policy',
+                        'Devam ederek Şartlarımızı ve Gizlilik Politikamızı kabul etmiş olursunuz',
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 11,

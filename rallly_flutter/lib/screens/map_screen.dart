@@ -18,24 +18,24 @@ class MapScreen extends StatefulWidget {
 class _MapScreenState extends State<MapScreen> {
   final _mapCtrl = MapController();
 
-  // London-area coordinates (matching the mock data in the HTML prototype)
-  static const _center = LatLng(51.5461, -0.1059); // Islington
+  // Istanbul coordinates
+  static const _center = LatLng(41.0422, 29.0083); // Beşiktaş
 
   static final List<_MapPlayer> _mapPlayers = () {
     final players = dataService.getPlayers();
     return [
-      _MapPlayer(pos: const LatLng(51.5461, -0.1059), player: players[0]),
-      _MapPlayer(pos: const LatLng(51.5350, -0.0576), player: players[1]),
-      _MapPlayer(pos: const LatLng(51.5297, -0.1409), player: players[2]),
-      _MapPlayer(pos: const LatLng(51.5236, -0.0786), player: players[3]),
+      _MapPlayer(pos: const LatLng(41.0422, 29.0083), player: players[0]), // Beşiktaş
+      _MapPlayer(pos: const LatLng(40.9901, 29.0278), player: players[1]), // Kadıköy
+      _MapPlayer(pos: const LatLng(41.0603, 28.9877), player: players[2]), // Şişli
+      _MapPlayer(pos: const LatLng(41.0230, 29.0154), player: players[3]), // Üsküdar
     ];
   }();
 
   static const _courts = [
-    _MapCourt(pos: LatLng(51.5461, -0.1085), name: 'Highbury Fields'),
-    _MapCourt(pos: LatLng(51.5387, -0.0467), name: 'London Fields'),
-    _MapCourt(pos: LatLng(51.5266, -0.1540), name: "Regent's Park"),
-    _MapCourt(pos: LatLng(51.5321, -0.0408), name: 'Victoria Park'),
+    _MapCourt(pos: LatLng(41.0435, 29.0062), name: 'Beşiktaş JK Tenis Kortları'),
+    _MapCourt(pos: LatLng(40.9755, 29.0540), name: 'Caddebostan Tenis Kortları'),
+    _MapCourt(pos: LatLng(41.0680, 28.9989), name: 'Galatasaray Tenis Kulübü'),
+    _MapCourt(pos: LatLng(41.0760, 29.0103), name: 'ENKA Spor Kortları'),
   ];
 
   @override
@@ -43,7 +43,7 @@ class _MapScreenState extends State<MapScreen> {
     return Scaffold(
       backgroundColor: RallyColors.bg,
       appBar: AppBar(
-        title: const Text('Nearby Players', style: TextStyle(fontFamily: 'InstrumentSerif', fontSize: 22)),
+        title: const Text('Yakındaki Oyuncular', style: TextStyle(fontFamily: 'InstrumentSerif', fontSize: 22)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, size: 18),
           onPressed: () => Navigator.pop(context),
@@ -210,7 +210,7 @@ class _YouMarker extends StatelessWidget {
         boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6)],
       ),
       child: const Center(
-        child: Text('You', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 10)),
+        child: Text('Ben', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 10)),
       ),
     );
   }
@@ -275,7 +275,7 @@ class _PlayerMapSheet extends StatelessWidget {
                   children: [
                     Expanded(
                       child: RallyButton(
-                        label: 'View Profile',
+                        label: 'Profili Gör',
                         outlined: true,
                         onPressed: onViewProfile,
                       ),
@@ -283,12 +283,12 @@ class _PlayerMapSheet extends StatelessWidget {
                     const SizedBox(width: 10),
                     Expanded(
                       child: RallyButton(
-                        label: 'Request Match',
+                        label: 'Maç İste',
                         onPressed: () {
                           Navigator.pop(context);
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
-                              content: Text('Match request sent to ${player.name}!'),
+                              content: Text('${player.name} adlı oyuncuya maç isteği gönderildi!'),
                               backgroundColor: RallyColors.accent,
                               behavior: SnackBarBehavior.floating,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

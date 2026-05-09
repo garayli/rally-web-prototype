@@ -37,9 +37,9 @@ class Player {
   });
 
   String get skillLabel {
-    if (ntrpRating >= 4.5) return 'Advanced';
-    if (ntrpRating >= 3.0) return 'Intermediate';
-    return 'Beginner';
+    if (ntrpRating >= 4.5) return 'İleri Seviye';
+    if (ntrpRating >= 3.0) return 'Orta Seviye';
+    return 'Başlangıç';
   }
 
   String get ntrpDisplay => ntrpRating.toStringAsFixed(1);

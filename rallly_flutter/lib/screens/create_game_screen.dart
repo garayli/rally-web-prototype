@@ -12,7 +12,7 @@ class CreateGameScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: RallyColors.bg,
       appBar: AppBar(
-        title: const Text('New Game', style: TextStyle(fontFamily: 'InstrumentSerif', fontSize: 22)),
+        title: const Text('Yeni Maç', style: TextStyle(fontFamily: 'InstrumentSerif', fontSize: 22)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, size: 18),
           onPressed: () => Navigator.pop(context),
@@ -24,20 +24,20 @@ class CreateGameScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'What kind of game?',
+              'Ne tür bir maç?',
               style: TextStyle(fontFamily: 'InstrumentSerif', fontSize: 32, letterSpacing: -1.5, height: 1.1),
             ).animate().fadeIn(),
             const SizedBox(height: 8),
             const Text(
-              'Choose your format to get started',
+              'Başlamak için formatını seç',
               style: TextStyle(color: RallyColors.textSecondary, fontSize: 15),
             ).animate().fadeIn(delay: 80.ms),
             const SizedBox(height: 36),
 
             _GameTypeCard(
               icon: '👤',
-              title: 'Singles',
-              subtitle: 'Challenge a specific player 1v1',
+              title: 'Tekler',
+              subtitle: 'Belirli bir oyuncuya 1v1 meydan oku',
               gradient: const [Color(0xFF5A8A00), Color(0xFF8DB600)],
               onTap: () => Navigator.push(
                 context,
@@ -49,8 +49,8 @@ class CreateGameScreen extends StatelessWidget {
 
             _GameTypeCard(
               icon: '👥',
-              title: 'Doubles',
-              subtitle: 'Organise a 2v2 doubles match',
+              title: 'Çiftler',
+              subtitle: '2v2 çiftler maçı düzenle',
               gradient: const [Color(0xFF1A7ABF), Color(0xFF5BA8E0)],
               onTap: () => Navigator.push(
                 context,
@@ -62,8 +62,8 @@ class CreateGameScreen extends StatelessWidget {
 
             _GameTypeCard(
               icon: '🔓',
-              title: 'Open Lobby',
-              subtitle: 'Create a public slot for anyone to join',
+              title: 'Açık Lobi',
+              subtitle: 'Herkese açık bir slot oluştur',
               gradient: const [Color(0xFFC8431A), Color(0xFFF4956D)],
               onTap: () => Navigator.push(
                 context,

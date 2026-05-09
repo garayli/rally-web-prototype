@@ -3,6 +3,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 import '../theme/app_theme.dart';
 import '../widgets/shared_widgets.dart';
+import '../main.dart' show supabase;
 
 class OpenLobbyScreen extends StatefulWidget {
   const OpenLobbyScreen({super.key});
@@ -12,8 +13,8 @@ class OpenLobbyScreen extends StatefulWidget {
 }
 
 class _OpenLobbyScreenState extends State<OpenLobbyScreen> {
-  String _sport = 'Tennis';
-  String _skillLevel = 'Any level';
+  String _sport = 'Tenis';
+  String _skillLevel = 'Her seviye';
   DateTime? _date;
   TimeOfDay? _time;
   String _court = '';
@@ -21,9 +22,9 @@ class _OpenLobbyScreenState extends State<OpenLobbyScreen> {
   bool _isPublic = true;
   bool _loading = false;
 
-  static const _sports = ['Tennis', 'Padel', 'Badminton', 'Squash'];
-  static const _skillLevels = ['Any level', 'Beginner', 'Intermediate', 'Advanced', 'Expert'];
-  static const _courts = ['Highbury Fields', 'London Fields', "Regent's Park", 'Victoria Park', 'Shoreditch Park'];
+  static const _sports = ['Tenis', 'Padel', 'Badminton', 'Squash'];
+  static const _skillLevels = ['Her seviye', 'Başlangıç', 'Orta Seviye', 'İleri Seviye'];
+  static const _courts = ['Beşiktaş JK Tenis Kortları', 'Caddebostan Tenis Kortları', 'Galatasaray Tenis Kulübü', 'ENKA Spor Kortları', 'Fenerbahçe SK Tenis Kortları'];
 
   bool get _canSubmit => _date != null && _time != null && _court.isNotEmpty;
 
@@ -53,20 +54,42 @@ class _OpenLobbyScreenState extends State<OpenLobbyScreen> {
     if (t != null) setState(() => _time = t);
   }
 
-  void _submit() {
+  Future<void> _submit() async {
+    if (!_canSubmit || _loading) return;
     setState(() => _loading = true);
-    Future.delayed(const Duration(milliseconds: 800), () {
+    try {
+      final dt = DateTime(
+        _date!.year, _date!.month, _date!.day,
+        _time!.hour, _time!.minute,
+      );
+      await supabase.from('lobbies').insert({
+        'creator_id': supabase.auth.currentUser?.id,
+        'sport': _sport,
+        'skill_level': _skillLevel,
+        'date_time': dt.toUtc().toIso8601String(),
+        'court': _court,
+        'notes': _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
+        'is_public': _isPublic,
+        'status': 'open',
+      });
       if (!mounted) return;
       Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Open lobby created! Players can now join.'),
-          backgroundColor: RallyColors.accent,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-      );
-    });
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: const Text('Açık lobi oluşturuldu! Oyuncular artık katılabilir.'),
+        backgroundColor: RallyColors.accent,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ));
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _loading = false);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Lobi oluşturulamadı: $e'),
+        backgroundColor: RallyColors.accent2,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ));
+    }
   }
 
   @override
@@ -80,7 +103,7 @@ class _OpenLobbyScreenState extends State<OpenLobbyScreen> {
     return Scaffold(
       backgroundColor: RallyColors.bg,
       appBar: AppBar(
-        title: const Text('Open Lobby', style: TextStyle(fontFamily: 'InstrumentSerif', fontSize: 22)),
+        title: const Text('Açık Lobi', style: TextStyle(fontFamily: 'InstrumentSerif', fontSize: 22)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, size: 18),
           onPressed: () => Navigator.pop(context),
@@ -92,18 +115,18 @@ class _OpenLobbyScreenState extends State<OpenLobbyScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'Create an open slot',
+              'Açık slot oluştur',
               style: TextStyle(fontFamily: 'InstrumentSerif', fontSize: 28, letterSpacing: -1, height: 1.1),
             ).animate().fadeIn(),
             const SizedBox(height: 6),
             const Text(
-              'Other players can request to join your session',
+              'Diğer oyuncular oturumuna katılmak için istekte bulunabilir',
               style: TextStyle(color: RallyColors.textSecondary, fontSize: 14, height: 1.5),
             ).animate().fadeIn(delay: 80.ms),
             const SizedBox(height: 28),
 
             // Sport
-            const _Label('SPORT'),
+            const _Label('SPOR'),
             const SizedBox(height: 8),
             _ChipRow(
               items: _sports,
@@ -112,7 +135,7 @@ class _OpenLobbyScreenState extends State<OpenLobbyScreen> {
             ).animate().fadeIn(delay: 100.ms),
 
             const SizedBox(height: 20),
-            const _Label('SKILL LEVEL WELCOME'),
+            const _Label('DAVET EDİLEN SEVİYE'),
             const SizedBox(height: 8),
             _ChipRow(
               items: _skillLevels,
@@ -121,14 +144,14 @@ class _OpenLobbyScreenState extends State<OpenLobbyScreen> {
             ).animate().fadeIn(delay: 120.ms),
 
             const SizedBox(height: 20),
-            const _Label('DATE & TIME'),
+            const _Label('TARİH & SAAT'),
             const SizedBox(height: 8),
             Row(
               children: [
                 Expanded(
                   child: _PickerBox(
                     icon: Icons.calendar_today_outlined,
-                    label: _date == null ? 'Pick date' : DateFormat('EEE, MMM d').format(_date!),
+                    label: _date == null ? 'Tarih seç' : DateFormat('EEE, MMM d').format(_date!),
                     onTap: _pickDate,
                   ),
                 ),
@@ -136,7 +159,7 @@ class _OpenLobbyScreenState extends State<OpenLobbyScreen> {
                 Expanded(
                   child: _PickerBox(
                     icon: Icons.access_time_outlined,
-                    label: _time == null ? 'Pick time' : _time!.format(context),
+                    label: _time == null ? 'Saat seç' : _time!.format(context),
                     onTap: _pickTime,
                   ),
                 ),
@@ -144,7 +167,7 @@ class _OpenLobbyScreenState extends State<OpenLobbyScreen> {
             ).animate().fadeIn(delay: 140.ms),
 
             const SizedBox(height: 20),
-            const _Label('COURT'),
+            const _Label('KORT'),
             const SizedBox(height: 8),
             SizedBox(
               height: 40,
@@ -173,13 +196,13 @@ class _OpenLobbyScreenState extends State<OpenLobbyScreen> {
             ).animate().fadeIn(delay: 160.ms),
 
             const SizedBox(height: 20),
-            const _Label('NOTES (OPTIONAL)'),
+            const _Label('NOTLAR (OPSİYONEL)'),
             const SizedBox(height: 8),
             TextFormField(
               controller: _notesCtrl,
               maxLines: 3,
               decoration: const InputDecoration(
-                hintText: 'e.g. "Bring your own balls, casual match, beginners welcome"',
+                hintText: 'ör. "Kendi topunuzu getirin, rahat bir maç, başlangıç seviyesi hoş geldiniz"',
               ),
             ).animate().fadeIn(delay: 180.ms),
 
@@ -205,8 +228,8 @@ class _OpenLobbyScreenState extends State<OpenLobbyScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Public lobby', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
-                        Text('Anyone can request to join', style: TextStyle(fontSize: 12, color: RallyColors.muted)),
+                        Text('Herkese açık lobi', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                        Text('Herkes katılmak için istekte bulunabilir', style: TextStyle(fontSize: 12, color: RallyColors.muted)),
                       ],
                     ),
                   ),
@@ -221,7 +244,7 @@ class _OpenLobbyScreenState extends State<OpenLobbyScreen> {
 
             const SizedBox(height: 28),
             RallyButton(
-              label: 'Create Lobby 🎾',
+              label: 'Lobi Oluştur 🎾',
               onPressed: _canSubmit ? _submit : null,
               loading: _loading,
             ).animate().fadeIn(delay: 220.ms),

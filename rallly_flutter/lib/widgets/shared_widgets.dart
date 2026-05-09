@@ -70,10 +70,10 @@ class SkillBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     Color bg, fg;
-    switch (label.toLowerCase()) {
-      case 'advanced':
+    switch (label) {
+      case 'İleri Seviye':
         bg = RallyColors.skillAdvBg; fg = RallyColors.skillAdvFg;
-      case 'intermediate':
+      case 'Orta Seviye':
         bg = RallyColors.skillInterBg; fg = RallyColors.skillInterFg;
       default:
         bg = RallyColors.skillBegBg; fg = RallyColors.skillBegFg;
@@ -230,7 +230,7 @@ class PlayerCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(100),
                     ),
                     child: const Text(
-                      'Request',
+                      'İste',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 12,

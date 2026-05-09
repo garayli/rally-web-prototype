@@ -53,7 +53,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           SliverAppBar(
             floating: true,
             snap: true,
-            title: const Text('Schedule',
+            title: const Text('Takvim',
                 style: TextStyle(
                     fontFamily: 'InstrumentSerif', fontSize: 22)),
             actions: [
@@ -63,7 +63,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                   MaterialPageRoute(builder: (_) => const GamesScreen()),
                 ),
                 icon: const Icon(Icons.sports_tennis, size: 16),
-                label: const Text('Games', style: TextStyle(fontWeight: FontWeight.w700)),
+                label: const Text('Maçlar', style: TextStyle(fontWeight: FontWeight.w700)),
                 style: TextButton.styleFrom(foregroundColor: RallyColors.accent),
               ),
               IconButton(
@@ -194,7 +194,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                     const Text('🎾', style: TextStyle(fontSize: 44)),
                     const SizedBox(height: 12),
                     const Text(
-                      'No matches this day',
+                      'Bu gün maç yok',
                       style: TextStyle(
                         fontFamily: 'InstrumentSerif',
                         fontSize: 20,
@@ -202,17 +202,10 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                     ),
                     const SizedBox(height: 6),
                     const Text(
-                      'Find a new opponent or schedule a session',
+                      'Yeni rakip bul veya bir seans planla',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                           color: RallyColors.muted, fontSize: 14),
-                    ),
-                    const SizedBox(height: 20),
-                    RallyButton(
-                      label: 'Find a new match',
-                      icon: Icons.search,
-                      onPressed: () => Navigator.push(context,
-                          MaterialPageRoute(builder: (_) => const MatchScreen())),
                     ),
                   ],
                 ),
@@ -270,7 +263,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Find a new match',
+                            'Yeni maç bul',
                             style: TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.w700,
@@ -278,7 +271,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                             ),
                           ),
                           Text(
-                            '4 players available near you',
+                            'Yakınınızda 4 oyuncu mevcut',
                             style: TextStyle(
                               color: Colors.white70,
                               fontSize: 12,
@@ -392,7 +385,7 @@ class _SessionCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(100),
             ),
             child: Text(
-              isConfirmed ? 'Confirmed' : 'Pending',
+              isConfirmed ? 'Onaylandı' : 'Beklemede',
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w700,
