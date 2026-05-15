@@ -5,6 +5,7 @@ import '../theme/app_theme.dart';
 import '../widgets/shared_widgets.dart';
 import '../models/models.dart';
 import '../services/data_service.dart';
+import '../main.dart' show supabase;
 import 'result_card_screen.dart';
 
 class LogResultScreen extends StatefulWidget {
@@ -17,6 +18,9 @@ class LogResultScreen extends StatefulWidget {
 
 class _LogResultScreenState extends State<LogResultScreen> {
   Player? _opponent;
+  bool _guestMode = false;
+  final _guestNameCtrl = TextEditingController();
+  final _guestPhoneCtrl = TextEditingController();
 
   // Set scores: [p1, p2] for each set
   final _s1 = [TextEditingController(), TextEditingController()];
@@ -56,7 +60,8 @@ class _LogResultScreenState extends State<LogResultScreen> {
   }
 
   bool get _canSubmit {
-    if (_opponent == null) return false;
+    if (_guestMode && _guestPhoneCtrl.text.trim().length < 10) return false;
+    if (!_guestMode && _opponent == null) return false;
     final s1Valid = _s1[0].text.isNotEmpty && _s1[1].text.isNotEmpty;
     final s2Valid = _s2[0].text.isNotEmpty && _s2[1].text.isNotEmpty;
     if (!s1Valid || !s2Valid) return false;
@@ -64,35 +69,83 @@ class _LogResultScreenState extends State<LogResultScreen> {
     return true;
   }
 
-  void _submit() {
+  Future<void> _submit() async {
+    if (!_canSubmit || _winner == null || _loading) return;
     setState(() => _loading = true);
-    Future.delayed(const Duration(milliseconds: 600), () {
+    final effectiveOpponent = _guestMode ? _guestPlayer() : _opponent!;
+    final sets = <SetScore>[
+      SetScore(int.tryParse(_s1[0].text) ?? 0, int.tryParse(_s1[1].text) ?? 0),
+      SetScore(int.tryParse(_s2[0].text) ?? 0, int.tryParse(_s2[1].text) ?? 0),
+      if (_showSet3 && _s3[0].text.isNotEmpty)
+        SetScore(int.tryParse(_s3[0].text) ?? 0, int.tryParse(_s3[1].text) ?? 0),
+    ];
+    try {
+      final userId = supabase.auth.currentUser?.id;
+      if (userId == null) {
+        if (!mounted) return;
+        setState(() => _loading = false);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: const Text('Oturum açmanız gerekiyor'),
+          backgroundColor: RallyColors.accent2,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ));
+        return;
+      }
+      await supabase.from('matches').insert({
+        'player1_id': userId,
+        'player2_id': _guestMode ? null : effectiveOpponent.id,
+        'status': 'completed',
+        'format': 'singles',
+        'date_time': DateTime.now().toUtc().toIso8601String(),
+        'court': 'Belirtilmedi',
+        'winner_id': _winner == 'me' ? userId : null,
+        'sets': sets.map((s) => s.toJson()).toList(),
+        'rating_delta': _winner == 'me' ? 12.0 : -8.0,
+        // only sent for unregistered opponents — columns must exist in DB
+        if (_guestMode) ...{
+          'opponent_name': effectiveOpponent.name,
+          'opponent_phone': _guestPhoneCtrl.text.trim(),
+        },
+      });
+    } catch (e, st) {
+      debugPrint('FULL ERROR: ${e.runtimeType}: $e');
+      debugPrint('LOG RESULT ERROR: $e\n$st');
       if (!mounted) return;
-      final sets = <SetScore>[
-        SetScore(int.tryParse(_s1[0].text) ?? 0, int.tryParse(_s1[1].text) ?? 0),
-        SetScore(int.tryParse(_s2[0].text) ?? 0, int.tryParse(_s2[1].text) ?? 0),
-        if (_showSet3 && _s3[0].text.isNotEmpty)
-          SetScore(int.tryParse(_s3[0].text) ?? 0, int.tryParse(_s3[1].text) ?? 0),
-      ];
-      final result = MatchResult(
-        winnerId: _winner == 'me' ? 'me' : (_opponent?.id ?? ''),
-        sets: sets,
-        ratingDelta: _winner == 'me' ? 12 : -8,
-      );
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => ResultCardScreen(
-            opponent: _opponent!,
-            result: result,
-          ),
-        ),
-      );
-    });
+      setState(() => _loading = false);
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('Sonuç kaydedilemedi: $e'),
+        backgroundColor: RallyColors.accent2,
+        behavior: SnackBarBehavior.floating,
+        duration: const Duration(seconds: 8),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ));
+      return;
+    }
+    if (!mounted) return;
+    final result = MatchResult(
+      winnerId: _winner == 'me' ? 'me' : effectiveOpponent.id,
+      sets: sets,
+      ratingDelta: _winner == 'me' ? 12 : -8,
+    );
+    Navigator.pushReplacement(context, MaterialPageRoute(
+      builder: (_) => ResultCardScreen(opponent: effectiveOpponent, result: result),
+    ));
+  }
+
+  Player _guestPlayer() {
+    final name = _guestNameCtrl.text.trim().isNotEmpty
+        ? _guestNameCtrl.text.trim()
+        : _guestPhoneCtrl.text.trim();
+    final initials = name.split(' ').take(2)
+        .map((w) => w.isEmpty ? '' : w[0].toUpperCase()).join();
+    return Player(id: 'guest', name: name, initials: initials, ntrpRating: 3.0, location: '');
   }
 
   @override
   void dispose() {
+    _guestNameCtrl.dispose();
+    _guestPhoneCtrl.dispose();
     for (final c in [..._s1, ..._s2, ..._s3]) {
       c.dispose();
     }
@@ -122,13 +175,38 @@ class _LogResultScreenState extends State<LogResultScreen> {
               height: 56,
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
-                itemCount: dataService.getPlayers().length,
+                itemCount: dataService.getPlayers().length + 1,
                 separatorBuilder: (_, __) => const SizedBox(width: 8),
                 itemBuilder: (context, i) {
+                  // Last item: guest chip
+                  if (i == dataService.getPlayers().length) {
+                    return GestureDetector(
+                      onTap: () => setState(() { _guestMode = true; _opponent = null; }),
+                      child: AnimatedContainer(
+                        duration: 160.ms,
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: _guestMode ? RallyColors.accent : RallyColors.white,
+                          borderRadius: BorderRadius.circular(100),
+                          border: Border.all(color: _guestMode ? RallyColors.accent : RallyColors.border2, width: 1.5),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.person_add_outlined, size: 15,
+                                color: _guestMode ? Colors.white : RallyColors.accent),
+                            const SizedBox(width: 6),
+                            Text('Kayıtsız Oyuncu',
+                                style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700,
+                                    color: _guestMode ? Colors.white : RallyColors.textPrimary)),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
                   final p = dataService.getPlayers()[i];
-                  final sel = _opponent?.id == p.id;
+                  final sel = !_guestMode && _opponent?.id == p.id;
                   return GestureDetector(
-                    onTap: () => setState(() => _opponent = p),
+                    onTap: () => setState(() { _guestMode = false; _opponent = p; }),
                     child: AnimatedContainer(
                       duration: 160.ms,
                       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
@@ -158,12 +236,42 @@ class _LogResultScreenState extends State<LogResultScreen> {
               ),
             ).animate().fadeIn(delay: 80.ms),
 
+            if (_guestMode) ...[
+              const SizedBox(height: 12),
+              TextField(
+                controller: _guestPhoneCtrl,
+                keyboardType: TextInputType.phone,
+                onChanged: (_) => setState(() {}),
+                inputFormatters: [
+                  FilteringTextInputFormatter.digitsOnly,
+                  LengthLimitingTextInputFormatter(11),
+                ],
+                decoration: const InputDecoration(
+                  hintText: 'Telefon numarası (zorunlu)',
+                  prefixIcon: Icon(Icons.phone_outlined),
+                ),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: _guestNameCtrl,
+                onChanged: (_) => setState(() {}),
+                decoration: const InputDecoration(
+                  hintText: 'İsim (opsiyonel)',
+                  prefixIcon: Icon(Icons.person_outline),
+                ),
+              ),
+            ],
+
             const SizedBox(height: 28),
 
             // Score entry
             _ScoreHeader(
               myLabel: 'Sen',
-              opponentLabel: _opponent?.name.split(' ').first ?? 'Rakip',
+              opponentLabel: _guestMode
+                  ? (_guestNameCtrl.text.trim().isNotEmpty
+                      ? _guestNameCtrl.text.trim().split(' ').first
+                      : 'Rakip')
+                  : (_opponent?.name.split(' ').first ?? 'Rakip'),
             ),
             const SizedBox(height: 12),
             _SetRow(label: 'SET 1', controllers: _s1).animate().fadeIn(delay: 120.ms),
@@ -242,7 +350,9 @@ class _LogResultScreenState extends State<LogResultScreen> {
                         color: _winner == 'me' ? RallyColors.accent : RallyColors.accent2),
                     const SizedBox(width: 10),
                     Text(
-                      _winner == 'me' ? 'Bu maçı kazandınız!' : '${_opponent?.name.split(' ').first} kazandı',
+                      _winner == 'me'
+                          ? 'Bu maçı kazandınız!'
+                          : '${(_guestMode ? _guestNameCtrl.text.trim().split(' ').firstOrNull : _opponent?.name.split(' ').first) ?? 'Rakip'} kazandı',
                       style: TextStyle(fontWeight: FontWeight.w700, color: _winner == 'me' ? RallyColors.accent : RallyColors.accent2),
                     ),
                     const Spacer(),

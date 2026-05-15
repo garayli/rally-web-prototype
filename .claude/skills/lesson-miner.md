@@ -43,6 +43,8 @@ Examples of valuable lessons:
 - Any player name/avatar display should be tappable to `PlayerProfileScreen` by default
 - Supabase FK constraints require real `auth.users` rows — design nullable receiver-side FKs for gradual onboarding
 - Always capture `Navigator.of(context)` and `ScaffoldMessenger.of(context)` before async gaps to avoid `use_build_context_synchronously` lint errors
+- Conditional spread `if (cond) ...{'col': val}` in Supabase insert maps — never send a column key that may not exist in the target table; PostgREST rejects the insert even if the value would be null
+- Always null-guard `supabase.auth.currentUser?.id` before using it as a NOT NULL FK column — show a "sign in required" snackbar and return early if null
 
 ## How to analyze
 

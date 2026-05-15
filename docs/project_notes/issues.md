@@ -26,4 +26,8 @@ Track completed work, tickets, and milestones.
 **Task:** Fix match request not writing to Supabase
 **Details:** `_RequestSheetState._sendRequest()` now calls `supabase.from('matches').insert(...)`. Actual DB columns are `player1_id`, `player2_id` (nullable), `date_time`, `court`, `status`, `format`. Column name mismatch from original assumption caused inserts to fail. RLS policies added; `player2_id` made nullable (mock IDs are not UUIDs).
 
+## 2026-05-15
+**Task:** Log match result against unregistered opponent + Supabase persistence
+**Details:** `LogResultScreen` gained a "Kayıtsız Oyuncu" chip at the end of the opponent selector. When selected, phone (required, ≥10 digits) and name (optional) fields appear. `_submit()` is now async and inserts into `matches` with `status='completed'`, `player1_id`, optional `player2_id`, `winner_id`, `sets` (jsonb), `rating_delta`, and conditionally `opponent_name`/`opponent_phone` via Dart spread `if (_guestMode) ...{}`. DB migration added two new text columns to `matches`; RLS insert policy already existed. Added `userId == null` guard before insert. Root cause of original failure: migration was never run.
+
 <!-- Add new entries above this line -->

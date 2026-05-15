@@ -91,6 +91,13 @@ Plain `StatefulWidget` + `setState`. `flutter_riverpod` is in `pubspec.yaml` but
 - Skip this for simple, obvious fixes — don't over-engineer.
 - Challenge your own work before presenting it.
 
+### Supabase Column Checklist
+- Before writing Flutter code that references new columns, run `apply_migration` first
+- Verify columns exist with `mcp__claude_ai_Supabase__list_tables` (verbose=true) before testing inserts
+- After any DDL change, always run `NOTIFY pgrst, 'reload schema'` so PostgREST picks up the new schema
+- If code must be written before the migration: wrap new column keys in `if (condition) ...{ 'col': val }` conditional spread so they are never sent to a table that doesn't have them yet
+- `matches.player1_id` FK targets `profiles.id`, not `auth.users` — the logged-in user must have a profile row
+
 ### Autonomous Bug Fixing
 - When given a bug report: just fix it. Don't ask for hand-holding.
 - Point at logs, errors, failing tests — then resolve them.

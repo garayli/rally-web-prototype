@@ -236,4 +236,24 @@ Never use `Spacer()` inside a Column that lives inside a height-constrained hori
 
 ---
 
+## Log Result — Guest Opponent Columns Not Found
+**Date:** 2026-05-15
+**Severity:** High
+
+### Problem
+Saving a match result with an unregistered (guest) opponent always failed. The error was "column not found in schema cache" for `opponent_name` / `opponent_phone`.
+
+### Root Cause
+The migration to add `opponent_name` and `opponent_phone` to the `matches` table was designed but never executed. The Flutter code (including the `if (_guestMode) ...{}` conditional guard) was correct, but PostgREST rejects any insert that references a column that does not yet exist in the DB, regardless of guards on the Flutter side.
+
+### Solution
+- Ran `apply_migration` to add `ALTER TABLE public.matches ADD COLUMN IF NOT EXISTS opponent_name text, ADD COLUMN IF NOT EXISTS opponent_phone text`
+- Followed with `NOTIFY pgrst, 'reload schema'` to flush the PostgREST schema cache
+- Verified columns exist via `list_tables` (verbose=true) before retesting
+
+### Prevention
+Always run DDL migrations before writing (or testing) Flutter code that references new columns. Verify with `list_tables` (verbose=true). A conditional guard on the Flutter side does not protect against referencing a column that doesn't exist — PostgREST validates the schema at insert time regardless.
+
+---
+
 <!-- Add new bugs above this line -->

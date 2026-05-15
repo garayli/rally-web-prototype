@@ -91,20 +91,37 @@ Made `receiver_id` nullable and kept FK as a nullable reference (migration: `mak
 
 ---
 
-## ADR-005: matches.opponent_id stored as text, no FK until real profiles exist
+## ADR-005: matches.player2_id is nullable uuid with no FK enforcement during dev
 **Date:** 2026-05-09
 **Status:** Accepted
 
 ### Context
-The `matches` table insert uses `opponent_id: widget.player.id`, but mock player IDs are short strings (`'p1'`, `'p2'`), not UUIDs. A FK constraint `opponent_id → profiles.id` would reject every insert until real player profiles are in the DB — the same problem that occurred with `messages.receiver_id` (see ADR-004).
+The `matches` table insert uses `player2_id` for the opponent, but mock player IDs are short strings (`'p1'`, `'p2'`), not UUIDs. A strict FK constraint `player2_id → profiles.id` would reject every insert until all players have real Supabase profiles — the same problem that occurred with `messages.receiver_id` (see ADR-004).
 
 ### Decision
-Define `opponent_id` as `text` (no FK) in the `matches` table for now. Once real player onboarding is built and all players have Supabase profile rows, convert to `uuid` with a FK constraint.
+`player2_id` is `uuid` but nullable, with a FK to `profiles.id`. For guest/mock opponents, `player2_id` is sent as `null`; opponent identity is stored in `opponent_name` (text) and `opponent_phone` (text) instead. Once real player onboarding is complete, `player2_id` can be populated retroactively by matching on phone number.
 
 ### Consequences
-- **Positive:** Inserts succeed immediately in dev/testing with mock data.
-- **Negative:** No referential integrity on `opponent_id` until migration. Queries joining matches → profiles won't work yet.
-- **How to apply:** When adding the FK later, run a migration to cast existing `text` values to `uuid` (mock IDs will need to be cleaned up or the rows deleted).
+- **Positive:** Inserts succeed immediately in dev/testing; guest match results are stored with enough data to link later.
+- **Negative:** No referential integrity on opponent until real profiles exist. Queries joining matches → profiles on `player2_id` return null for guest rows.
+- **How to apply:** When real onboarding is built, populate `player2_id` by querying `profiles` by phone number at insert time.
+
+---
+
+## ADR-006: Phone number as unregistered opponent identifier
+**Date:** 2026-05-15
+**Status:** Accepted
+
+### Context
+Users need to log match results against opponents who don't use the app. A free-text name alone is not a reliable identifier. Phone number is unique and stable, and when the opponent eventually registers with the same number their historic match results can be retroactively linked.
+
+### Decision
+Unregistered opponents are identified by phone number (minimum 10 digits, digits-only). Name is optional. Both are stored in `matches.opponent_phone` and `matches.opponent_name`. `player2_id` is null for these rows. Phone is not yet stored in `profiles`; linking is future work.
+
+### Consequences
+- **Positive:** Consistent unique key for future retroactive linking. Simple UX — just enter a number.
+- **Negative:** Relies on phone being unique per person (not enforced at DB level). No real-time validation that the number belongs to any real person.
+- **How to apply:** Future signup flow should collect phone → store in `profiles.phone` → on match insert, query profiles by phone to auto-populate `player2_id`.
 
 ---
 

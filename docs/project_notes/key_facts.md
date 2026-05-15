@@ -49,15 +49,17 @@ Project configuration, credentials, and constants.
 | Column | Type | Notes |
 |--------|------|-------|
 | `id` | uuid | PK, default `gen_random_uuid()` |
-| `player1_id` | uuid | Requester — FK → `auth.users` |
+| `player1_id` | uuid | Requester — FK → `profiles.id` (NOT auth.users) |
 | `player2_id` | uuid | Opponent — nullable (mock IDs not UUIDs, see ADR-005) |
-| `date_time` | timestamptz | NOT NULL — app sends `DateTime.now()+7days` as placeholder |
+| `date_time` | timestamptz | NOT NULL |
 | `court` | text | NOT NULL |
 | `status` | enum | `'pending'` \| `'confirmed'` \| `'completed'` \| `'cancelled'` |
 | `format` | enum | `'singles'` \| `'doubles'` |
-| `winner_id` | uuid | nullable — set on match completion |
+| `winner_id` | uuid | nullable FK → `profiles.id` — set on match completion |
 | `sets` | jsonb | nullable — set scores |
 | `rating_delta` | real | nullable |
+| `opponent_name` | text | nullable — unregistered opponent display name |
+| `opponent_phone` | text | nullable — unregistered opponent phone (min 10 digits) |
 | `created_at` | timestamptz | auto |
 | `updated_at` | timestamptz | auto |
 

@@ -493,6 +493,7 @@ class _LobbyCard extends StatelessWidget {
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             children: [
@@ -539,6 +540,8 @@ class _LobbyCard extends StatelessWidget {
               style: FilledButton.styleFrom(
                 backgroundColor: RallyColors.accent,
                 minimumSize: const Size(0, 32),
+                maximumSize: const Size(double.infinity, 32),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 padding: EdgeInsets.zero,
                 textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
               ),
