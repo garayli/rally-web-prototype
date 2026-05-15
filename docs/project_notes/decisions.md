@@ -125,4 +125,21 @@ Unregistered opponents are identified by phone number (minimum 10 digits, digits
 
 ---
 
+## ADR-007: Onboarding overlay — custom implementation over third-party package
+**Date:** 2026-05-15
+**Status:** Accepted
+
+### Context
+New users needed per-tab guidance on what each page does. Options considered: third-party packages (`showcaseview`, `tutorial_coach_mark`), a full-screen intro carousel, and a custom `Stack`-based overlay card.
+
+### Decision
+Custom `Stack`-based overlay rendered inside `Scaffold.body`, managed in `MainShell`. No third-party onboarding package introduced. Seen-state stored in `shared_preferences` (already a transitive dep, promoted to direct). Overlay is a semi-transparent backdrop + centered card (icon + title + bullets + dismiss button). `BottomNavigationBar` lives in `Scaffold.bottomNavigationBar` so it is never obscured.
+
+### Consequences
+- **Positive:** Zero new UI dependencies; fits existing `flutter_animate` + `StatefulWidget + setState` patterns; fully controllable styling.
+- **Negative:** Overlay points at the page as a whole, not at specific UI elements. If per-element coach marks are needed later, a package like `showcaseview` would require adding `GlobalKey`s to target widgets.
+- **How to apply:** To reset onboarding in development, clear the `onboarding_seen` SharedPreferences key. To add a new tab, append an entry to `kTabOnboardingContent` in `onboarding_overlay.dart` and increase `List.filled(5, ...)` to the new count.
+
+---
+
 <!-- Add new ADRs above this line -->

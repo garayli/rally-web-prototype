@@ -30,4 +30,8 @@ Track completed work, tickets, and milestones.
 **Task:** Log match result against unregistered opponent + Supabase persistence
 **Details:** `LogResultScreen` gained a "Kayıtsız Oyuncu" chip at the end of the opponent selector. When selected, phone (required, ≥10 digits) and name (optional) fields appear. `_submit()` is now async and inserts into `matches` with `status='completed'`, `player1_id`, optional `player2_id`, `winner_id`, `sets` (jsonb), `rating_delta`, and conditionally `opponent_name`/`opponent_phone` via Dart spread `if (_guestMode) ...{}`. DB migration added two new text columns to `matches`; RLS insert policy already existed. Added `userId == null` guard before insert. Root cause of original failure: migration was never run.
 
+## 2026-05-15
+**Task:** Per-tab onboarding overlay for new users
+**Details:** Added a first-time overlay to each of the 5 main tab screens. New file `lib/widgets/onboarding_overlay.dart` contains `TabOnboardingContent` data class, `kTabOnboardingContent` list (icon + title + 3 Turkish bullets per tab), `OnboardingOverlay` StatelessWidget (semi-transparent backdrop + card + `_BulletRow` helpers + "Anladım!" dismiss button, fade-in via `flutter_animate`). `MainShell` gained `initState`, `_loadSeenState()`, and `_dismissOverlay()` using `shared_preferences` to persist seen-state per tab. `IndexedStack` wrapped in `Stack`; overlay only rendered after prefs load (`_prefsLoaded` guard prevents cold-start flash). Bottom nav stays outside `Scaffold.body` — never covered. Added `shared_preferences: ^2.2.0` to pubspec.yaml.
+
 <!-- Add new entries above this line -->

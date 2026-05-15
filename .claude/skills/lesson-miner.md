@@ -45,6 +45,9 @@ Examples of valuable lessons:
 - Always capture `Navigator.of(context)` and `ScaffoldMessenger.of(context)` before async gaps to avoid `use_build_context_synchronously` lint errors
 - Conditional spread `if (cond) ...{'col': val}` in Supabase insert maps — never send a column key that may not exist in the target table; PostgREST rejects the insert even if the value would be null
 - Always null-guard `supabase.auth.currentUser?.id` before using it as a NOT NULL FK column — show a "sign in required" snackbar and return early if null
+- For first-time overlay/onboarding: default `_seen` to `true` (hidden) until `SharedPreferences` loads — prevents a cold-start flash of the overlay before the async prefs read completes
+- Place overlays inside `Scaffold.body` (not wrapping the full `Scaffold`) so `bottomNavigationBar` is never covered and remains interactive
+- To reset onboarding state in dev: clear the `onboarding_seen` SharedPreferences key
 
 ## How to analyze
 

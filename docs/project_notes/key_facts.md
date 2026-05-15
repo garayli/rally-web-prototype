@@ -90,6 +90,18 @@ RLS: anyone can SELECT where `is_public=true AND status='open'`; only `creator_i
 
 ---
 
+---
+
+## Key Dependencies (non-obvious)
+
+| Package | Version | Purpose |
+|---------|---------|---------|
+| `shared_preferences` | ^2.2.0 | Persists per-tab onboarding seen-state (`onboarding_seen` key, `List<String>` of tab indices) |
+| `flutter_animate` | ^4.5.0 | Fade/slide animations on cards and overlays |
+| `flutter_map` | ^6.0.1 | Map screen (OpenStreetMap tiles) |
+
+---
+
 ## Notes
 
 - Update this file when configuration changes

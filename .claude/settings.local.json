@@ -96,7 +96,10 @@
       "Bash(Get-Content \"C:\\\\Users\\\\Leyla\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\c--Users-Leyla-Documents-RallyMatch\\\\7edfa040-8f81-4c50-9cff-17a9a666d942\\\\tasks\\\\b8txv204x.output\" -Wait)",
       "Bash(Select-String -Pattern \"error|warning|No issues|Analyzing\" --SimpleMatch)",
       "mcp__claude_ai_Supabase__list_projects",
-      "mcp__claude_ai_Supabase__list_tables"
+      "mcp__claude_ai_Supabase__list_tables",
+      "Bash(xargs -I {} basename {})",
+      "Bash(cd /c/Users/Leyla/Documents/RallyMatch/rallly_flutter/lib/screens && grep -h \"^class.*Screen.*extends.*StatefulWidget\\\\|^class.*Screen.*extends.*StatelessWidget\" *.dart | sort)",
+      "Read(//c/c/Users/Leyla/Documents/RallyMatch/rallly_flutter/lib/**)"
     ]
   }
 }

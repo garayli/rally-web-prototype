@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/data_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/shared_widgets.dart';
+import '../widgets/onboarding_overlay.dart';
 import 'match_screen.dart';
 import 'schedule_screen.dart';
 import 'messages_screen.dart';
@@ -19,6 +21,10 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
 
+  static const _prefsKey = 'onboarding_seen';
+  List<bool> _seen = List.filled(5, true); // default true → hide until prefs load
+  bool _prefsLoaded = false;
+
   final _screens = const [
     MatchScreen(),
     ScheduleScreen(),
@@ -26,6 +32,32 @@ class _MainShellState extends State<MainShell> {
     NotificationsScreen(),
     ProfileScreen(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSeenState();
+  }
+
+  Future<void> _loadSeenState() async {
+    final prefs = await SharedPreferences.getInstance();
+    final seenIndices = prefs.getStringList(_prefsKey) ?? [];
+    if (!mounted) return;
+    setState(() {
+      _seen = List.generate(5, (i) => seenIndices.contains('$i'));
+      _prefsLoaded = true;
+    });
+  }
+
+  Future<void> _dismissOverlay(int tabIndex) async {
+    setState(() => _seen[tabIndex] = true);
+    final prefs = await SharedPreferences.getInstance();
+    final seenIndices = prefs.getStringList(_prefsKey) ?? [];
+    if (!seenIndices.contains('$tabIndex')) {
+      seenIndices.add('$tabIndex');
+      await prefs.setStringList(_prefsKey, seenIndices);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,9 +68,18 @@ class _MainShellState extends State<MainShell> {
     ));
 
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _screens,
+      body: Stack(
+        children: [
+          IndexedStack(
+            index: _currentIndex,
+            children: _screens,
+          ),
+          if (_prefsLoaded && !_seen[_currentIndex])
+            OnboardingOverlay(
+              content: kTabOnboardingContent[_currentIndex],
+              onDismiss: () => _dismissOverlay(_currentIndex),
+            ),
+        ],
       ),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
