@@ -94,6 +94,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
             padding: const EdgeInsets.fromLTRB(
               Spacing.gutter, Spacing.md, Spacing.gutter, Spacing.sm),
             child: Container(
+              width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
               decoration: BoxDecoration(
                 color: cp.surface,
@@ -113,6 +114,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
                         hintText: 'İsim veya mesaj ara…',
                         hintStyle: RallyType.body.copyWith(color: cp.muted2),
                         border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
                         isDense: true,
                         contentPadding: EdgeInsets.zero,
                       ),

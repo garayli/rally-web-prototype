@@ -127,7 +127,7 @@ class _MainShellState extends State<MainShell> {
                   _NavItem(
                     icon: Icons.sports_tennis_outlined,
                     activeIcon: Icons.sports_tennis,
-                    label: 'Keşfet',
+                    label: 'Rakip Bul',
                     active: _currentIndex == 0,
                     cp: cp,
                     onTap: () => setState(() => _currentIndex = 0),

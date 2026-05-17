@@ -239,6 +239,43 @@ class _ProfileScreenState extends State<ProfileScreen>
             ),
           ),
 
+          // ── Quick actions row ──────────────────────────────────────────
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                  Spacing.gutter, Spacing.lg, Spacing.gutter, 0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _QuickActionBtn(
+                      icon: Icons.upload_outlined,
+                      label: 'Skorunu Yükle',
+                      cp: cp,
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const LogResultScreen()),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: Spacing.md),
+                  Expanded(
+                    child: _QuickActionBtn(
+                      icon: Icons.pending_actions_outlined,
+                      label: 'Skor Talepleri',
+                      cp: cp,
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const MyResultsScreen()),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
           // ── Maçlarım section ───────────────────────────────────────────
           SliverToBoxAdapter(
             child: Padding(
@@ -636,6 +673,52 @@ class _SessionCard extends StatelessWidget {
       case MatchStatus.pending:    return 'BEKLİYOR';
       case MatchStatus.cancelled:  return 'İPTAL';
     }
+  }
+}
+
+// ─── Quick action button ──────────────────────────────────────────────────────
+class _QuickActionBtn extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final CourtPalette cp;
+  final VoidCallback onTap;
+
+  const _QuickActionBtn({
+    required this.icon,
+    required this.label,
+    required this.cp,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: BoxDecoration(
+          color: cp.surface,
+          borderRadius: BorderRadius.circular(RallyRadius.lg),
+          border: Border.all(color: cp.border),
+          boxShadow: RallyElevation.card,
+        ),
+        child: Column(
+          children: [
+            Icon(icon, size: 22, color: cp.accent),
+            const SizedBox(height: 6),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: cp.text,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

@@ -18,7 +18,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   late List<AppNotification> _notifs;
   String _filter = 'Tümü';
 
-  static const _filters = ['Tümü', 'Maç İstekleri', 'Sistem'];
+  static const _filters = ['Tümü', 'Sıralama', 'Mesaj'];
 
   @override
   void initState() {
@@ -27,22 +27,22 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   List<AppNotification> get _filtered {
-    if (_filter == 'Maç İstekleri') {
+    if (_filter == 'Sıralama') {
       return _notifs
           .where((n) =>
               n.type == NotifType.matchRequest ||
               n.type == NotifType.matchConfirmed ||
               n.type == NotifType.matchDeclined ||
-              n.type == NotifType.resultConfirmed)
+              n.type == NotifType.resultConfirmed ||
+              n.type == NotifType.cancellation)
           .toList();
     }
-    if (_filter == 'Sistem') {
+    if (_filter == 'Mesaj') {
       return _notifs
           .where((n) =>
               n.type == NotifType.review ||
               n.type == NotifType.reminder ||
-              n.type == NotifType.nearbyPlayer ||
-              n.type == NotifType.cancellation)
+              n.type == NotifType.nearbyPlayer)
           .toList();
     }
     return _notifs;
