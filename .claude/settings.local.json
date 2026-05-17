@@ -107,7 +107,9 @@
       "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Leyla\\\\Documents\\\\RallyMatch\\\\rallly_flutter\" -Recurse -Directory)",
       "Bash(Select-Object -ExpandProperty FullName)",
       "Bash(Sort-Object)",
-      "Bash(grep -E \"\\\\.dart$\")"
+      "Bash(grep -E \"\\\\.dart$\")",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\Leyla\\\\Documents\\\\RallyMatch\\\\rallly_flutter\\\\lib\\\\screens\" -File)",
+      "Bash(Select-Object -ExpandProperty Name)"
     ]
   }
 }

@@ -3,13 +3,15 @@ import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/data_service.dart';
 import '../theme/app_theme.dart';
+import '../theme/design_tokens.dart';
 import '../widgets/shared_widgets.dart';
 import '../widgets/onboarding_overlay.dart';
+import '../main.dart' show CourtThemeProvider;
 import 'match_screen.dart';
-import 'schedule_screen.dart';
 import 'messages_screen.dart';
 import 'notifications_screen.dart';
 import 'profile_screen.dart';
+import 'create_game_screen.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -21,13 +23,13 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   int _currentIndex = 0;
 
-  static const _prefsKey = 'onboarding_seen';
-  List<bool> _seen = List.filled(5, true); // default true → hide until prefs load
+  // v2 key so users see the new onboarding tour once
+  static const _prefsKey = 'onboarding_seen_v2';
+  List<bool> _seen = List.filled(4, true);
   bool _prefsLoaded = false;
 
-  final _screens = const [
+  static const _screens = [
     MatchScreen(),
-    ScheduleScreen(),
     MessagesScreen(),
     NotificationsScreen(),
     ProfileScreen(),
@@ -44,7 +46,7 @@ class _MainShellState extends State<MainShell> {
     final seenIndices = prefs.getStringList(_prefsKey) ?? [];
     if (!mounted) return;
     setState(() {
-      _seen = List.generate(5, (i) => seenIndices.contains('$i'));
+      _seen = List.generate(4, (i) => seenIndices.contains('$i'));
       _prefsLoaded = true;
     });
   }
@@ -61,7 +63,8 @@ class _MainShellState extends State<MainShell> {
 
   @override
   Widget build(BuildContext context) {
-    // Force light status bar icons on cream background
+    final cp = CourtThemeProvider.of(context);
+
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       statusBarBrightness: Brightness.light,
       statusBarIconBrightness: Brightness.dark,
@@ -81,10 +84,31 @@ class _MainShellState extends State<MainShell> {
             ),
         ],
       ),
+
+      // FAB — visible only on Discover (tab 0)
+      floatingActionButton: _currentIndex == 0
+          ? FloatingActionButton.extended(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const CreateGameScreen()),
+              ),
+              backgroundColor: cp.accent,
+              foregroundColor: Colors.white,
+              icon: const Icon(Icons.add, size: 20),
+              label: const Text(
+                'Maç Oluştur',
+                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+              ),
+              elevation: 6,
+              shape: const StadiumBorder(),
+            )
+          : null,
+
       bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          border: Border(top: BorderSide(color: RallyColors.border)),
-          boxShadow: [
+        decoration: BoxDecoration(
+          color: cp.surface,
+          border: Border(top: BorderSide(color: cp.border)),
+          boxShadow: const [
             BoxShadow(
               color: Color(0x10000000),
               blurRadius: 24,
@@ -92,59 +116,108 @@ class _MainShellState extends State<MainShell> {
             ),
           ],
         ),
-        child: ValueListenableBuilder<int>(
-          valueListenable: dataService.unreadNotifier,
-          builder: (context, unreadCount, _) => BottomNavigationBar(
-            currentIndex: _currentIndex,
-            onTap: (i) => setState(() => _currentIndex = i),
-            items: [
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.sports_tennis_outlined),
-                activeIcon: Icon(Icons.sports_tennis),
-                label: 'Maç',
+        child: SafeArea(
+          top: false,
+          child: SizedBox(
+            height: 64,
+            child: ValueListenableBuilder<int>(
+              valueListenable: dataService.unreadNotifier,
+              builder: (context, unreadCount, _) => Row(
+                children: [
+                  _NavItem(
+                    icon: Icons.sports_tennis_outlined,
+                    activeIcon: Icons.sports_tennis,
+                    label: 'Keşfet',
+                    active: _currentIndex == 0,
+                    cp: cp,
+                    onTap: () => setState(() => _currentIndex = 0),
+                  ),
+                  _NavItem(
+                    icon: Icons.chat_bubble_outline,
+                    activeIcon: Icons.chat_bubble,
+                    label: 'Mesajlar',
+                    active: _currentIndex == 1,
+                    cp: cp,
+                    onTap: () => setState(() => _currentIndex = 1),
+                  ),
+                  _NavItem(
+                    icon: Icons.notifications_outlined,
+                    activeIcon: Icons.notifications,
+                    label: 'Bildirim',
+                    active: _currentIndex == 2,
+                    badge: unreadCount,
+                    cp: cp,
+                    onTap: () => setState(() => _currentIndex = 2),
+                  ),
+                  _NavItem(
+                    icon: Icons.person_outline,
+                    activeIcon: Icons.person,
+                    label: 'Profil',
+                    active: _currentIndex == 3,
+                    cp: cp,
+                    onTap: () => setState(() => _currentIndex = 3),
+                  ),
+                ],
               ),
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.calendar_today_outlined),
-                activeIcon: Icon(Icons.calendar_today),
-                label: 'Takvim',
-              ),
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.chat_bubble_outline),
-                activeIcon: Icon(Icons.chat_bubble),
-                label: 'Mesajlar',
-              ),
-              BottomNavigationBarItem(
-                icon: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    const Icon(Icons.notifications_outlined),
-                    Positioned(
-                      top: -2,
-                      right: -4,
-                      child: NotifBadge(count: unreadCount),
-                    ),
-                  ],
-                ),
-                activeIcon: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    const Icon(Icons.notifications),
-                    Positioned(
-                      top: -2,
-                      right: -4,
-                      child: NotifBadge(count: unreadCount),
-                    ),
-                  ],
-                ),
-                label: 'Bildirim',
-              ),
-              const BottomNavigationBarItem(
-                icon: Icon(Icons.person_outline),
-                activeIcon: Icon(Icons.person),
-                label: 'Profil',
-              ),
-            ],
+            ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NavItem extends StatelessWidget {
+  final IconData icon;
+  final IconData activeIcon;
+  final String label;
+  final bool active;
+  final int badge;
+  final CourtPalette cp;
+  final VoidCallback onTap;
+
+  const _NavItem({
+    required this.icon,
+    required this.activeIcon,
+    required this.label,
+    required this.active,
+    required this.cp,
+    required this.onTap,
+    this.badge = 0,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = active ? cp.accent : cp.muted;
+    return Expanded(
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Stack(
+              clipBehavior: Clip.none,
+              children: [
+                Icon(active ? activeIcon : icon, color: color, size: 24),
+                if (badge > 0)
+                  Positioned(
+                    top: -2, right: -4,
+                    child: NotifBadge(count: badge),
+                  ),
+              ],
+            ),
+            const SizedBox(height: Spacing.xs),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: active ? FontWeight.w700 : FontWeight.w600,
+                color: color,
+                letterSpacing: 0.3,
+              ),
+            ),
+          ],
         ),
       ),
     );

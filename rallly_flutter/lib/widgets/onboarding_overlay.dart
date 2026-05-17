@@ -17,20 +17,11 @@ class TabOnboardingContent {
 const List<TabOnboardingContent> kTabOnboardingContent = [
   TabOnboardingContent(
     icon: Icons.sports_tennis,
-    title: 'Maç Bul',
+    title: 'Keşfet',
     bullets: [
-      'Seviyene uygun oyuncuları filtrele ve maç isteği gönder.',
-      'Açık lobilere katıl, yeni rakipler keşfet.',
+      'Seviyene uygun oyuncuları keşfet ve maç isteği gönder.',
+      'Yaklaşan maçlarını hızlıca görüntüle.',
       'Uyum yüzdesine göre sıralanan oyuncuları gör.',
-    ],
-  ),
-  TabOnboardingContent(
-    icon: Icons.calendar_today,
-    title: 'Takvimim',
-    bullets: [
-      'Onaylanmış ve bekleyen maçlarını takvim görünümünde takip et.',
-      'Geçmiş maçlarını incele, skor kartlarını görüntüle.',
-      'Oyun saatini kaçırmamak için hatırlatıcı al.',
     ],
   ),
   TabOnboardingContent(
@@ -56,8 +47,8 @@ const List<TabOnboardingContent> kTabOnboardingContent = [
     title: 'Profilim',
     bullets: [
       'NTRP seviyeni, istatistiklerini ve başarılarını görüntüle.',
+      'Maç geçmişini ve takvimini buradan takip et.',
       'Bildirim tercihlerini ve hesap ayarlarını düzenle.',
-      'Maç geçmişini incele ve itibarını yönet.',
     ],
   ),
 ];
