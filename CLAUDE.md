@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Rallly is a tennis/racquet sport matchmaking app built in Flutter. The Flutter project lives in `rallly_flutter/`. There is also an HTML prototype at `rallly-v3_3.html` that serves as the visual design reference.
+RallyMatch is a tennis/racquet sport matchmaking app built in Flutter. The Flutter project lives in `rallly_flutter/`. There is also an HTML prototype at `rallly-v3_3.html` that serves as the visual design reference.
+
+All UI strings are in Turkish (TR). Skill levels appear as "Başlangıç" / "Orta" / "İleri" throughout.
 
 ## Commands
 
@@ -22,38 +24,63 @@ flutter test test/widget_test.dart      # run a single test file
 
 ## Architecture
 
-### Auth Flow (`lib/main.dart`)
+### Auth Flow (`lib/main.dart` + `lib/router/app_router.dart`)
 
-Auth is managed by a single `_AppRouter` stateful widget using a `_AppPage` enum and a `switch` expression. The flow is:
+The app uses **GoRouter** (`lib/router/app_router.dart`) for top-level routing. `_AppRouter` in `main.dart` handles the Supabase init check via a `_AppPage` enum + `switch` expression, then hands off to GoRouter.
 
 ```
-landing → authEmail → authOtp → signup (new users only) → home (MainShell)
+landing → /auth/email → /auth/otp → /signup (new users only) → /home (MainShell)
 ```
 
-The app initialises Supabase on startup. If `supabase.auth.currentSession` is non-null, it skips straight to `home`. The global `supabase` accessor is defined in `main.dart`.
+GoRouter's `redirect()` enforces the auth guard — logged-in users are bounced from `/landing`/`/auth/*`/`/signup`; unauthenticated users from `/home` and below. `_GoRouterRefreshStream` listens to `supabase.auth.onAuthStateChange` and triggers redirects on logout.
 
-Supabase credentials must be filled in `lib/config/supabase_config.dart` (`supabaseUrl` and `supabaseAnon`). Auth uses Email OTP with PKCE flow; the redirect URL is `io.supabase.rallly://login-callback/`.
+Route data is passed via `extra`: e.g., `context.go('/auth/otp', extra: {'email': '...', 'isSignUp': true})`.
+
+Secondary screens (PlayerProfile, Games, CreateGame, etc.) are still pushed via plain `Navigator.push` from within tab screens.
+
+Supabase credentials live in `lib/config/supabase_config.dart` (`supabaseUrl` and `supabaseAnon`). Auth uses Email OTP with PKCE flow; the redirect URL is `io.supabase.rallly://login-callback/`.
 
 ### Navigation inside the app (`lib/screens/main_shell.dart`)
 
 `MainShell` is a bottom-nav shell with 5 tabs using `IndexedStack` (state is preserved across tabs):
 - Match, Schedule, Messages, Notifications, Profile
 
-Secondary screens (PlayerProfile, Games, CreateGame, etc.) are pushed via `Navigator.push` from within tab screens. There is **no GoRouter** in use despite it being listed in `pubspec.yaml` — navigation is plain `Navigator`.
+`IndexedStack` keeps all 5 screens alive — higher memory use, but no scroll-position loss on tab switch.
+
+A custom `OnboardingOverlay` (not a third-party package) is shown once per tab. Seen-state is persisted in `SharedPreferences` using key `'onboarding_seen'` (list of seen tab indices).
 
 ### Data Layer
 
-All data is currently **mock only** (`lib/services/mock_data.dart`). The models are in `lib/models/models.dart`:
+All data is currently **mock only** (`lib/services/mock_data.dart`).
+
+**Never import `MockData` directly in screens.** All screens must use the `DataService` abstract interface (`lib/services/data_service.dart`) via the global `dataService` singleton. This is the single swap point when wiring real Supabase queries.
+
+`DataService` exposes:
+- `currentUserId` — `'me'` in mock; real user ID from Supabase auth
+- `getPlayers()`, `getConversations()`, `getUpcomingSessions()`, `getNotifications()`
+- `unreadNotifier` (`ValueNotifier<int>`) — reactive badge count used by MainShell
+- `markAllRead()`, `markConversationRead(id)`, `getNotifPrefs()`, `saveNotifPrefs()`
+
+The sentinel value `'me'` appears as `senderId` in mock conversations. Replace with `supabase.auth.currentUser!.id` when wiring Supabase.
+
+The models are in `lib/models/models.dart`:
 - `Player` — NTRP rating, availability slots, preferred courts, gradient avatar colours, match compatibility %
 - `MatchSession` — references a `Player` opponent, has `MatchStatus` and optional `MatchResult`
-- `Conversation` / `ChatMessage` — messaging thread
-- `AppNotification` — typed notification with `NotifType` enum
+- `SetScore` / `MatchResult` — per-set scores, winner, and rating delta
+- `Conversation` / `ChatMessage` — messaging thread; `unreadCount(currentUserId)` filters by sender
+- `AppNotification` — typed notification with `NotifType` enum; `hasActions` is true only for matchRequest/resultConfirmed
 
-When connecting to Supabase, replace `MockData` calls with real queries. Required DB tables: `profiles`, `matches`, `messages`, `reviews`, `notifications`.
+When connecting to Supabase, replace `DataService` calls with real queries. Required DB tables: `profiles`, `matches`, `messages`, `reviews`, `notifications`, `lobbies`.
+
+Nullable FK pattern: `matches.player2_id` and `messages.receiver_id` are nullable to support unregistered (guest) opponents. Guests are identified by `opponent_phone` for future retroactive account linking (ADR-005/006 in `docs/project_notes/decisions.md`).
+
+### State Management
+
+Plain `StatefulWidget` + `setState`. For cross-screen reactive state, use `ValueNotifier<T>` (ADR-003) — see `dataService.unreadNotifier` + `ValueListenableBuilder` in `MainShell`. Do **not** introduce `flutter_riverpod` unless explicitly asked.
 
 ### Theme (`lib/theme/app_theme.dart`)
 
-All colours are in `RallyColors` (static consts, no theming extension needed — just reference `RallyColors.accent` etc. directly). `RallyTheme.light` / `RallyTheme.dark` produce `ThemeData`.
+All colours are in `RallyColors` (static consts). `RallyTheme.light` / `RallyTheme.dark` produce `ThemeData`.
 
 Colour palette key:
 - `accent` (#5A8A00) — tennis ball green, primary CTA
@@ -64,18 +91,13 @@ Typography: **InstrumentSerif** (local font, `assets/fonts/`) for display/headli
 
 ### Shared Widgets (`lib/widgets/shared_widgets.dart`)
 
-Reusable components to use across screens:
-- `PlayerAvatar` — gradient circle with initials
-- `SkillBadge` — coloured pill for Beginner / Intermediate / Advanced
-- `MatchScoreBadge` — large % compatibility display
-- `PlayerCard` — list item with avatar, skill badge, match %, and Request button
+- `PlayerAvatar` — gradient circle with initials (hex → Color; fallback to gray on invalid hex)
+- `SkillBadge` — coloured pill for skill level
+- `MatchScoreBadge` — large % compatibility display (InstrumentSerif)
+- `PlayerCard` — list item with avatar, skill badge, match %, and "İste" button
 - `RallyButton` — wraps `FilledButton` / `OutlinedButton` with loading state
-- `NotifBadge` — notification dot count badge
+- `NotifBadge` — red dot notification count badge
 - `SectionHeader` — uppercase label + optional action link
-
-### State Management
-
-Plain `StatefulWidget` + `setState`. `flutter_riverpod` is in `pubspec.yaml` but not yet wired up — do not introduce Riverpod unless explicitly asked.
 
 ## Engineering Standards
 
@@ -118,7 +140,7 @@ Plain `StatefulWidget` + `setState`. `flutter_riverpod` is in `pubspec.yaml` but
 ### Memory-Aware Protocols
 
 **Before proposing architectural changes:**
-- Check `docs/project_notes/decisions.md` for existing decisions
+- Check `docs/project_notes/decisions.md` for existing ADRs
 - Verify the proposed approach doesn't conflict with past choices
 
 **When encountering errors or bugs:**
@@ -190,8 +212,19 @@ Live in `.claude/agents/` — one file per agent with its system prompt and allo
 
 ## pubspec.yaml Notes
 
-Key dependencies that are declared but not yet actively used in screen code:
-- `go_router` — declared but navigation uses plain `Navigator`
-- `flutter_riverpod` / `riverpod_annotation` / `riverpod_generator` — declared but not used
-- `flutter_animate` — available for animations
-- `shimmer` — available for loading skeletons
+Dependencies declared but **not yet actively used**:
+- `flutter_riverpod` / `riverpod_annotation` / `riverpod_generator` — not used; ValueNotifier is the pattern
+- `shimmer` — declared but no loading skeletons implemented yet
+
+Dependencies that **are** used but easy to overlook:
+- `go_router` — used in `lib/router/app_router.dart`
+- `flutter_animate` — card fade/slide animations in match_screen
+- `shared_preferences` — onboarding seen-state per tab
+- `intl` — date/time formatting throughout
+- `share_plus` — share results from result_card_screen
+- `flutter_map` + `latlong2` — OpenStreetMap tiles in map_screen
+
+## Version 2: UI/UX Overhaul Guidelines
+   - **Current Issue:** The current UI feels cluttered, non-intuitive, and lacks smooth transitions.
+   - **Goal:** Rebuild the presentation layer to be clean, user-friendly, and modern.
+   - **Constraint:** Do NOT touch or break the underlying backend logic, API integration, or local state management unless explicitly requested. Keep presentation components decoupled from business logic.

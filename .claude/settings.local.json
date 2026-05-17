@@ -99,7 +99,15 @@
       "mcp__claude_ai_Supabase__list_tables",
       "Bash(xargs -I {} basename {})",
       "Bash(cd /c/Users/Leyla/Documents/RallyMatch/rallly_flutter/lib/screens && grep -h \"^class.*Screen.*extends.*StatefulWidget\\\\|^class.*Screen.*extends.*StatelessWidget\" *.dart | sort)",
-      "Read(//c/c/Users/Leyla/Documents/RallyMatch/rallly_flutter/lib/**)"
+      "Read(//c/c/Users/Leyla/Documents/RallyMatch/rallly_flutter/lib/**)",
+      "Bash(gh api *)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "PowerShell(Invoke-WebRequest -Uri \"https://raw.githubusercontent.com/addyosmani/agent-skills/main/skills/code-simplification/SKILL.md\" -UseBasicParsing)",
+      "PowerShell(Invoke-WebRequest -Uri \"https://raw.githubusercontent.com/addyosmani/agent-skills/main/skills/frontend-ui-engineering/SKILL.md\" -UseBasicParsing)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\Leyla\\\\Documents\\\\RallyMatch\\\\rallly_flutter\" -Recurse -Directory)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(Sort-Object)",
+      "Bash(grep -E \"\\\\.dart$\")"
     ]
   }
 }
