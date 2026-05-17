@@ -323,17 +323,11 @@ class _NotifTile extends StatelessWidget {
       notif.type == NotifType.matchDeclined ||
       notif.type == NotifType.cancellation;
 
-  bool get _isSuccess =>
-      notif.type == NotifType.matchConfirmed ||
-      notif.type == NotifType.resultConfirmed;
-
   @override
   Widget build(BuildContext context) {
     final Color iconBg = _isWarning
         ? const Color(0xFFFEE2E2)
-        : _isSuccess
-            ? cp.accentTint
-            : cp.accentTint;
+        : cp.accentTint;
     final Color iconFg = _isWarning
         ? const Color(0xFFDC2626)
         : cp.accentStrong;

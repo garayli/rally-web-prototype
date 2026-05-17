@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../theme/design_tokens.dart';
+import '../main.dart' show CourtThemeProvider;
 
 // ─── RallyCard ───────────────────────────────────────────────────────────────
 class RallyCard extends StatelessWidget {
@@ -32,6 +33,7 @@ class RallyCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final cp = CourtThemeProvider.of(context);
     final resolved = Container(
       width: width,
       height: height,
@@ -39,7 +41,7 @@ class RallyCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: color ?? theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(radius),
-        border: border ?? Border.all(color: RallyColors.border),
+        border: border ?? Border.all(color: cp.border),
         boxShadow: shadow ?? RallyElevation.card,
       ),
       child: ClipRRect(
@@ -219,14 +221,14 @@ class RallyAppBar extends StatelessWidget {
       pinned: pinned,
       floating: floating,
       snap: floating,
-      automaticallyImplyLeading: leading != null,
+      automaticallyImplyLeading: false,
       leading: leading,
       title: title,
       actions: actions,
       bottom: showDivider
-          ? const PreferredSize(
-              preferredSize: Size.fromHeight(1),
-              child: Divider(height: 1, color: RallyColors.border),
+          ? PreferredSize(
+              preferredSize: const Size.fromHeight(1),
+              child: Divider(height: 1, color: CourtThemeProvider.of(context).border),
             )
           : null,
     );

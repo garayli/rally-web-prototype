@@ -35,6 +35,11 @@ class _MessagesScreenState extends State<MessagesScreen> {
       list = list.where((c) =>
         !dataService.isConversationRead(c.id) &&
         c.unreadCount(dataService.currentUserId) > 0).toList();
+    } else if (_filter == 'Maç Eşleri') {
+      final matchOpponentIds = dataService.getUpcomingSessions()
+          .map((s) => s.opponent.id)
+          .toSet();
+      list = list.where((c) => matchOpponentIds.contains(c.other.id)).toList();
     }
     if (_searchQuery.isNotEmpty) {
       final q = _searchQuery.toLowerCase();
@@ -239,8 +244,9 @@ class _InboxTile extends StatelessWidget {
 
   String _timeLabel(DateTime dt) {
     final now = DateTime.now();
-    if (now.difference(dt).inHours < 1) {
-      return '${now.difference(dt).inMinutes}m';
+    final diff = now.difference(dt);
+    if (diff.inHours < 1) {
+      return '${diff.inMinutes.abs()}m';
     }
     if (now.difference(dt).inHours < 24) {
       return DateFormat('HH:mm').format(dt);

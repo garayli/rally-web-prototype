@@ -84,7 +84,7 @@ class _MatchScreenState extends State<MatchScreen> {
   @override
   Widget build(BuildContext context) {
     final cp = CourtThemeProvider.of(context);
-    final upcoming = dataService.getUpcomingSessions();
+    final upcoming = dataService.getUpcomingSessions().take(5).toList();
 
     return Scaffold(
       backgroundColor: cp.bg,
@@ -197,7 +197,7 @@ class _MatchScreenState extends State<MatchScreen> {
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.fromLTRB(
                         Spacing.gutter, 0, Spacing.gutter, Spacing.sm),
-                      itemCount: upcoming.take(5).length,
+                      itemCount: upcoming.length,
                       itemBuilder: (context, i) =>
                           _UpcomingCard(session: upcoming[i], cp: cp),
                     ),
@@ -838,7 +838,7 @@ class _RequestSheetState extends State<_RequestSheet> {
       final proposedDate = DateTime.now().add(const Duration(days: 7));
       await supabase.from('matches').insert({
         'player1_id': userId,
-        'player2_id': null,
+        'player2_id': widget.player.id,
         'date_time': proposedDate.toUtc().toIso8601String(),
         'court': _selectedCourt,
         'status': 'pending',
@@ -875,10 +875,11 @@ class _RequestSheetState extends State<_RequestSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final cp = CourtThemeProvider.of(context);
     return Container(
-      decoration: const BoxDecoration(
-        color: RallyColors.bg,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      decoration: BoxDecoration(
+        color: cp.bg,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
       padding: EdgeInsets.fromLTRB(
         24, 16, 24,
