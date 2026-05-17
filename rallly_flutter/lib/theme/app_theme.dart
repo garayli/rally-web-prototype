@@ -212,3 +212,132 @@ class RallyTheme {
     );
   }
 }
+
+// ─── Court Palette System ─────────────────────────────────────────────────────
+// Three court-type themes (Clay / Hard / Grass) translated from the V2
+// HTML prototype's CSS variables. Screens read these via CourtPalette.of(context).
+
+enum CourtTheme { clay, hard, grass }
+
+class CourtPalette {
+  final CourtTheme theme;
+  final Color bg;
+  final Color surface;
+  final Color surfaceSoft;
+  final Color border;
+  final Color border2;
+  final Color accent;
+  final Color accentStrong;
+  final Color accentSoft;
+  final Color accentTint;
+  final Color highlight;
+  final Color highlightTint;
+  final Color text;
+  final Color text2;
+  final Color muted;
+  final Color muted2;
+  final Color gradA;
+  final Color gradB;
+  final Color skillBg;
+  final Color skillFg;
+
+  const CourtPalette._({
+    required this.theme,
+    required this.bg,
+    required this.surface,
+    required this.surfaceSoft,
+    required this.border,
+    required this.border2,
+    required this.accent,
+    required this.accentStrong,
+    required this.accentSoft,
+    required this.accentTint,
+    required this.highlight,
+    required this.highlightTint,
+    required this.text,
+    required this.text2,
+    required this.muted,
+    required this.muted2,
+    required this.gradA,
+    required this.gradB,
+    required this.skillBg,
+    required this.skillFg,
+  });
+
+  static const CourtPalette clay = CourtPalette._(
+    theme: CourtTheme.clay,
+    bg:           Color(0xFFF3E5D2),
+    surface:      Color(0xFFFBF3E4),
+    surfaceSoft:  Color(0xFFEBD9BB),
+    border:       Color(0xFFDEC8A4),
+    border2:      Color(0xFFC9B084),
+    accent:       Color(0xFFB7421A),
+    accentStrong: Color(0xFF8E2F11),
+    accentSoft:   Color(0xFFF4D3B8),
+    accentTint:   Color(0xFFFAE4CF),
+    highlight:    Color(0xFF1F3A2B),
+    highlightTint:Color(0xFFDCE5DA),
+    text:         Color(0xFF2A1A10),
+    text2:        Color(0xFF5C4232),
+    muted:        Color(0xFF997757),
+    muted2:       Color(0xFFC9B084),
+    gradA:        Color(0xFFC84A22),
+    gradB:        Color(0xFF8E2F11),
+    skillBg:      Color(0xFFFAE4CF),
+    skillFg:      Color(0xFF8E2F11),
+  );
+
+  static const CourtPalette hard = CourtPalette._(
+    theme: CourtTheme.hard,
+    bg:           Color(0xFFECEFF5),
+    surface:      Color(0xFFFFFFFF),
+    surfaceSoft:  Color(0xFFDDE3EE),
+    border:       Color(0xFFC8D2E2),
+    border2:      Color(0xFFA6B4CB),
+    accent:       Color(0xFF1E5DC2),
+    accentStrong: Color(0xFF0F3F8E),
+    accentSoft:   Color(0xFFBFD0EE),
+    accentTint:   Color(0xFFDCE6F6),
+    highlight:    Color(0xFFFF8A1F),
+    highlightTint:Color(0xFFFFE4C4),
+    text:         Color(0xFF0E1A2E),
+    text2:        Color(0xFF3A4A66),
+    muted:        Color(0xFF6F7E94),
+    muted2:       Color(0xFFA6B4CB),
+    gradA:        Color(0xFF2E73DC),
+    gradB:        Color(0xFF0F3F8E),
+    skillBg:      Color(0xFFDCE6F6),
+    skillFg:      Color(0xFF0F3F8E),
+  );
+
+  static const CourtPalette grass = CourtPalette._(
+    theme: CourtTheme.grass,
+    bg:           Color(0xFFF4F1E6),
+    surface:      Color(0xFFFFFFFF),
+    surfaceSoft:  Color(0xFFE6E3D1),
+    border:       Color(0xFFD5D0BC),
+    border2:      Color(0xFFBAB59C),
+    accent:       Color(0xFF1F5C36),
+    accentStrong: Color(0xFF0F3D22),
+    accentSoft:   Color(0xFFCAD9B8),
+    accentTint:   Color(0xFFE2EBD0),
+    highlight:    Color(0xFFC8A04A),
+    highlightTint:Color(0xFFF2E5C4),
+    text:         Color(0xFF1A2718),
+    text2:        Color(0xFF3D4D38),
+    muted:        Color(0xFF7C8576),
+    muted2:       Color(0xFFBAB59C),
+    gradA:        Color(0xFF2A7A48),
+    gradB:        Color(0xFF0F3D22),
+    skillBg:      Color(0xFFE2EBD0),
+    skillFg:      Color(0xFF0F3D22),
+  );
+
+  String get displayName {
+    switch (theme) {
+      case CourtTheme.clay:  return 'Toprak';
+      case CourtTheme.hard:  return 'Sert Kort';
+      case CourtTheme.grass: return 'Çim';
+    }
+  }
+}
