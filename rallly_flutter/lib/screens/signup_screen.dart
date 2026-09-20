@@ -85,6 +85,13 @@ class _SignupScreenState extends State<SignupScreen> {
     }
   }
 
+  static const _ntrpBySkillLevel = {
+    'Başlangıç': 2.0,
+    'Orta Seviye': 3.5,
+    'İleri Seviye': 4.5,
+    'Uzman': 5.5,
+  };
+
   Future<void> _finish() async {
     setState(() => _loading = true);
     try {
@@ -96,12 +103,15 @@ class _SignupScreenState extends State<SignupScreen> {
           'location': _locationCtrl.text.trim(),
           'sports': _selectedSports.toList(),
           'skill_level': _skillLevel,
+          if (_skillLevel != null) 'ntrp_rating': _ntrpBySkillLevel[_skillLevel],
           'available_days': _selectedDays.toList(),
           'time_prefs': _selectedTimes.toList(),
         });
       }
-    } catch (_) {
-      // Continue even if profile save fails — user can update later
+    } catch (e) {
+      // Profile save failed — user can retry from the profile screen, but log it
+      // so a schema mismatch or RLS issue doesn't fail silently again.
+      debugPrint('SIGNUP PROFILE SAVE ERROR: $e');
     } finally {
       if (mounted) {
         setState(() => _loading = false);
