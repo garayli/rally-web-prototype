@@ -85,6 +85,13 @@ class _MatchScreenState extends State<MatchScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return ValueListenableBuilder<int>(
+      valueListenable: dataService.cacheVersion,
+      builder: (context, _, __) => _buildScaffold(context),
+    );
+  }
+
+  Widget _buildScaffold(BuildContext context) {
     final cp = CourtThemeProvider.of(context);
     final upcoming = dataService.getUpcomingSessions().take(5).toList();
     final players = _filteredPlayers;
@@ -1104,17 +1111,15 @@ class _RequestSheetState extends State<_RequestSheet> {
   Future<void> _sendRequest() async {
     if (_sent || _loading) return;
     setState(() => _loading = true);
+    final cp = CourtThemeProvider.of(context);
     try {
-      final userId = supabase.auth.currentUser?.id;
       final proposedDate = DateTime.now().add(const Duration(days: 7));
-      await supabase.from('matches').insert({
-        'player1_id': userId,
-        'player2_id': widget.player.id,
-        'date_time': proposedDate.toUtc().toIso8601String(),
-        'court': _selectedCourt,
-        'status': 'pending',
-        'format': _selectedFormat == 'Tekler' ? 'singles' : 'doubles',
-      });
+      await dataService.sendMatchRequest(
+        opponentId: widget.player.id,
+        proposedDate: proposedDate,
+        court: _selectedCourt,
+        format: _selectedFormat == 'Tekler' ? 'singles' : 'doubles',
+      );
       if (!mounted) return;
       setState(() {
         _sent = true;
@@ -1129,7 +1134,7 @@ class _RequestSheetState extends State<_RequestSheet> {
           messenger.showSnackBar(SnackBar(
             content:
                 Text('${widget.player.name} oyuncusuna maç isteği gönderildi!'),
-            backgroundColor: RallyColors.accent,
+            backgroundColor: cp.accent,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12)),
@@ -1172,7 +1177,7 @@ class _RequestSheetState extends State<_RequestSheet> {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                  color: RallyColors.muted2,
+                  color: cp.muted2,
                   borderRadius: BorderRadius.circular(2)),
             ),
           ),
@@ -1193,28 +1198,30 @@ class _RequestSheetState extends State<_RequestSheet> {
                       style: Theme.of(context)
                           .textTheme
                           .titleLarge
-                          ?.copyWith(fontWeight: FontWeight.w700)),
+                          ?.copyWith(fontWeight: FontWeight.w700, color: cp.text)),
                   Text(widget.player.name,
-                      style: const TextStyle(
-                          color: RallyColors.textSecondary, fontSize: 13)),
+                      style: TextStyle(color: cp.text2, fontSize: 13)),
                 ],
               ),
             ],
           ),
           const SizedBox(height: 24),
           _SheetRow(
+              cp: cp,
               icon: Icons.sports_tennis,
               label: 'Format',
               value: _selectedFormat,
               onTap: () {}),
-          const Divider(height: 1),
+          Divider(height: 1, color: cp.border),
           _SheetRow(
+              cp: cp,
               icon: Icons.schedule,
               label: 'Saat',
               value: _selectedTime,
               onTap: () {}),
-          const Divider(height: 1),
+          Divider(height: 1, color: cp.border),
           _SheetRow(
+              cp: cp,
               icon: Icons.location_on_outlined,
               label: 'Kort',
               value: _selectedCourt,
@@ -1330,13 +1337,15 @@ class _LobbyCard extends StatelessWidget {
 }
 
 class _SheetRow extends StatelessWidget {
+  final CourtPalette cp;
   final IconData icon;
   final String label;
   final String value;
   final VoidCallback onTap;
 
   const _SheetRow(
-      {required this.icon,
+      {required this.cp,
+      required this.icon,
       required this.label,
       required this.value,
       required this.onTap});
@@ -1349,18 +1358,15 @@ class _SheetRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 14),
         child: Row(
           children: [
-            Icon(icon, size: 18, color: RallyColors.muted),
+            Icon(icon, size: 18, color: cp.muted),
             const SizedBox(width: 12),
-            Text(label,
-                style: const TextStyle(
-                    color: RallyColors.textSecondary, fontSize: 14)),
+            Text(label, style: TextStyle(color: cp.text2, fontSize: 14)),
             const Spacer(),
             Text(value,
-                style: const TextStyle(
-                    fontWeight: FontWeight.w600, fontSize: 14)),
+                style: TextStyle(
+                    fontWeight: FontWeight.w600, fontSize: 14, color: cp.text)),
             const SizedBox(width: 4),
-            const Icon(Icons.chevron_right,
-                size: 18, color: RallyColors.muted),
+            Icon(Icons.chevron_right, size: 18, color: cp.muted),
           ],
         ),
       ),

@@ -81,11 +81,12 @@ class RallyChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cp = CourtThemeProvider.of(context);
     final h = compact ? Spacing.md : 18.0;
     final v = compact ? 6.0 : 10.0;
-    final fg = active ? Colors.white : RallyColors.textPrimary;
-    final bg = active ? RallyColors.accent : RallyColors.white;
-    final borderColor = active ? RallyColors.accent : RallyColors.border2;
+    final fg = active ? Colors.white : cp.text;
+    final bg = active ? cp.accent : cp.surface;
+    final borderColor = active ? cp.accent : cp.border2;
 
     return GestureDetector(
       onTap: onTap,
@@ -149,6 +150,7 @@ class EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cp = CourtThemeProvider.of(context);
     return Padding(
       padding: padding,
       child: Column(
@@ -160,11 +162,11 @@ class EmptyState extends StatelessWidget {
               width: 64,
               height: 64,
               decoration: BoxDecoration(
-                color: RallyColors.surface2,
+                color: cp.surfaceSoft,
                 shape: BoxShape.circle,
-                border: Border.all(color: RallyColors.border),
+                border: Border.all(color: cp.border),
               ),
-              child: Icon(icon, size: 28, color: RallyColors.textSecondary),
+              child: Icon(icon, size: 28, color: cp.text2),
             ),
           const SizedBox(height: Spacing.md),
           Text(title, style: RallyType.displaySM, textAlign: TextAlign.center),
@@ -173,7 +175,7 @@ class EmptyState extends StatelessWidget {
             Text(
               message!,
               textAlign: TextAlign.center,
-              style: RallyType.body.copyWith(color: RallyColors.muted),
+              style: RallyType.body.copyWith(color: cp.muted),
             ),
           ],
           if (ctaLabel != null) ...[
@@ -181,6 +183,7 @@ class EmptyState extends StatelessWidget {
             FilledButton(
               onPressed: onCta,
               style: FilledButton.styleFrom(
+                backgroundColor: cp.accent,
                 minimumSize: const Size(0, 44),
                 padding: const EdgeInsets.symmetric(
                   horizontal: Spacing.xl,

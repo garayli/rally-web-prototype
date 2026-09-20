@@ -15,7 +15,8 @@ class NotificationsScreen extends StatefulWidget {
 }
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
-  late List<AppNotification> _notifs;
+  List<AppNotification> _notifs = [];
+  bool _loading = true;
   String _filter = 'Tümü';
 
   static const _filters = ['Tümü', 'Sıralama', 'Mesaj'];
@@ -23,7 +24,17 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   @override
   void initState() {
     super.initState();
-    _notifs = dataService.getNotifications();
+    _load();
+  }
+
+  Future<void> _load() async {
+    if (mounted) setState(() => _loading = true);
+    final notifs = await dataService.getNotifications();
+    if (!mounted) return;
+    setState(() {
+      _notifs = notifs;
+      _loading = false;
+    });
   }
 
   List<AppNotification> get _filtered {
@@ -34,6 +45,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               n.type == NotifType.matchConfirmed ||
               n.type == NotifType.matchDeclined ||
               n.type == NotifType.resultConfirmed ||
+              n.type == NotifType.resultPending ||
+              n.type == NotifType.resultDisputed ||
               n.type == NotifType.cancellation)
           .toList();
     }
@@ -68,23 +81,47 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     setState(() => _notifs.removeWhere((x) => x.id == n.id));
   }
 
-  void _markAllRead() {
-    dataService.markAllRead();
-    setState(() {
-      _notifs = _notifs
-          .map((n) => AppNotification(
-                id: n.id,
-                type: n.type,
-                title: n.title,
-                body: n.body,
-                timestamp: n.timestamp,
-                isRead: true,
-                avatarInitials: n.avatarInitials,
-                avatarColor: n.avatarColor,
-                actionId: n.actionId,
-              ))
-          .toList();
-    });
+  Future<void> _markAllRead() async {
+    await dataService.markAllRead();
+    await _load();
+  }
+
+  Future<void> _confirmResult(AppNotification n) async {
+    if (n.actionId == null) return;
+    try {
+      await dataService.confirmResult(
+          matchId: n.actionId!, notificationId: n.id);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('İşlem başarısız: $e'),
+        backgroundColor: RallyColors.accent2,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ));
+      return;
+    }
+    if (!mounted) return;
+    setState(() => _notifs.removeWhere((x) => x.id == n.id));
+  }
+
+  Future<void> _disputeResult(AppNotification n) async {
+    if (n.actionId == null) return;
+    try {
+      await dataService.disputeResult(
+          matchId: n.actionId!, notificationId: n.id);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('İşlem başarısız: $e'),
+        backgroundColor: RallyColors.accent2,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ));
+      return;
+    }
+    if (!mounted) return;
+    setState(() => _notifs.removeWhere((x) => x.id == n.id));
   }
 
   String _groupLabel(AppNotification n) {
@@ -203,45 +240,52 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
             // ─── List ────────────────────────────────────────────────────
             Expanded(
-              child: notifs.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.notifications_none,
-                              size: 48, color: cp.muted),
-                          const SizedBox(height: Spacing.md),
-                          Text(
-                            'Bildirim yok',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                              color: cp.muted,
-                            ),
+              child: _loading && notifs.isEmpty
+                  ? Center(child: CircularProgressIndicator(color: cp.accent))
+                  : notifs.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(Icons.notifications_none,
+                                  size: 48, color: cp.muted),
+                              const SizedBox(height: Spacing.md),
+                              Text(
+                                'Bildirim yok',
+                                style: TextStyle(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w600,
+                                  color: cp.muted,
+                                ),
+                              ),
+                            ],
                           ),
-                        ],
-                      ),
-                    )
-                  : ListView(
-                      padding:
-                          const EdgeInsets.only(bottom: 100),
-                      children: [
-                        for (final group in groupOrder)
-                          if (groups.containsKey(group)) ...[
-                            _GroupHeader(title: group, cp: cp),
-                            for (final n in groups[group]!)
-                              _NotifTile(
-                                notif: n,
-                                cp: cp,
-                                onAccept: () => _accept(n),
-                                onDecline: () => _decline(n),
-                              )
-                                  .animate()
-                                  .fadeIn(delay: 50.ms)
-                                  .slideY(begin: 0.04, end: 0),
-                          ],
-                      ],
-                    ),
+                        )
+                      : RefreshIndicator(
+                          onRefresh: _load,
+                          color: cp.accent,
+                          child: ListView(
+                            padding: const EdgeInsets.only(bottom: 100),
+                            children: [
+                              for (final group in groupOrder)
+                                if (groups.containsKey(group)) ...[
+                                  _GroupHeader(title: group, cp: cp),
+                                  for (final n in groups[group]!)
+                                    _NotifTile(
+                                      notif: n,
+                                      cp: cp,
+                                      onAccept: () => _accept(n),
+                                      onDecline: () => _decline(n),
+                                      onConfirm: () => _confirmResult(n),
+                                      onDispute: () => _disputeResult(n),
+                                    )
+                                        .animate()
+                                        .fadeIn(delay: 50.ms)
+                                        .slideY(begin: 0.04, end: 0),
+                                ],
+                            ],
+                          ),
+                        ),
             ),
           ],
         ),
@@ -280,12 +324,16 @@ class _NotifTile extends StatelessWidget {
   final CourtPalette cp;
   final VoidCallback onAccept;
   final VoidCallback onDecline;
+  final VoidCallback onConfirm;
+  final VoidCallback onDispute;
 
   const _NotifTile({
     required this.notif,
     required this.cp,
     required this.onAccept,
     required this.onDecline,
+    required this.onConfirm,
+    required this.onDispute,
   });
 
   static Color _hex(String hex, Color fallback) {
@@ -308,6 +356,10 @@ class _NotifTile extends StatelessWidget {
         return Icons.cancel_outlined;
       case NotifType.resultConfirmed:
         return Icons.emoji_events_outlined;
+      case NotifType.resultPending:
+        return Icons.hourglass_top_outlined;
+      case NotifType.resultDisputed:
+        return Icons.flag_outlined;
       case NotifType.review:
         return Icons.star_outline;
       case NotifType.reminder:
@@ -321,6 +373,7 @@ class _NotifTile extends StatelessWidget {
 
   bool get _isWarning =>
       notif.type == NotifType.matchDeclined ||
+      notif.type == NotifType.resultDisputed ||
       notif.type == NotifType.cancellation;
 
   @override
@@ -451,6 +504,29 @@ class _NotifTile extends StatelessWidget {
                       label: 'Kabul Et',
                       cp: cp,
                       onTap: onAccept,
+                    ),
+                  ),
+                ],
+              ),
+            ] else if (notif.hasActions &&
+                notif.type == NotifType.resultPending) ...[
+              const SizedBox(height: Spacing.md),
+              Row(
+                children: [
+                  Expanded(
+                    child: _ActionBtn(
+                      label: 'İtiraz Et',
+                      outlined: true,
+                      cp: cp,
+                      onTap: onDispute,
+                    ),
+                  ),
+                  const SizedBox(width: Spacing.md),
+                  Expanded(
+                    child: _ActionBtn(
+                      label: 'Onayla',
+                      cp: cp,
+                      onTap: onConfirm,
                     ),
                   ),
                 ],

@@ -256,4 +256,22 @@ Always run DDL migrations before writing (or testing) Flutter code that referenc
 
 ---
 
+## OTP emails only deliver to the project owner's own address
+**Date:** 2026-09-13
+**Severity:** High (blocks all multi-account testing)
+
+### Problem
+Login/signup on a real device failed for every email except `leyla.garayli@gmail.com`. The app only showed a generic "Bir şeyler yanlış gitti. Lütfen tekrar deneyin." with no useful detail.
+
+### Root Cause
+Supabase's email sending is configured through Resend, which is on the free/testing tier: it only allows sending to the account owner's own verified email address until a domain is verified at resend.com/domains. Every other recipient gets a 550 SMTP rejection. This was only visible in Supabase's own auth logs (`mcp__supabase__query_logs`, `source = 'auth_logs'`) — the Flutter client only ever saw a generic `AuthException`, and `auth_screen.dart`'s `_translateError()` had a catch-all fallback that discarded the real message before it ever reached a log line.
+
+### Solution
+Not yet fixed — needs a verified domain on Resend (resend.com/domains: add the DNS records they provide, wait for verification) and then updating the "from" address in Supabase Dashboard → Project Settings → Auth → SMTP Settings to use that domain. Added a `debugPrint('OTP SEND AUTH ERROR: ...')` in the `AuthException` catch branch of `auth_screen.dart` so the real message surfaces in the Flutter logs next time, instead of requiring a trip to the Supabase auth logs.
+
+### Prevention
+When any auth/email-triggered flow silently fails in the UI with a generic error, check `mcp__supabase__query_logs` (`source = 'auth_logs'`) before assuming it's a Flutter-side bug — Supabase's own auth service logs the real SMTP/provider error even when the client only receives a generic `AuthException`. Don't let translation/fallback error-message functions swallow the original message without at least logging it.
+
+---
+
 <!-- Add new bugs above this line -->

@@ -41,7 +41,15 @@ class _ProfileScreenState extends State<ProfileScreen>
 
   @override
   Widget build(BuildContext context) {
+    return ValueListenableBuilder<int>(
+      valueListenable: dataService.cacheVersion,
+      builder: (context, _, __) => _buildScaffold(context),
+    );
+  }
+
+  Widget _buildScaffold(BuildContext context) {
     final cp = CourtThemeProvider.of(context);
+    final me = dataService.getCurrentPlayer();
     final upcoming = dataService.getUpcomingSessions()
         .where((s) => s.status == MatchStatus.confirmed).toList();
     final past = dataService.getUpcomingSessions()
@@ -102,10 +110,10 @@ class _ProfileScreenState extends State<ProfileScreen>
                     alignment: Alignment.center,
                     children: [
                       CompletenessRing(score: _completeness, size: 100, strokeWidth: 3.5),
-                      const PlayerAvatar(
-                        initials: 'LG',
-                        gradientStart: '#7b4fa6',
-                        gradientEnd: '#a97fcb',
+                      PlayerAvatar(
+                        initials: me?.initials ?? '?',
+                        gradientStart: me?.avatarGradientStart ?? '#7b4fa6',
+                        gradientEnd: me?.avatarGradientEnd ?? '#a97fcb',
                         size: 84,
                       ),
                       Positioned(
@@ -134,7 +142,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   ),
                   const SizedBox(height: 14),
                   Text(
-                    'Leyla Garayli',
+                    me?.name ?? '...',
                     style: TextStyle(
                       fontFamily: 'InstrumentSerif',
                       fontSize: 28,
@@ -143,17 +151,18 @@ class _ProfileScreenState extends State<ProfileScreen>
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.location_on_outlined, size: 13, color: cp.text2),
-                      const SizedBox(width: 3),
-                      Text(
-                        'Beşiktaş, İstanbul',
-                        style: TextStyle(fontSize: 13, color: cp.text2),
-                      ),
-                    ],
-                  ),
+                  if (me != null && me.location.isNotEmpty)
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.location_on_outlined, size: 13, color: cp.text2),
+                        const SizedBox(width: 3),
+                        Text(
+                          me.location,
+                          style: TextStyle(fontSize: 13, color: cp.text2),
+                        ),
+                      ],
+                    ),
                   const SizedBox(height: 12),
                   Container(
                     padding: const EdgeInsets.symmetric(
@@ -164,7 +173,9 @@ class _ProfileScreenState extends State<ProfileScreen>
                       border: Border.all(color: cp.border),
                     ),
                     child: Text(
-                      '🎾  NTRP 3.5 — Orta Seviye',
+                      me != null
+                          ? '🎾  NTRP ${me.ntrpRating.toStringAsFixed(1)} — ${me.skillLabel}'
+                          : '🎾  NTRP —',
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,

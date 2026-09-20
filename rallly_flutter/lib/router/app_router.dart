@@ -11,6 +11,7 @@ import '../screens/notifications_screen.dart';
 import '../screens/player_profile_screen.dart';
 import '../screens/messages_screen.dart';
 import '../models/models.dart';
+import '../services/analytics_service.dart';
 
 // ── Auth refresh listenable ───────────────────────────────────────────────────
 
@@ -48,13 +49,18 @@ final _refreshListenable = _GoRouterRefreshStream();
 final appRouter = GoRouter(
   initialLocation: AppRoutes.landing,
   refreshListenable: _refreshListenable,
+  observers: [analyticsService.observer],
   redirect: (context, state) {
     final isLoggedIn = supabase.auth.currentSession != null;
-    final onPublic = state.matchedLocation == AppRoutes.landing ||
-        state.matchedLocation.startsWith('/auth') ||
-        state.matchedLocation == AppRoutes.signup;
+    // Signup is post-auth onboarding (only reached after OTP verification),
+    // not a pre-auth route — it must not be in the "bounce logged-in users
+    // away" set below, or the auth-state redirect fires before the signup
+    // wizard ever renders and skips profile setup entirely.
+    final onPreAuth = state.matchedLocation == AppRoutes.landing ||
+        state.matchedLocation.startsWith('/auth');
+    final onPublic = onPreAuth || state.matchedLocation == AppRoutes.signup;
 
-    if (isLoggedIn && onPublic) return AppRoutes.home;
+    if (isLoggedIn && onPreAuth) return AppRoutes.home;
     if (!isLoggedIn && !onPublic) return AppRoutes.landing;
     return null;
   },

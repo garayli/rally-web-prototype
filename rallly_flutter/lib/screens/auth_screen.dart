@@ -28,6 +28,14 @@ class _AuthEmailScreenState extends State<AuthEmailScreen> {
   bool _loading = false;
   String? _error;
 
+  String _translateError(String msg) {
+    final lower = msg.toLowerCase();
+    if (lower.contains('rate limit') || lower.contains('email rate') || lower.contains('too many')) {
+      return 'Çok fazla kod isteği gönderildi. Lütfen birkaç dakika bekleyip tekrar deneyin.';
+    }
+    return 'Bir şeyler yanlış gitti. Lütfen tekrar deneyin.';
+  }
+
   Future<void> _submit() async {
     final email = _emailCtrl.text.trim();
     if (!email.contains('@')) {
@@ -44,8 +52,10 @@ class _AuthEmailScreenState extends State<AuthEmailScreen> {
       );
       if (mounted) widget.onOtpSent(email);
     } on AuthException catch (e) {
-      setState(() => _error = e.message);
-    } catch (_) {
+      debugPrint('OTP SEND AUTH ERROR: ${e.statusCode} ${e.message}');
+      setState(() => _error = _translateError(e.message));
+    } catch (e) {
+      debugPrint('OTP SEND ERROR: $e');
       setState(() => _error = 'Bir şeyler yanlış gitti. Lütfen tekrar deneyin.');
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -235,7 +245,7 @@ class _AuthOtpScreenState extends State<AuthOtpScreen>
   bool _loading = false;
   bool _shake = false;
   String? _error;
-  int _resendTimer = 30;
+  int _resendTimer = 60;
   bool _canResend = false;
 
   late AnimationController _shakeCtrl;
@@ -250,6 +260,17 @@ class _AuthOtpScreenState extends State<AuthOtpScreen>
     );
     _shakeAnim = Tween<double>(begin: 0, end: 1).animate(_shakeCtrl);
     _startResendTimer();
+  }
+
+  String _translateError(String msg) {
+    final lower = msg.toLowerCase();
+    if (lower.contains('rate limit') || lower.contains('email rate') || lower.contains('too many')) {
+      return 'Çok fazla kod isteği gönderildi. Lütfen birkaç dakika bekleyip tekrar deneyin.';
+    }
+    if (lower.contains('invalid') || lower.contains('expired') || lower.contains('otp')) {
+      return 'Kod geçersiz veya süresi dolmuş. Lütfen yeni kod isteyin.';
+    }
+    return msg;
   }
 
   void _startResendTimer() {
@@ -450,15 +471,22 @@ class _AuthOtpScreenState extends State<AuthOtpScreen>
                     ? TextButton(
                         onPressed: () async {
                           setState(() {
-                            _resendTimer = 30;
+                            _resendTimer = 60;
                             _canResend = false;
+                            _error = null;
                           });
                           _startResendTimer();
-                          await supabase.auth.signInWithOtp(
-                            email: widget.email,
-                            emailRedirectTo: 'io.supabase.rallly://login-callback/',
-                            shouldCreateUser: widget.isSignUp,
-                          );
+                          try {
+                            await supabase.auth.signInWithOtp(
+                              email: widget.email,
+                              emailRedirectTo: 'io.supabase.rallly://login-callback/',
+                              shouldCreateUser: widget.isSignUp,
+                            );
+                          } on AuthException catch (e) {
+                            if (mounted) setState(() => _error = _translateError(e.message));
+                          } catch (_) {
+                            if (mounted) setState(() => _error = 'Kod gönderilemedi. Lütfen tekrar deneyin.');
+                          }
                         },
                         child: const Text(
                           'Kodu tekrar gönder',
@@ -469,7 +497,7 @@ class _AuthOtpScreenState extends State<AuthOtpScreen>
                         ),
                       )
                     : Text(
-                        '${_resendTimer} saniye sonra tekrar gönder',
+                        '$_resendTimer saniye sonra tekrar gönder',
                         style: const TextStyle(
                           color: RallyColors.muted,
                           fontSize: 13,
