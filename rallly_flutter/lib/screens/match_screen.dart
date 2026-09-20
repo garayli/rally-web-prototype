@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 import '../theme/app_theme.dart';
 import '../theme/design_tokens.dart';
 import '../widgets/shared_widgets.dart';
-import '../widgets/rally_primitives.dart';
 import '../models/models.dart';
 import '../services/data_service.dart';
 import '../main.dart' show supabase, CourtThemeProvider;
@@ -23,19 +22,12 @@ class MatchScreen extends StatefulWidget {
 
 class _MatchScreenState extends State<MatchScreen> {
   String _filter = 'Tümü';
+  String _sortBy = 'Mesafe';
   String _searchQuery = '';
   final _searchController = TextEditingController();
   final _sentRequests = <String>{};
   List<Map<String, dynamic>> _lobbies = [];
   bool _lobbiesLoading = true;
-
-  // Display label → filter value mapping (abbreviated for compact chips)
-  static const _chipMap = {
-    'Tümü': 'Tümü',
-    'Başl.': 'Başlangıç',
-    'Orta': 'Orta Seviye',
-    'İleri': 'İleri Seviye',
-  };
 
   @override
   void initState() {
@@ -74,23 +66,41 @@ class _MatchScreenState extends State<MatchScreen> {
         : dataService.getPlayers().where((p) => p.skillLabel == _filter).toList();
     if (_searchQuery.isNotEmpty) {
       final q = _searchQuery.toLowerCase();
-      list = list.where((p) =>
-          p.name.toLowerCase().contains(q) ||
-          p.location.toLowerCase().contains(q)).toList();
+      list = list
+          .where((p) =>
+              p.name.toLowerCase().contains(q) ||
+              p.location.toLowerCase().contains(q))
+          .toList();
+    }
+    switch (_sortBy) {
+      case 'NTRP':
+        list.sort((a, b) => b.ntrpRating.compareTo(a.ntrpRating));
+      case 'Galibiyet':
+        list.sort((a, b) => b.winRate.compareTo(a.winRate));
+      default:
+        break;
     }
     return list;
   }
 
   @override
   Widget build(BuildContext context) {
+    return ValueListenableBuilder<int>(
+      valueListenable: dataService.cacheVersion,
+      builder: (context, _, __) => _buildScaffold(context),
+    );
+  }
+
+  Widget _buildScaffold(BuildContext context) {
     final cp = CourtThemeProvider.of(context);
     final upcoming = dataService.getUpcomingSessions().take(5).toList();
+    final players = _filteredPlayers;
 
     return Scaffold(
       backgroundColor: cp.bg,
       body: CustomScrollView(
         slivers: [
-          // ── App bar ────────────────────────────────────────────────────────
+          // ── App bar ──────────────────────────────────────────────────────
           SliverAppBar(
             floating: true,
             snap: true,
@@ -107,22 +117,19 @@ class _MatchScreenState extends State<MatchScreen> {
                     IconButton(
                       icon: Icon(Icons.notifications_outlined, color: cp.text),
                       onPressed: () => Navigator.push(context,
-                          MaterialPageRoute(builder: (_) => const NotificationsScreen())),
+                          MaterialPageRoute(
+                              builder: (_) => const NotificationsScreen())),
                     ),
                     Positioned(
-                      top: 8, right: 8,
-                      child: NotifBadge(count: count),
-                    ),
+                        top: 8, right: 8, child: NotifBadge(count: count)),
                   ],
                 ),
               ),
               const SizedBox(width: 4),
               InkWell(
                 borderRadius: BorderRadius.circular(17),
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const ProfileScreen()),
-                ),
+                onTap: () => Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const ProfileScreen())),
                 child: const Padding(
                   padding: EdgeInsets.only(right: 16),
                   child: PlayerAvatar(
@@ -144,59 +151,64 @@ class _MatchScreenState extends State<MatchScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ── Court hero strip ───────────────────────────────────────
-                _CourtHero(cp: cp, playerCount: _filteredPlayers.length),
+                // ── Court hero ─────────────────────────────────────────────
+                _CourtHero(cp: cp, playerCount: players.length),
 
-                // ── Search bar ────────────────────────────────────────────
+                // ── Search bar ─────────────────────────────────────────────
                 Padding(
                   padding: const EdgeInsets.fromLTRB(
-                    Spacing.gutter, Spacing.lg, Spacing.gutter, Spacing.sm),
+                      Spacing.gutter, Spacing.lg, Spacing.gutter, Spacing.sm),
                   child: _SearchBar(
                     cp: cp,
                     controller: _searchController,
                     onChanged: (v) => setState(() => _searchQuery = v.trim()),
-                    onFilter: () => _showFilterSheet(context, cp),
                   ),
                 ),
 
-                // ── Filter chips ──────────────────────────────────────────
-                SizedBox(
-                  height: 40,
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(horizontal: Spacing.gutter),
-                    children: _chipMap.entries.map((e) {
-                      final isActive = _filter == e.value;
-                      return Padding(
-                        padding: const EdgeInsets.only(right: Spacing.sm),
-                        child: RallyChip(
-                          label: e.key,
-                          active: isActive,
-                          compact: true,
-                          onTap: () => setState(() => _filter = e.value),
+                // ── Sıralama + Filtre buttons ──────────────────────────────
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                      Spacing.gutter, 0, Spacing.gutter, Spacing.lg),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: _ActionChip(
+                          icon: Icons.swap_vert,
+                          label: 'Sıralama',
+                          active: _sortBy != 'Mesafe',
+                          cp: cp,
+                          onTap: () => _showSortSheet(context, cp),
                         ),
-                      );
-                    }).toList(),
+                      ),
+                      const SizedBox(width: Spacing.sm),
+                      Expanded(
+                        child: _ActionChip(
+                          icon: Icons.tune,
+                          label: 'Filtre',
+                          active: _filter != 'Tümü',
+                          cp: cp,
+                          onTap: () => _showFilterSheet(context, cp),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
 
-                // ── Upcoming matches rail ─────────────────────────────────
+                // ── Upcoming matches rail ──────────────────────────────────
                 if (upcoming.isNotEmpty) ...[
                   _SectionHeader(
                     cp: cp,
                     title: 'YAKLAŞAN MAÇLAR',
                     action: 'Tümünü gör',
-                    onAction: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const ProfileScreen()),
-                    ),
+                    onAction: () => Navigator.push(context,
+                        MaterialPageRoute(builder: (_) => const ProfileScreen())),
                   ),
                   SizedBox(
                     height: 120,
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.fromLTRB(
-                        Spacing.gutter, 0, Spacing.gutter, Spacing.sm),
+                          Spacing.gutter, 0, Spacing.gutter, Spacing.sm),
                       itemCount: upcoming.length,
                       itemBuilder: (context, i) =>
                           _UpcomingCard(session: upcoming[i], cp: cp),
@@ -204,15 +216,13 @@ class _MatchScreenState extends State<MatchScreen> {
                   ),
                 ],
 
-                // ── Players header ────────────────────────────────────────
+                // ── Players header ─────────────────────────────────────────
                 _SectionHeader(
                   cp: cp,
-                  title: '${_filteredPlayers.length} YAKINDA OYUNCU',
+                  title: '${players.length} YAKINDA OYUNCU',
                   action: 'Harita',
-                  onAction: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const MapScreen()),
-                  ),
+                  onAction: () => Navigator.push(context,
+                      MaterialPageRoute(builder: (_) => const MapScreen())),
                 ),
               ],
             ),
@@ -222,22 +232,19 @@ class _MatchScreenState extends State<MatchScreen> {
           SliverList(
             delegate: SliverChildBuilderDelegate(
               (context, i) {
-                final player = _filteredPlayers[i];
+                final player = players[i];
                 return _PlayerCardV2(
                   player: player,
                   cp: cp,
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => PlayerProfileScreen(player: player),
-                    ),
-                  ),
+                  onTap: () => Navigator.push(context,
+                      MaterialPageRoute(
+                          builder: (_) => PlayerProfileScreen(player: player))),
                   onRequest: () => _showRequestSheet(context, player),
                 ).animate()
                   .fadeIn(delay: (i * 50).ms)
                   .slideY(begin: 0.08, end: 0, delay: (i * 50).ms);
               },
-              childCount: _filteredPlayers.length,
+              childCount: players.length,
             ),
           ),
 
@@ -251,17 +258,17 @@ class _MatchScreenState extends State<MatchScreen> {
                     cp: cp,
                     title: 'AÇIK LOBİLER',
                     action: 'Lobi Oluştur',
-                    onAction: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const OpenLobbyScreen()),
-                    ).then((_) => _loadLobbies()),
+                    onAction: () => Navigator.push(context,
+                        MaterialPageRoute(
+                            builder: (_) => const OpenLobbyScreen()))
+                        .then((_) => _loadLobbies()),
                   ),
                   SizedBox(
                     height: 172,
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.fromLTRB(
-                        Spacing.gutter, 0, Spacing.gutter, Spacing.sm),
+                          Spacing.gutter, 0, Spacing.gutter, Spacing.sm),
                       itemCount: _lobbies.length,
                       itemBuilder: (context, i) =>
                           _LobbyCard(lobby: _lobbies[i], cp: cp),
@@ -282,8 +289,24 @@ class _MatchScreenState extends State<MatchScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (_) => _FilterSheet(cp: cp, currentFilter: _filter,
-        onApply: (f) => setState(() => _filter = f)),
+      builder: (_) => _FilterSheet(
+        cp: cp,
+        currentFilter: _filter,
+        onApply: (f) => setState(() => _filter = f),
+      ),
+    );
+  }
+
+  void _showSortSheet(BuildContext context, CourtPalette cp) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _SortSheet(
+        cp: cp,
+        currentSort: _sortBy,
+        onApply: (s) => setState(() => _sortBy = s),
+      ),
     );
   }
 
@@ -301,7 +324,7 @@ class _MatchScreenState extends State<MatchScreen> {
   }
 }
 
-// ─── Wordmark ──────────────────────────────────────────────────────────────────
+// ─── Wordmark ─────────────────────────────────────────────────────────────────
 class _Wordmark extends StatelessWidget {
   final CourtPalette cp;
   const _Wordmark({required this.cp});
@@ -309,31 +332,28 @@ class _Wordmark extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RichText(
-      text: TextSpan(
-        children: [
-          TextSpan(
-            text: 'Rall',
-            style: TextStyle(
-              fontFamily: 'InstrumentSerif', fontSize: 24, color: cp.accent),
-          ),
-          TextSpan(
-            text: 'l',
-            style: TextStyle(
-              fontFamily: 'InstrumentSerif', fontSize: 24,
-              color: cp.text, fontStyle: FontStyle.italic),
-          ),
-          TextSpan(
-            text: 'y',
-            style: TextStyle(
-              fontFamily: 'InstrumentSerif', fontSize: 24, color: cp.accent),
-          ),
-        ],
-      ),
+      text: TextSpan(children: [
+        TextSpan(
+          text: 'Rall',
+          style: TextStyle(
+              fontFamily: 'InstrumentSerif', fontSize: 24, color: cp.accent)),
+        TextSpan(
+          text: 'l',
+          style: TextStyle(
+              fontFamily: 'InstrumentSerif',
+              fontSize: 24,
+              color: cp.text,
+              fontStyle: FontStyle.italic)),
+        TextSpan(
+          text: 'y',
+          style: TextStyle(
+              fontFamily: 'InstrumentSerif', fontSize: 24, color: cp.accent)),
+      ]),
     );
   }
 }
 
-// ─── Court hero strip ──────────────────────────────────────────────────────────
+// ─── Court hero strip ─────────────────────────────────────────────────────────
 class _CourtHero extends StatelessWidget {
   final CourtPalette cp;
   final int playerCount;
@@ -343,7 +363,7 @@ class _CourtHero extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.fromLTRB(
-        Spacing.gutter, Spacing.lg, Spacing.gutter, 0),
+          Spacing.gutter, Spacing.lg, Spacing.gutter, 0),
       height: 128,
       decoration: BoxDecoration(
         gradient: LinearGradient(
@@ -354,25 +374,24 @@ class _CourtHero extends StatelessWidget {
         borderRadius: BorderRadius.circular(22),
         boxShadow: [
           BoxShadow(
-            color: cp.gradB.withValues(alpha: 0.30),
-            blurRadius: 28,
-            offset: const Offset(0, 12),
-          ),
+              color: cp.gradB.withValues(alpha: 0.30),
+              blurRadius: 28,
+              offset: const Offset(0, 12))
         ],
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(22),
         child: Stack(
           children: [
-            // Decorative circle
             Positioned(
-              right: -22, top: -22,
+              right: -22,
+              top: -22,
               child: Container(
-                width: 112, height: 112,
+                width: 112,
+                height: 112,
                 decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: cp.highlight.withValues(alpha: 0.50),
-                ),
+                    shape: BoxShape.circle,
+                    color: cp.highlight.withValues(alpha: 0.50)),
               ),
             ),
             Padding(
@@ -381,25 +400,19 @@ class _CourtHero extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'YAKINDAKI OYUNCULAR',
-                    style: RallyType.eyebrow.copyWith(
-                      color: Colors.white.withValues(alpha: 0.78)),
-                  ),
+                  Text('YAKINDAKI OYUNCULAR',
+                      style: RallyType.eyebrow
+                          .copyWith(color: Colors.white.withValues(alpha: 0.78))),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        'Keşfet',
-                        style: RallyType.displayMD.copyWith(
-                          color: Colors.white, letterSpacing: -1.2),
-                      ),
+                      Text('Rakip Bul',
+                          style: RallyType.displayMD.copyWith(
+                              color: Colors.white, letterSpacing: -1.2)),
                       const SizedBox(height: 4),
-                      Text(
-                        '$playerCount oyuncu sizi bekliyor',
-                        style: RallyType.bodySM.copyWith(
-                          color: Colors.white.withValues(alpha: 0.82)),
-                      ),
+                      Text('$playerCount oyuncu sizi bekliyor',
+                          style: RallyType.bodySM.copyWith(
+                              color: Colors.white.withValues(alpha: 0.82))),
                     ],
                   ),
                 ],
@@ -412,60 +425,141 @@ class _CourtHero extends StatelessWidget {
   }
 }
 
-// ─── Search bar ────────────────────────────────────────────────────────────────
-class _SearchBar extends StatelessWidget {
+// ─── Search bar (StatefulWidget for focus-controlled border) ──────────────────
+class _SearchBar extends StatefulWidget {
   final CourtPalette cp;
   final TextEditingController controller;
   final ValueChanged<String> onChanged;
-  final VoidCallback onFilter;
 
   const _SearchBar({
     required this.cp,
     required this.controller,
     required this.onChanged,
-    required this.onFilter,
   });
 
   @override
+  State<_SearchBar> createState() => _SearchBarState();
+}
+
+class _SearchBarState extends State<_SearchBar> {
+  final _focusNode = FocusNode();
+  bool _focused = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode.addListener(() {
+      if (_focusNode.hasFocus != _focused) {
+        setState(() => _focused = _focusNode.hasFocus);
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Container(
+    final cp = widget.cp;
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 180),
+      width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
         color: cp.surface,
         borderRadius: BorderRadius.circular(RallyRadius.xl),
-        border: Border.all(color: cp.border2, width: 1.5),
+        border: Border.all(
+          color: _focused ? cp.accent : cp.border2,
+          width: _focused ? 1.5 : 1.0,
+        ),
       ),
       child: Row(
         children: [
-          Icon(Icons.search, size: 20, color: cp.muted),
+          Icon(Icons.search,
+              size: 20, color: _focused ? cp.accent : cp.muted),
           const SizedBox(width: Spacing.sm),
           Expanded(
             child: TextField(
-              controller: controller,
-              onChanged: onChanged,
+              controller: widget.controller,
+              focusNode: _focusNode,
+              onChanged: widget.onChanged,
               style: RallyType.body.copyWith(color: cp.text),
               decoration: InputDecoration(
                 hintText: 'İsim veya konum ara…',
                 hintStyle: RallyType.body.copyWith(color: cp.muted2),
                 border: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                enabledBorder: InputBorder.none,
                 isDense: true,
                 contentPadding: EdgeInsets.zero,
               ),
             ),
           ),
-          Container(width: 1, height: 18, color: cp.border),
-          const SizedBox(width: Spacing.sm),
-          GestureDetector(
-            onTap: onFilter,
-            child: Icon(Icons.tune, size: 20, color: cp.text2),
-          ),
+          if (widget.controller.text.isNotEmpty)
+            GestureDetector(
+              onTap: () {
+                widget.controller.clear();
+                widget.onChanged('');
+              },
+              child: Icon(Icons.close, size: 18, color: cp.muted),
+            ),
         ],
       ),
     );
   }
 }
 
-// ─── Section header ────────────────────────────────────────────────────────────
+// ─── Action chip (Sıralama / Filtre) ─────────────────────────────────────────
+class _ActionChip extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool active;
+  final CourtPalette cp;
+  final VoidCallback onTap;
+
+  const _ActionChip({
+    required this.icon,
+    required this.label,
+    required this.active,
+    required this.cp,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: active ? cp.accent : cp.surface,
+          borderRadius: BorderRadius.circular(RallyRadius.pill),
+          border: Border.all(color: active ? cp.accent : cp.border2),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 16, color: active ? Colors.white : cp.text2),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: RallyType.bodySM.copyWith(
+                fontWeight: FontWeight.w600,
+                color: active ? Colors.white : cp.text2,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Section header ───────────────────────────────────────────────────────────
 class _SectionHeader extends StatelessWidget {
   final CourtPalette cp;
   final String title;
@@ -483,19 +577,19 @@ class _SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(
-        Spacing.gutter, Spacing.xl, Spacing.gutter, Spacing.sm),
+          Spacing.gutter, Spacing.xl, Spacing.gutter, Spacing.sm),
       child: Row(
         children: [
           Text(title,
-            style: RallyType.eyebrow.copyWith(
-              color: cp.muted, letterSpacing: 1.4)),
+              style: RallyType.eyebrow
+                  .copyWith(color: cp.muted, letterSpacing: 1.4)),
           const Spacer(),
           if (action != null)
             GestureDetector(
               onTap: onAction,
               child: Text(action!,
-                style: RallyType.caption.copyWith(
-                  color: cp.accent, fontWeight: FontWeight.w700)),
+                  style: RallyType.caption.copyWith(
+                      color: cp.accent, fontWeight: FontWeight.w700)),
             ),
         ],
       ),
@@ -503,7 +597,7 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-// ─── V2 Player card ────────────────────────────────────────────────────────────
+// ─── V2 Player card ───────────────────────────────────────────────────────────
 class _PlayerCardV2 extends StatelessWidget {
   final Player player;
   final CourtPalette cp;
@@ -519,33 +613,38 @@ class _PlayerCardV2 extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final availability = player.availability.take(3).toList();
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         margin: const EdgeInsets.fromLTRB(
-          Spacing.gutter, 0, Spacing.gutter, Spacing.sm),
+            Spacing.gutter, 0, Spacing.gutter, Spacing.sm),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: cp.surface,
           borderRadius: BorderRadius.circular(RallyRadius.xl),
           border: Border.all(color: cp.border),
           boxShadow: const [
-            BoxShadow(color: Color(0x0A000000), blurRadius: 14, offset: Offset(0, 4)),
+            BoxShadow(
+                color: Color(0x0A000000), blurRadius: 14, offset: Offset(0, 4))
           ],
         ),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             PlayerAvatar(
               initials: player.initials,
               gradientStart: player.avatarGradientStart,
               gradientEnd: player.avatarGradientEnd,
-              size: 56,
+              size: 52,
             ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Name + skill + NTRP
                   Row(
                     children: [
                       Flexible(
@@ -555,74 +654,104 @@ class _PlayerCardV2 extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      const SizedBox(width: Spacing.sm),
+                      const SizedBox(width: 6),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 7, vertical: 2),
                         decoration: BoxDecoration(
                           color: cp.skillBg,
-                          borderRadius: BorderRadius.circular(RallyRadius.pill),
+                          borderRadius:
+                              BorderRadius.circular(RallyRadius.pill),
                         ),
                         child: Text(
-                          _abbreviate(player.skillLabel),
-                          style: RallyType.micro.copyWith(
-                            color: cp.skillFg, letterSpacing: 0.3),
+                          _abbrevSkill(player.skillLabel),
+                          style: RallyType.micro.copyWith(color: cp.skillFg),
                         ),
+                      ),
+                      const Spacer(),
+                      Text(
+                        'NTRP ${player.ntrpRating.toStringAsFixed(1)}',
+                        style: RallyType.micro.copyWith(
+                            color: cp.text2, fontWeight: FontWeight.w700),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 3),
-                  Row(
-                    children: [
-                      Icon(Icons.location_on_outlined, size: 12, color: cp.muted),
-                      const SizedBox(width: 3),
-                      Flexible(
-                        child: Text(
-                          player.location,
-                          style: RallyType.bodySM.copyWith(color: cp.muted),
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                  const SizedBox(height: 4),
+                  // Location
+                  Row(children: [
+                    Icon(Icons.location_on_outlined,
+                        size: 12, color: cp.muted),
+                    const SizedBox(width: 3),
+                    Flexible(
+                      child: Text(
+                        player.location,
+                        style: RallyType.bodySM.copyWith(color: cp.muted),
+                        overflow: TextOverflow.ellipsis,
                       ),
-                    ],
-                  ),
-                  const SizedBox(height: 8),
+                    ),
+                  ]),
+                  const SizedBox(height: 4),
+                  // Stats
+                  Row(children: [
+                    Icon(Icons.emoji_events_outlined,
+                        size: 12, color: cp.accent),
+                    const SizedBox(width: 3),
+                    Text(
+                      '${player.winRate}% galibiyet',
+                      style: RallyType.bodySM.copyWith(
+                          color: cp.text2, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(width: 10),
+                    Text(
+                      '${player.matchesPlayed} maç',
+                      style: RallyType.bodySM.copyWith(color: cp.muted),
+                    ),
+                  ]),
+                  // Availability
+                  if (availability.isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 4,
+                      runSpacing: 4,
+                      children: availability
+                          .map((slot) => Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: cp.accentTint,
+                                  borderRadius: BorderRadius.circular(
+                                      RallyRadius.pill),
+                                ),
+                                child: Text(
+                                  slot,
+                                  style: RallyType.micro.copyWith(
+                                      color: cp.accentStrong, fontSize: 10),
+                                ),
+                              ))
+                          .toList(),
+                    ),
+                  ],
+                  const SizedBox(height: 10),
+                  // Maç İste button
                   GestureDetector(
                     onTap: onRequest,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 6),
+                          horizontal: 14, vertical: 7),
                       decoration: BoxDecoration(
                         color: cp.accent,
-                        borderRadius: BorderRadius.circular(RallyRadius.pill),
+                        borderRadius:
+                            BorderRadius.circular(RallyRadius.pill),
                       ),
                       child: Text(
                         'Maç İste',
                         style: RallyType.micro.copyWith(
-                          color: Colors.white, letterSpacing: 0.3),
+                            color: Colors.white, fontWeight: FontWeight.w700),
                       ),
                     ),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(width: 8),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.end,
-              children: [
-                Text(
-                  '%${player.matchScore}',
-                  style: TextStyle(
-                    fontFamily: 'InstrumentSerif',
-                    fontSize: 28,
-                    color: cp.accent,
-                    letterSpacing: -1.2,
-                    height: 1,
-                  ),
-                ),
-                Text(
-                  'UYUM',
-                  style: RallyType.micro.copyWith(color: cp.muted),
-                ),
-              ],
             ),
           ],
         ),
@@ -630,17 +759,21 @@ class _PlayerCardV2 extends StatelessWidget {
     );
   }
 
-  String _abbreviate(String skill) {
+  String _abbrevSkill(String skill) {
     switch (skill) {
-      case 'Başlangıç': return 'BAŞL.';
-      case 'Orta Seviye': return 'ORTA';
-      case 'İleri Seviye': return 'İLERİ';
-      default: return skill.toUpperCase();
+      case 'Başlangıç':
+        return 'BAŞL.';
+      case 'Orta Seviye':
+        return 'ORTA';
+      case 'İleri Seviye':
+        return 'İLERİ';
+      default:
+        return skill.toUpperCase();
     }
   }
 }
 
-// ─── Upcoming match card ───────────────────────────────────────────────────────
+// ─── Upcoming match card ──────────────────────────────────────────────────────
 class _UpcomingCard extends StatelessWidget {
   final MatchSession session;
   final CourtPalette cp;
@@ -666,28 +799,126 @@ class _UpcomingCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
             decoration: BoxDecoration(
               color: cp.accentTint,
               borderRadius: BorderRadius.circular(RallyRadius.pill),
             ),
-            child: Text(
-              '🎾 TENIS',
-              style: RallyType.micro.copyWith(
-                color: cp.accentStrong, letterSpacing: 0.4),
-            ),
+            child: Text('🎾 TENİS',
+                style: RallyType.micro
+                    .copyWith(color: cp.accentStrong, letterSpacing: 0.4)),
           ),
           const SizedBox(height: Spacing.sm),
-          Text(
-            '$dayStr $timeStr',
-            style: RallyType.displaySM.copyWith(color: cp.text),
-          ),
+          Text('$dayStr $timeStr',
+              style: RallyType.displaySM.copyWith(color: cp.text)),
           const SizedBox(height: 2),
-          Text(
-            'vs ${session.opponent.name}',
-            style: RallyType.bodySM.copyWith(
-              color: cp.text2, fontWeight: FontWeight.w600),
-            overflow: TextOverflow.ellipsis,
+          Text('vs ${session.opponent.name}',
+              style: RallyType.bodySM
+                  .copyWith(color: cp.text2, fontWeight: FontWeight.w600),
+              overflow: TextOverflow.ellipsis),
+        ],
+      ),
+    );
+  }
+}
+
+// ─── Sort sheet ───────────────────────────────────────────────────────────────
+class _SortSheet extends StatefulWidget {
+  final CourtPalette cp;
+  final String currentSort;
+  final ValueChanged<String> onApply;
+  const _SortSheet(
+      {required this.cp, required this.currentSort, required this.onApply});
+
+  @override
+  State<_SortSheet> createState() => _SortSheetState();
+}
+
+class _SortSheetState extends State<_SortSheet> {
+  late String _sort;
+  static const _options = ['Mesafe', 'NTRP', 'Galibiyet'];
+
+  @override
+  void initState() {
+    super.initState();
+    _sort = widget.currentSort;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final cp = widget.cp;
+    return Container(
+      decoration: BoxDecoration(color: cp.bg, borderRadius: RR.sheetTop),
+      padding: EdgeInsets.fromLTRB(
+          24,
+          12,
+          24,
+          MediaQuery.of(context).viewInsets.bottom +
+              MediaQuery.of(context).padding.bottom +
+              28),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Center(
+            child: Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                  color: cp.muted2, borderRadius: BorderRadius.circular(2)),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Text('Sıralama',
+              style: RallyType.displaySM.copyWith(color: cp.text)),
+          const SizedBox(height: 4),
+          Text('Oyuncuları sıralama kriteri',
+              style: RallyType.bodySM.copyWith(color: cp.text2)),
+          const SizedBox(height: 20),
+          ..._options.map((opt) {
+            final active = _sort == opt;
+            return GestureDetector(
+              onTap: () => setState(() => _sort = opt),
+              child: Container(
+                margin: const EdgeInsets.only(bottom: Spacing.sm),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 16, vertical: 14),
+                decoration: BoxDecoration(
+                  color: active ? cp.accentTint : cp.surface,
+                  borderRadius: BorderRadius.circular(RallyRadius.lg),
+                  border: Border.all(
+                    color: active ? cp.accent : cp.border,
+                    width: active ? 1.5 : 1,
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Text(opt,
+                        style: RallyType.titleMD.copyWith(
+                            color: active ? cp.accentStrong : cp.text)),
+                    const Spacer(),
+                    if (active)
+                      Icon(Icons.check_circle, color: cp.accent, size: 20),
+                  ],
+                ),
+              ),
+            );
+          }),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: () {
+                widget.onApply(_sort);
+                Navigator.pop(context);
+              },
+              style: FilledButton.styleFrom(
+                backgroundColor: cp.accent,
+                minimumSize: const Size(double.infinity, 50),
+              ),
+              child: const Text('Uygula'),
+            ),
           ),
         ],
       ),
@@ -695,13 +926,13 @@ class _UpcomingCard extends StatelessWidget {
   }
 }
 
-// ─── Filter sheet ──────────────────────────────────────────────────────────────
+// ─── Filter sheet ─────────────────────────────────────────────────────────────
 class _FilterSheet extends StatefulWidget {
   final CourtPalette cp;
   final String currentFilter;
   final ValueChanged<String> onApply;
-  const _FilterSheet({
-    required this.cp, required this.currentFilter, required this.onApply});
+  const _FilterSheet(
+      {required this.cp, required this.currentFilter, required this.onApply});
 
   @override
   State<_FilterSheet> createState() => _FilterSheetState();
@@ -709,6 +940,7 @@ class _FilterSheet extends StatefulWidget {
 
 class _FilterSheetState extends State<_FilterSheet> {
   late String _skill;
+  String _distance = '5 km';
 
   static const _skills = {
     'Tümü': 'Tümü',
@@ -716,6 +948,7 @@ class _FilterSheetState extends State<_FilterSheet> {
     'Orta': 'Orta Seviye',
     'İleri': 'İleri Seviye',
   };
+  static const _distances = ['1 km', '3 km', '5 km', '10 km'];
 
   @override
   void initState() {
@@ -727,34 +960,44 @@ class _FilterSheetState extends State<_FilterSheet> {
   Widget build(BuildContext context) {
     final cp = widget.cp;
     return Container(
-      decoration: BoxDecoration(
-        color: cp.bg,
-        borderRadius: RR.sheetTop,
-      ),
+      decoration: BoxDecoration(color: cp.bg, borderRadius: RR.sheetTop),
       padding: EdgeInsets.fromLTRB(
-        24, 12, 24,
-        MediaQuery.of(context).viewInsets.bottom +
-            MediaQuery.of(context).padding.bottom + 28),
+          24,
+          12,
+          24,
+          MediaQuery.of(context).viewInsets.bottom +
+              MediaQuery.of(context).padding.bottom +
+              28),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Center(
             child: Container(
-              width: 40, height: 4,
+              width: 40,
+              height: 4,
               decoration: BoxDecoration(
-                color: cp.muted2,
-                borderRadius: BorderRadius.circular(2)),
+                  color: cp.muted2, borderRadius: BorderRadius.circular(2)),
             ),
           ),
           const SizedBox(height: 20),
-          Text('Filtrele',
-            style: RallyType.displaySM.copyWith(color: cp.text)),
-          const SizedBox(height: 4),
-          Text('Seviye seç',
-            style: RallyType.bodySM.copyWith(color: cp.text2)),
+          Row(
+            children: [
+              Text('Filtrele',
+                  style: RallyType.displaySM.copyWith(color: cp.text)),
+              const Spacer(),
+              GestureDetector(
+                onTap: () =>
+                    setState(() { _skill = 'Tümü'; _distance = '5 km'; }),
+                child: Text('Temizle',
+                    style: RallyType.bodySM.copyWith(
+                        color: cp.accent, fontWeight: FontWeight.w600)),
+              ),
+            ],
+          ),
           const SizedBox(height: 20),
-          // Skill segment
+          Text('Seviye', style: RallyType.titleSM.copyWith(color: cp.text)),
+          const SizedBox(height: 10),
           Container(
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
@@ -790,6 +1033,41 @@ class _FilterSheetState extends State<_FilterSheet> {
               }).toList(),
             ),
           ),
+          const SizedBox(height: 20),
+          Text('Mesafe', style: RallyType.titleSM.copyWith(color: cp.text)),
+          const SizedBox(height: 10),
+          Row(
+            children: _distances.map((d) {
+              final active = _distance == d;
+              return Expanded(
+                child: GestureDetector(
+                  onTap: () => setState(() => _distance = d),
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 6),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 180),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      decoration: BoxDecoration(
+                        color: active ? cp.accent : cp.surface,
+                        borderRadius: BorderRadius.circular(RallyRadius.md),
+                        border: Border.all(
+                            color: active ? cp.accent : cp.border),
+                      ),
+                      child: Text(
+                        d,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: active ? Colors.white : cp.text2,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
           const SizedBox(height: 24),
           SizedBox(
             width: double.infinity,
@@ -811,13 +1089,13 @@ class _FilterSheetState extends State<_FilterSheet> {
   }
 }
 
-// ─── Request match bottom sheet ───────────────────────────────────────────────
+// ─── Request match sheet ──────────────────────────────────────────────────────
 class _RequestSheet extends StatefulWidget {
   final Player player;
   final bool alreadySent;
   final VoidCallback onSent;
-  const _RequestSheet({
-    required this.player, required this.alreadySent, required this.onSent});
+  const _RequestSheet(
+      {required this.player, required this.alreadySent, required this.onSent});
 
   @override
   State<_RequestSheet> createState() => _RequestSheetState();
@@ -833,19 +1111,20 @@ class _RequestSheetState extends State<_RequestSheet> {
   Future<void> _sendRequest() async {
     if (_sent || _loading) return;
     setState(() => _loading = true);
+    final cp = CourtThemeProvider.of(context);
     try {
-      final userId = supabase.auth.currentUser?.id;
       final proposedDate = DateTime.now().add(const Duration(days: 7));
-      await supabase.from('matches').insert({
-        'player1_id': userId,
-        'player2_id': widget.player.id,
-        'date_time': proposedDate.toUtc().toIso8601String(),
-        'court': _selectedCourt,
-        'status': 'pending',
-        'format': _selectedFormat == 'Tekler' ? 'singles' : 'doubles',
-      });
+      await dataService.sendMatchRequest(
+        opponentId: widget.player.id,
+        proposedDate: proposedDate,
+        court: _selectedCourt,
+        format: _selectedFormat == 'Tekler' ? 'singles' : 'doubles',
+      );
       if (!mounted) return;
-      setState(() { _sent = true; _loading = false; });
+      setState(() {
+        _sent = true;
+        _loading = false;
+      });
       widget.onSent();
       final nav = Navigator.of(context);
       final messenger = ScaffoldMessenger.of(context);
@@ -853,11 +1132,12 @@ class _RequestSheetState extends State<_RequestSheet> {
         if (mounted) {
           nav.pop();
           messenger.showSnackBar(SnackBar(
-            content: Text('${widget.player.name} oyuncusuna maç isteği gönderildi!'),
-            backgroundColor: RallyColors.accent,
+            content:
+                Text('${widget.player.name} oyuncusuna maç isteği gönderildi!'),
+            backgroundColor: cp.accent,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12)),
+                borderRadius: BorderRadius.circular(12)),
           ));
         }
       });
@@ -882,19 +1162,23 @@ class _RequestSheetState extends State<_RequestSheet> {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
       ),
       padding: EdgeInsets.fromLTRB(
-        24, 16, 24,
-        MediaQuery.of(context).viewInsets.bottom +
-            MediaQuery.of(context).padding.bottom + 28),
+          24,
+          16,
+          24,
+          MediaQuery.of(context).viewInsets.bottom +
+              MediaQuery.of(context).padding.bottom +
+              28),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Center(
             child: Container(
-              width: 40, height: 4,
+              width: 40,
+              height: 4,
               decoration: BoxDecoration(
-                color: RallyColors.muted2,
-                borderRadius: BorderRadius.circular(2)),
+                  color: cp.muted2,
+                  borderRadius: BorderRadius.circular(2)),
             ),
           ),
           const SizedBox(height: 20),
@@ -911,24 +1195,37 @@ class _RequestSheetState extends State<_RequestSheet> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('Maç İsteği',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w700)),
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleLarge
+                          ?.copyWith(fontWeight: FontWeight.w700, color: cp.text)),
                   Text(widget.player.name,
-                    style: const TextStyle(
-                      color: RallyColors.textSecondary, fontSize: 13)),
+                      style: TextStyle(color: cp.text2, fontSize: 13)),
                 ],
               ),
             ],
           ),
           const SizedBox(height: 24),
-          _SheetRow(icon: Icons.sports_tennis, label: 'Format',
-            value: _selectedFormat, onTap: () {}),
-          const Divider(height: 1),
-          _SheetRow(icon: Icons.schedule, label: 'Saat',
-            value: _selectedTime, onTap: () {}),
-          const Divider(height: 1),
-          _SheetRow(icon: Icons.location_on_outlined, label: 'Kort',
-            value: _selectedCourt, onTap: () {}),
+          _SheetRow(
+              cp: cp,
+              icon: Icons.sports_tennis,
+              label: 'Format',
+              value: _selectedFormat,
+              onTap: () {}),
+          Divider(height: 1, color: cp.border),
+          _SheetRow(
+              cp: cp,
+              icon: Icons.schedule,
+              label: 'Saat',
+              value: _selectedTime,
+              onTap: () {}),
+          Divider(height: 1, color: cp.border),
+          _SheetRow(
+              cp: cp,
+              icon: Icons.location_on_outlined,
+              label: 'Kort',
+              value: _selectedCourt,
+              onTap: () {}),
           const SizedBox(height: 24),
           RallyButton(
             label: _sent ? 'İstek Gönderildi ✓' : 'İstek Gönder 🎾',
@@ -941,19 +1238,23 @@ class _RequestSheetState extends State<_RequestSheet> {
   }
 }
 
-// ─── Open lobby card ─────────────────────────────────────────────────────────
+// ─── Open lobby card ──────────────────────────────────────────────────────────
 class _LobbyCard extends StatelessWidget {
   final Map<String, dynamic> lobby;
   final CourtPalette cp;
   const _LobbyCard({required this.lobby, required this.cp});
 
   static const _sportEmojis = {
-    'Tenis': '🎾', 'Padel': '🏓', 'Badminton': '🏸', 'Squash': '🟡',
+    'Tenis': '🎾',
+    'Padel': '🏓',
+    'Badminton': '🏸',
+    'Squash': '🟡',
   };
 
   @override
   Widget build(BuildContext context) {
-    final dt = DateTime.tryParse(lobby['date_time'] as String? ?? '')?.toLocal();
+    final dt =
+        DateTime.tryParse(lobby['date_time'] as String? ?? '')?.toLocal();
     final sport = lobby['sport'] as String? ?? 'Tenis';
     final court = lobby['court'] as String? ?? '';
     final skill = lobby['skill_level'] as String? ?? '';
@@ -972,50 +1273,51 @@ class _LobbyCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Row(
-            children: [
-              Text(_sportEmojis[sport] ?? '🎾',
+          Row(children: [
+            Text(_sportEmojis[sport] ?? '🎾',
                 style: const TextStyle(fontSize: 18)),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(sport,
+            const SizedBox(width: 6),
+            Expanded(
+              child: Text(sport,
                   style: RallyType.titleSM.copyWith(color: cp.text),
                   overflow: TextOverflow.ellipsis),
-              ),
-            ],
-          ),
+            ),
+          ]),
           const SizedBox(height: 6),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+            padding:
+                const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
             decoration: BoxDecoration(
               color: cp.accentTint,
               borderRadius: BorderRadius.circular(RallyRadius.pill),
             ),
             child: Text(skill,
-              style: RallyType.micro.copyWith(color: cp.accentStrong)),
+                style: RallyType.micro.copyWith(color: cp.accentStrong)),
           ),
           const SizedBox(height: 8),
           Text(court,
-            style: RallyType.bodySM.copyWith(color: cp.muted),
-            maxLines: 1, overflow: TextOverflow.ellipsis),
+              style: RallyType.bodySM.copyWith(color: cp.muted),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis),
           if (dt != null) ...[
             const SizedBox(height: 3),
             Text(DateFormat('EEE d MMM, HH:mm').format(dt),
-              style: RallyType.caption.copyWith(fontWeight: FontWeight.w600,
-                color: cp.text)),
+                style: RallyType.caption
+                    .copyWith(fontWeight: FontWeight.w600, color: cp.text)),
           ],
           const SizedBox(height: 8),
           SizedBox(
             width: double.infinity,
             child: FilledButton(
-              onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('$sport lobisine katılma isteği gönderildi!'),
-                  backgroundColor: RallyColors.accent,
-                  behavior: SnackBarBehavior.floating,
-                  shape: RoundedRectangleBorder(
+              onPressed: () =>
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                content:
+                    Text('$sport lobisine katılma isteği gönderildi!'),
+                backgroundColor: RallyColors.accent,
+                behavior: SnackBarBehavior.floating,
+                shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
-                )),
+              )),
               style: FilledButton.styleFrom(
                 backgroundColor: cp.accent,
                 minimumSize: const Size(0, 32),
@@ -1023,7 +1325,7 @@ class _LobbyCard extends StatelessWidget {
                 tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 padding: EdgeInsets.zero,
                 textStyle: const TextStyle(
-                  fontSize: 12, fontWeight: FontWeight.w600),
+                    fontSize: 12, fontWeight: FontWeight.w600),
               ),
               child: const Text('Katıl'),
             ),
@@ -1035,15 +1337,18 @@ class _LobbyCard extends StatelessWidget {
 }
 
 class _SheetRow extends StatelessWidget {
+  final CourtPalette cp;
   final IconData icon;
   final String label;
   final String value;
   final VoidCallback onTap;
 
-  const _SheetRow({
-    required this.icon, required this.label,
-    required this.value, required this.onTap,
-  });
+  const _SheetRow(
+      {required this.cp,
+      required this.icon,
+      required this.label,
+      required this.value,
+      required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -1053,17 +1358,15 @@ class _SheetRow extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 14),
         child: Row(
           children: [
-            Icon(icon, size: 18, color: RallyColors.muted),
+            Icon(icon, size: 18, color: cp.muted),
             const SizedBox(width: 12),
-            Text(label,
-              style: const TextStyle(
-                color: RallyColors.textSecondary, fontSize: 14)),
+            Text(label, style: TextStyle(color: cp.text2, fontSize: 14)),
             const Spacer(),
             Text(value,
-              style: const TextStyle(
-                fontWeight: FontWeight.w600, fontSize: 14)),
+                style: TextStyle(
+                    fontWeight: FontWeight.w600, fontSize: 14, color: cp.text)),
             const SizedBox(width: 4),
-            const Icon(Icons.chevron_right, size: 18, color: RallyColors.muted),
+            Icon(Icons.chevron_right, size: 18, color: cp.muted),
           ],
         ),
       ),

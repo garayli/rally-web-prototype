@@ -6,6 +6,7 @@ import '../widgets/shared_widgets.dart';
 import '../models/models.dart';
 import '../services/data_service.dart';
 import '../main.dart' show supabase;
+import '../utils/uuid.dart';
 import 'result_card_screen.dart';
 
 class LogResultScreen extends StatefulWidget {
@@ -34,7 +35,8 @@ class _LogResultScreenState extends State<LogResultScreen> {
   @override
   void initState() {
     super.initState();
-    _opponent = widget.opponent ?? dataService.getPlayers().first;
+    final players = dataService.getPlayers();
+    _opponent = widget.opponent ?? (players.isNotEmpty ? players.first : null);
     for (final c in [..._s1, ..._s2, ..._s3]) {
       c.addListener(_autoDetectWinner);
     }
@@ -73,6 +75,8 @@ class _LogResultScreenState extends State<LogResultScreen> {
     if (!_canSubmit || _winner == null || _loading) return;
     setState(() => _loading = true);
     final effectiveOpponent = _guestMode ? _guestPlayer() : _opponent!;
+    final opponentIsRealUser = !_guestMode && isUuid(effectiveOpponent.id);
+    final resultStatus = opponentIsRealUser ? 'pending_confirmation' : 'confirmed';
     final sets = <SetScore>[
       SetScore(int.tryParse(_s1[0].text) ?? 0, int.tryParse(_s1[1].text) ?? 0),
       SetScore(int.tryParse(_s2[0].text) ?? 0, int.tryParse(_s2[1].text) ?? 0),
@@ -94,7 +98,7 @@ class _LogResultScreenState extends State<LogResultScreen> {
       }
       await supabase.from('matches').insert({
         'player1_id': userId,
-        'player2_id': _guestMode ? null : effectiveOpponent.id,
+        'player2_id': opponentIsRealUser ? effectiveOpponent.id : null,
         'status': 'completed',
         'format': 'singles',
         'date_time': DateTime.now().toUtc().toIso8601String(),
@@ -102,6 +106,8 @@ class _LogResultScreenState extends State<LogResultScreen> {
         'winner_id': _winner == 'me' ? userId : null,
         'sets': sets.map((s) => s.toJson()).toList(),
         'rating_delta': _winner == 'me' ? 12.0 : -8.0,
+        'result_status': resultStatus,
+        'result_logged_by': userId,
         // only sent for unregistered opponents — columns must exist in DB
         if (_guestMode) ...{
           'opponent_name': effectiveOpponent.name,

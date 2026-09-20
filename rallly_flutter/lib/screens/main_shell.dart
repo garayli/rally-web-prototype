@@ -27,6 +27,7 @@ class _MainShellState extends State<MainShell> {
   static const _prefsKey = 'onboarding_seen_v2';
   List<bool> _seen = List.filled(4, true);
   bool _prefsLoaded = false;
+  bool _cacheLoaded = false;
 
   static const _screens = [
     MatchScreen(),
@@ -39,6 +40,13 @@ class _MainShellState extends State<MainShell> {
   void initState() {
     super.initState();
     _loadSeenState();
+    _warmCache();
+  }
+
+  Future<void> _warmCache() async {
+    await dataService.warmCache();
+    if (!mounted) return;
+    setState(() => _cacheLoaded = true);
   }
 
   Future<void> _loadSeenState() async {
@@ -69,6 +77,13 @@ class _MainShellState extends State<MainShell> {
       statusBarBrightness: Brightness.light,
       statusBarIconBrightness: Brightness.dark,
     ));
+
+    if (!_prefsLoaded || !_cacheLoaded) {
+      return Scaffold(
+        backgroundColor: cp.bg,
+        body: Center(child: CircularProgressIndicator(color: cp.accent)),
+      );
+    }
 
     return Scaffold(
       body: Stack(
@@ -127,7 +142,7 @@ class _MainShellState extends State<MainShell> {
                   _NavItem(
                     icon: Icons.sports_tennis_outlined,
                     activeIcon: Icons.sports_tennis,
-                    label: 'Keşfet',
+                    label: 'Rakip Bul',
                     active: _currentIndex == 0,
                     cp: cp,
                     onTap: () => setState(() => _currentIndex = 0),

@@ -142,4 +142,54 @@ Custom `Stack`-based overlay rendered inside `Scaffold.body`, managed in `MainSh
 
 ---
 
+## ADR-008: Cache-warm-once in MainShell instead of async DataService interface
+**Date:** 2026-09-13
+**Status:** Accepted
+
+### Context
+`getPlayers()`, `getConversations()`, and `getUpcomingSessions()` needed to move from static `MockData` to real Supabase queries, which are inherently async. But the abstract `DataService` interface declares them synchronous (`List<T>`, not `Future<List<T>>`), and they're called directly inside `build()` — sometimes multiple times per build — across 10 screen files. Converting all of them to `Future<List<T>>` would mean adding FutureBuilder/initState-load boilerplate to all 10 files.
+
+### Decision
+Kept the three getters synchronous. Added `Future<void> warmCache()` to `DataService`, which fetches all three lists once and populates internal cache fields on `MockDataService` (which, despite its name, is the one real Supabase-backed implementation — see the Data Layer section of CLAUDE.md). `MainShell` — the sole entry point into the tabbed app post-login, since all secondary screens are reached via `Navigator.push` from within its tabs — calls `warmCache()` in `initState` and gates building the tab `IndexedStack` behind it (same `_prefsLoaded`-style boolean pattern already used for the onboarding overlay), so every tab's very first build already has real data with zero per-screen signature changes.
+Because `IndexedStack` keeps all 4 tabs mounted for the life of the session, a later cache refresh (e.g. after `sendMatchRequest`) doesn't trigger a rebuild on its own. Added `ValueNotifier<int> cacheVersion` to `DataService`, bumped at the end of every internal refresh; `match_screen.dart`, `messages_screen.dart`, `games_screen.dart`, `profile_screen.dart`, and `schedule_screen.dart` wrap their body in `ValueListenableBuilder<int>` on it (mirroring the existing `unreadNotifier` pattern in `MainShell`'s bottom nav, per ADR-003).
+
+### Consequences
+- **Positive:** Zero interface-breaking changes to the 10 screen call sites; reuses an established codebase pattern (ADR-003) instead of introducing a new one; `warmCache()` swallows its own errors so the loading gate can never hang indefinitely on a network failure.
+- **Negative:** Data is only as fresh as the last `warmCache()`/refresh call — there's no pull-to-refresh or realtime subscription yet. A screen that isn't wrapped in the `cacheVersion` listener (e.g. `doubles_organise_screen.dart`, which only reads `getPlayers()`) won't reflect a mid-session player-list change, but nothing currently mutates that list mid-session so this is a non-issue for now.
+- **How to apply:** Any new screen that reads `getPlayers()`/`getConversations()`/`getUpcomingSessions()` and needs to reflect a cache refresh made elsewhere (not just its own initial render) should wrap its body in `ValueListenableBuilder<int>(valueListenable: dataService.cacheVersion, ...)`.
+
+---
+
+## ADR-009: Player.matchScore computed client-side from NTRP-rating closeness
+**Date:** 2026-09-13
+**Status:** Accepted
+
+### Context
+`Player.matchScore` (the compatibility % shown on `PlayerCard`/`MatchScoreBadge`) was a hardcoded per-mock-player value. The `profiles` table has no `match_score` column, and no real compatibility-matching algorithm has been designed yet.
+
+### Decision
+Compute it client-side in `MockDataService._playerFromRow()`: `100 - |other.ntrp_rating - me.ntrp_rating| * 40`, clamped to 0–100, injected into the row map before `Player.fromJson()` — no schema change, no `copyWith` added to the `Player` model.
+
+### Consequences
+- **Positive:** Real, varying compatibility numbers immediately instead of a placeholder 0; no migration needed.
+- **Negative:** This is a stand-in, not a real matching algorithm — it ignores location, availability overlap, playstyle, etc. Whoever designs the real compatibility algorithm later should replace this formula in one place (`_playerFromRow`).
+- **How to apply:** Do not read anything into the specific constant (40) or shape of this formula — it was chosen to produce a plausible-looking spread of scores, not from any matchmaking research.
+
+---
+
+## ADR-010: Android applicationId + real upload signing config
+**Date:** 2026-09-13
+**Status:** Accepted
+
+### Context
+The Android release build shipped with the Flutter template placeholder `applicationId` (`io.supabase.rallly.rallly`) and signed release builds with the debug key — both must be fixed before any Play Store upload, and `applicationId` cannot be changed after the first upload.
+
+### Decision
+Set `applicationId = "com.rallymatch.app"` in `android/app/build.gradle.kts`. Left `namespace` unchanged (`io.supabase.rallly.rallly`) since it only drives internal R-class generation, not the Play Store listing identity — changing it would require moving `MainActivity.kt`'s package/directory for no user-facing benefit. Generated a real upload keystore (`android/app/upload-keystore.jks`) and wired `signingConfigs.release` to load `keyAlias`/`keyPassword`/`storeFile`/`storePassword` from `android/key.properties` (both gitignored). `signingConfig` falls back to the debug key only when `key.properties` doesn't exist, so a fresh checkout without the keystore still builds (just not release-signed).
+
+### Consequences
+- **Positive:** Release builds are now properly signed (verified via `apksigner verify --print-certs` — signer DN matches the new keystore, not the debug cert); `applicationId` is locked in before any store upload.
+- **Negative:** The keystore and its password exist only on the machine that generated them (not yet backed up elsewhere as of this writing) — if lost, this Play Store listing can never be updated again. `namespace` and `applicationId` now permanently differ, which is harmless but can look odd to someone unfamiliar with the distinction.
+- **How to apply:** Before any release build/store upload, confirm `android/app/upload-keystore.jks` still exists and its password (in `android/key.properties`) is backed up outside this machine. Never regenerate the keystore to "fix" a missing one — a new keystore is a different signing identity and Google Play will reject it as an update to the existing app.
+
 <!-- Add new ADRs above this line -->

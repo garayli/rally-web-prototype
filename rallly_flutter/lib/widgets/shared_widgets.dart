@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../models/models.dart';
+import '../main.dart' show CourtThemeProvider;
 
 // ─── Gradient Avatar ─────────────────────────────────────────────────────────
 class PlayerAvatar extends StatelessWidget {
@@ -103,15 +104,16 @@ class MatchScoreBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cp = CourtThemeProvider.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         Text(
           '$score%',
-          style: const TextStyle(
+          style: TextStyle(
             fontFamily: 'InstrumentSerif',
             fontSize: 26,
-            color: RallyColors.accent,
+            color: cp.accent,
             letterSpacing: -1,
             height: 1,
           ),
@@ -146,6 +148,7 @@ class PlayerCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final cp = CourtThemeProvider.of(context);
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -226,7 +229,7 @@ class PlayerCard extends StatelessWidget {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
                     decoration: BoxDecoration(
-                      color: RallyColors.accent,
+                      color: cp.accent,
                       borderRadius: BorderRadius.circular(100),
                     ),
                     child: const Text(
@@ -263,6 +266,7 @@ class SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cp = CourtThemeProvider.of(context);
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 22, 20, 10),
       child: Row(
@@ -282,10 +286,10 @@ class SectionHeader extends StatelessWidget {
               onTap: onAction,
               child: Text(
                 action!,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   fontWeight: FontWeight.w600,
-                  color: RallyColors.accent,
+                  color: cp.accent,
                 ),
               ),
             ),
@@ -314,6 +318,7 @@ class RallyButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cp = CourtThemeProvider.of(context);
     final child = loading
         ? const SizedBox(
             width: 20,
@@ -332,9 +337,24 @@ class RallyButton extends StatelessWidget {
           );
 
     if (outlined) {
-      return OutlinedButton(onPressed: onPressed, child: child);
+      return OutlinedButton(
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          foregroundColor: cp.text,
+          side: BorderSide(color: cp.border2, width: 1.5),
+        ),
+        child: child,
+      );
     }
-    return FilledButton(onPressed: onPressed, child: child);
+    return FilledButton(
+      onPressed: onPressed,
+      style: FilledButton.styleFrom(
+        backgroundColor: cp.accent,
+        disabledBackgroundColor: cp.muted2,
+        foregroundColor: Colors.white,
+      ),
+      child: child,
+    );
   }
 }
 

@@ -15,7 +15,7 @@ rallly_flutter/
 │   ├── models/
 │   │   └── models.dart              # Player, Match, Notification, Message
 │   ├── services/
-│   │   └── mock_data.dart           # Sample data (replace with Supabase)
+│   │   └── data_service.dart        # Supabase-backed data layer (single swap point)
 │   ├── widgets/
 │   │   └── shared_widgets.dart      # PlayerAvatar, SkillBadge, RallyButton…
 │   └── screens/
@@ -123,25 +123,15 @@ await Supabase.instance.client.auth.verifyOTP(
 
 ---
 
-## Replacing mock data with Supabase
+## Data layer
 
-The file `lib/services/mock_data.dart` contains all placeholder data.  
-Replace the static lists with real Supabase queries, e.g.:
-
-```dart
-// Fetch nearby players
-final response = await Supabase.instance.client
-  .from('players')
-  .select()
-  .order('match_score', ascending: false)
-  .limit(20);
-```
-
-Suggested Supabase tables:
-- `profiles` — player profiles, NTRP rating, location
-- `matches` — scheduled & completed matches
-- `notifications` — push/in-app notifications
-- `messages` — conversations + messages (or use Supabase Realtime)
+`lib/services/data_service.dart` is the single swap point for all data access — screens never
+query Supabase directly for players/conversations/sessions/notifications. `MockDataService`
+(the only current implementation, despite the name) already reads and writes real Supabase
+tables: `profiles`, `matches`, `messages`, `notifications`. `warmCache()` fetches
+players/conversations/upcoming sessions once per login and caches them; `cacheVersion`
+(a `ValueNotifier<int>`) is bumped on every refresh so screens kept alive by `IndexedStack`
+can listen and rebuild when the cache changes (e.g. after `sendMatchRequest`).
 
 ---
 

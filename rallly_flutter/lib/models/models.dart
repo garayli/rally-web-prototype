@@ -178,6 +178,8 @@ enum NotifType {
   matchConfirmed,
   matchDeclined,
   resultConfirmed,
+  resultPending,
+  resultDisputed,
   review,
   reminder,
   nearbyPlayer,
@@ -208,7 +210,7 @@ class AppNotification {
   });
 
   bool get hasActions =>
-      type == NotifType.matchRequest || type == NotifType.resultConfirmed;
+      type == NotifType.matchRequest || type == NotifType.resultPending;
 
   static NotifType _typeFromString(String s) =>
       NotifType.values.firstWhere((e) => e.name == s,

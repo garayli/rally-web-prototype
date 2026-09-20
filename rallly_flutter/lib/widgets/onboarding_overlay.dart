@@ -17,11 +17,11 @@ class TabOnboardingContent {
 const List<TabOnboardingContent> kTabOnboardingContent = [
   TabOnboardingContent(
     icon: Icons.sports_tennis,
-    title: 'Keşfet',
+    title: 'Rakip Bul',
     bullets: [
-      'Seviyene uygun oyuncuları keşfet ve maç isteği gönder.',
-      'Yaklaşan maçlarını hızlıca görüntüle.',
-      'Uyum yüzdesine göre sıralanan oyuncuları gör.',
+      'Seviyene uygun oyuncuları bul ve maç isteği gönder.',
+      'NTRP, galibiyet oranı ve müsaitliğe göre sırala.',
+      'Filtrele, keşfet, sahaya çık.',
     ],
   ),
   TabOnboardingContent(
