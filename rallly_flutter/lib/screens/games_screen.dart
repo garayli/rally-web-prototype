@@ -76,20 +76,25 @@ class _GamesScreenState extends State<GamesScreen>
 class _UpcomingTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    final sessions = dataService.getUpcomingSessions();
-    if (sessions.isEmpty) {
-      return const _EmptyGames(
-        icon: '📅',
-        title: 'Yaklaşan maç yok',
-        subtitle: 'Başlamak için yeni bir maç planla',
-      );
-    }
-    return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
-      itemCount: sessions.length,
-      itemBuilder: (context, i) => _UpcomingCard(
-        session: sessions[i],
-      ).animate().fadeIn(delay: (i * 60).ms),
+    return ValueListenableBuilder<int>(
+      valueListenable: dataService.cacheVersion,
+      builder: (context, _, __) {
+        final sessions = dataService.getUpcomingSessions();
+        if (sessions.isEmpty) {
+          return const _EmptyGames(
+            icon: '📅',
+            title: 'Yaklaşan maç yok',
+            subtitle: 'Başlamak için yeni bir maç planla',
+          );
+        }
+        return ListView.builder(
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
+          itemCount: sessions.length,
+          itemBuilder: (context, i) => _UpcomingCard(
+            session: sessions[i],
+          ).animate().fadeIn(delay: (i * 60).ms),
+        );
+      },
     );
   }
 }

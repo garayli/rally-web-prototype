@@ -109,7 +109,13 @@
       "Bash(Sort-Object)",
       "Bash(grep -E \"\\\\.dart$\")",
       "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\Leyla\\\\Documents\\\\RallyMatch\\\\rallly_flutter\\\\lib\\\\screens\" -File)",
-      "Bash(Select-Object -ExpandProperty Name)"
+      "Bash(Select-Object -ExpandProperty Name)",
+      "Bash(grep -c '\\\\$vars\\\\.' n8n/result-confirmation-workflow.json)",
+      "Bash(grep -c '\\\\$env\\\\.' n8n/result-confirmation-workflow.json)"
     ]
-  }
+  },
+  "enabledMcpjsonServers": [
+    "supabase"
+  ],
+  "enableAllProjectMcpServers": true
 }

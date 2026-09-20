@@ -7,6 +7,7 @@ import '../theme/design_tokens.dart';
 import '../widgets/shared_widgets.dart';
 import '../models/models.dart';
 import '../services/data_service.dart';
+import '../utils/uuid.dart';
 import '../main.dart' show CourtThemeProvider;
 import 'player_profile_screen.dart';
 
@@ -52,6 +53,13 @@ class _MessagesScreenState extends State<MessagesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    return ValueListenableBuilder<int>(
+      valueListenable: dataService.cacheVersion,
+      builder: (context, _, __) => _buildScaffold(context),
+    );
+  }
+
+  Widget _buildScaffold(BuildContext context) {
     final cp = CourtThemeProvider.of(context);
     final convos = _filtered;
 
@@ -94,6 +102,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
             padding: const EdgeInsets.fromLTRB(
               Spacing.gutter, Spacing.md, Spacing.gutter, Spacing.sm),
             child: Container(
+              width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 11),
               decoration: BoxDecoration(
                 color: cp.surface,
@@ -113,6 +122,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
                         hintText: 'İsim veya mesaj ara…',
                         hintStyle: RallyType.body.copyWith(color: cp.muted2),
                         border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
                         isDense: true,
                         contentPadding: EdgeInsets.zero,
                       ),
@@ -426,12 +437,14 @@ class _ConversationScreenState extends State<ConversationScreen> {
       if (user != null) {
         await Supabase.instance.client.from('messages').insert({
           'sender_id': user.id,
+          if (isUuid(widget.conversation.other.id))
+            'receiver_id': widget.conversation.other.id,
           'text': text,
         });
         if (mounted) setState(() => _deliveredIds.add(msgId));
       }
     } catch (_) {
-      // Mock mode — no real auth/profiles yet
+      // No authenticated session — message stays local-only
     }
   }
 

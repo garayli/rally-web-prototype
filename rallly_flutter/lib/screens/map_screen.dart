@@ -6,6 +6,7 @@ import '../theme/app_theme.dart';
 import '../widgets/shared_widgets.dart';
 import '../models/models.dart';
 import '../services/data_service.dart';
+import '../main.dart' show CourtThemeProvider;
 import 'player_profile_screen.dart';
 
 class MapScreen extends StatefulWidget {
@@ -225,17 +226,18 @@ class _PlayerMapSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final cp = CourtThemeProvider.of(context);
     return Container(
       margin: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: RallyColors.bg,
+        color: cp.bg,
         borderRadius: BorderRadius.circular(24),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           const SizedBox(height: 6),
-          Container(width: 36, height: 4, decoration: BoxDecoration(color: RallyColors.muted2, borderRadius: BorderRadius.circular(2))),
+          Container(width: 36, height: 4, decoration: BoxDecoration(color: cp.muted2, borderRadius: BorderRadius.circular(2))),
           Padding(
             padding: const EdgeInsets.all(20),
             child: Column(
@@ -256,14 +258,14 @@ class _PlayerMapSheet extends StatelessWidget {
                           Row(
                             children: [
                               Expanded(
-                                child: Text(player.name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16), overflow: TextOverflow.ellipsis, maxLines: 1),
+                                child: Text(player.name, style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16, color: cp.text), overflow: TextOverflow.ellipsis, maxLines: 1),
                               ),
                               const SizedBox(width: 8),
                               SkillBadge(label: player.skillLabel),
                             ],
                           ),
                           const SizedBox(height: 3),
-                          Text(player.location, style: const TextStyle(fontSize: 13, color: RallyColors.muted), overflow: TextOverflow.ellipsis, maxLines: 1),
+                          Text(player.location, style: TextStyle(fontSize: 13, color: cp.muted), overflow: TextOverflow.ellipsis, maxLines: 1),
                         ],
                       ),
                     ),
@@ -289,7 +291,7 @@ class _PlayerMapSheet extends StatelessWidget {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
                               content: Text('${player.name} adlı oyuncuya maç isteği gönderildi!'),
-                              backgroundColor: RallyColors.accent,
+                              backgroundColor: cp.accent,
                               behavior: SnackBarBehavior.floating,
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
