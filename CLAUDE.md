@@ -22,6 +22,8 @@ flutter test                            # run all tests
 flutter test test/widget_test.dart      # run a single test file
 ```
 
+**Firebase config is gitignored** (`lib/firebase_options.dart`, `android/app/google-services.json`) because GitHub secret scanning flags the API keys. On a fresh clone run `flutterfire configure` (or copy `lib/firebase_options.dart.example` and fill it in) before `flutter run`. The Android API key is restricted to the debug + upload SHA-1s — **add the Play app-signing SHA-1 at the first Play upload** or Firebase calls from Play-installed builds get 403 (steps in `docs/project_notes/key_facts.md` → Firebase / Google Cloud; remind the user before any Play upload). The iOS and browser keys are still unrestricted.
+
 ## Architecture
 
 ### Auth Flow (`lib/main.dart` + `lib/router/app_router.dart`)

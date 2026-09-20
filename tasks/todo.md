@@ -95,6 +95,8 @@ Re-verify these don't regress (see `docs/project_notes/bugs.md`):
 - [ ] `flutter build apk --release` and `flutter build appbundle --release` — install the real release build (not debug) on the S25 Ultra and re-smoke-test Phase 3's golden paths
 - [ ] Confirm Supabase RLS policies are production-safe (no overly permissive `true` policies left over from dev) — cross-check against `mcp__supabase__get_advisors`
 - [ ] Remove/guard any dev-only affordances (e.g. debug prints, test accounts, seeded mock fallbacks) from the release build
+- [ ] **FIRST PLAY UPLOAD — add Google's app-signing SHA-1 to the Android API key.** Play re-signs every build it distributes (internal testing included) with its own certificate, and the Android key (restricted 2026-09-21) only allows the debug + upload SHA-1s. Until Play's SHA-1 is added, Firebase calls from Play-installed builds are rejected with 403. Steps + exact `gcloud` command: `docs/project_notes/key_facts.md` → "Firebase / Google Cloud".
+- [ ] Restrict (or delete) the still-unrestricted iOS and browser API keys once the iOS bundle ID and a web domain exist — same section of `key_facts.md`
 
 ## Phase 6 — Final sign-off
 - [ ] `flutter analyze` clean
