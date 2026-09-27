@@ -4,6 +4,7 @@ import '../config/profile_options.dart';
 import '../theme/app_theme.dart';
 import '../widgets/shared_widgets.dart';
 import '../main.dart' show supabase;
+import '../utils/initials.dart';
 
 class SignupScreen extends StatefulWidget {
   final VoidCallback onComplete;
@@ -73,6 +74,8 @@ class _SignupScreenState extends State<SignupScreen> {
         await supabase.from('profiles').upsert({
           'id': userId,
           'name': _nameCtrl.text.trim(),
+          // NOT NULL in `profiles` — omitting it failed every new signup.
+          'initials': initialsOf(_nameCtrl.text),
           'location': _locationCtrl.text.trim(),
           'sports': _selectedSports.toList(),
           'skill_level': _skillLevel,

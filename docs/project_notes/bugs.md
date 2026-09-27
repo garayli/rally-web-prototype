@@ -331,6 +331,24 @@ The same two accounts messaged each other:
 
 ---
 
+## New Signups Create No Profile Row (`initials` NOT NULL)
+**Date:** 2026-09-27
+**Severity:** Critical
+
+### Problem
+The web log showed `SIGNUP PROFILE SAVE ERROR: null value in column "initials" of relation "profiles" violates not-null constraint (23502)`. Signup still "completed" in the UI, but no `profiles` row was created.
+
+### Root Cause
+`SignupScreen._finish()`'s upsert never sent `initials`, and `profiles.initials` is NOT NULL. The error was only `debugPrint`ed and `onComplete()` ran anyway. With no profile row, the user fails the `matches.player1_id`/`messages.sender_id` FKs (→ `profiles.id`), is missing from other users' player lists, and `updateMyProfile()` (an UPDATE) matches 0 rows and silently does nothing.
+
+### Solution
+Moved the private `_initialsOf` out of `data_service.dart` into `lib/utils/initials.dart` as `initialsOf()`. The signup upsert now sends `'initials': initialsOf(name)`. Accounts that already failed signup have to redo the "Kayıt ol" flow (the upsert is idempotent) or get their profile row added by hand.
+
+### Prevention
+Before writing a `profiles` insert/upsert, check the NOT NULL columns (`list_tables` verbose). Signup must not call `onComplete()` when the profile save failed.
+
+---
+
 <!-- Add new bugs above this line -->
 
 ## OTP Screen Overflows When Keyboard Is Open

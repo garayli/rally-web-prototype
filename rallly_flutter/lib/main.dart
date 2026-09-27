@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'config/supabase_config.dart';
 import 'firebase_options.dart';
@@ -21,6 +22,8 @@ Future<void> main() async {
     ),
   );
 
+  await courtThemeNotifier.load();
+
   runApp(
     CourtThemeProvider(
       child: ThemeModeProvider(
@@ -36,6 +39,28 @@ final supabase = Supabase.instance.client;
 // ── Court palette notifier ────────────────────────────────────────────────────
 class CourtThemeNotifier extends ValueNotifier<CourtPalette> {
   CourtThemeNotifier() : super(CourtPalette.grass);
+
+  static const _prefsKey = 'court_theme';
+
+  static const _byName = {
+    'clay': CourtPalette.clay,
+    'hard': CourtPalette.hard,
+    'grass': CourtPalette.grass,
+  };
+
+  // Loads the last-selected court theme, called once before runApp.
+  Future<void> load() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getString(_prefsKey);
+    super.value = _byName[saved] ?? CourtPalette.grass;
+  }
+
+  @override
+  set value(CourtPalette newValue) {
+    super.value = newValue;
+    SharedPreferences.getInstance()
+        .then((prefs) => prefs.setString(_prefsKey, newValue.theme.name));
+  }
 }
 
 final courtThemeNotifier = CourtThemeNotifier();

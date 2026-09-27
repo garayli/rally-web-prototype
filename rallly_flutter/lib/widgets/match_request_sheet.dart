@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../config/court_options.dart';
+import '../config/profile_options.dart' show dayOptions;
 import '../models/models.dart';
 import '../services/data_service.dart';
 import '../theme/app_theme.dart';
@@ -43,21 +45,113 @@ class MatchRequestSheet extends StatefulWidget {
 }
 
 class _MatchRequestSheetState extends State<MatchRequestSheet> {
-  final String _selectedFormat = 'Tekler';
-  final String _selectedTime = 'Cumartesi 10:00';
-  final String _selectedCourt = 'Caddebostan Tenis Kortları';
+  static const _formats = ['Tekler', 'Çiftler'];
+
+  String _selectedFormat = 'Tekler';
+  late DateTime _selectedDateTime = _nextSaturdayAt10();
+  // Default to a court the opponent already plays at, if any.
+  late String _selectedCourt = widget.player.preferredCourts
+          .where(courtOptions.contains)
+          .firstOrNull ??
+      courtOptions.first;
   late bool _sent = widget.alreadySent;
   bool _loading = false;
+
+  static DateTime _nextSaturdayAt10() {
+    final now = DateTime.now();
+    var days = (DateTime.saturday - now.weekday) % 7;
+    if (days == 0) days = 7;
+    final d = now.add(Duration(days: days));
+    return DateTime(d.year, d.month, d.day, 10);
+  }
+
+  // No Turkish intl locale is initialized, so build the label by hand.
+  static String _formatDateTime(DateTime dt) {
+    String two(int n) => n.toString().padLeft(2, '0');
+    return '${dayOptions[dt.weekday - 1]} ${two(dt.day)}.${two(dt.month)} · '
+        '${two(dt.hour)}:${two(dt.minute)}';
+  }
+
+  Future<void> _pickFormat() async {
+    final picked = await _pickFromList('Format', _formats, _selectedFormat);
+    if (picked != null) setState(() => _selectedFormat = picked);
+  }
+
+  Future<void> _pickCourt() async {
+    final picked = await _pickFromList('Kort', courtOptions, _selectedCourt);
+    if (picked != null) setState(() => _selectedCourt = picked);
+  }
+
+  Future<void> _pickDateTime() async {
+    final now = DateTime.now();
+    final date = await showDatePicker(
+      context: context,
+      initialDate: _selectedDateTime,
+      firstDate: DateTime(now.year, now.month, now.day),
+      lastDate: now.add(const Duration(days: 60)),
+    );
+    if (date == null || !mounted) return;
+    final time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.fromDateTime(_selectedDateTime),
+    );
+    if (time == null) return;
+    final picked =
+        DateTime(date.year, date.month, date.day, time.hour, time.minute);
+    if (picked.isBefore(now)) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Geçmiş bir saat seçilemez'),
+        behavior: SnackBarBehavior.floating,
+      ));
+      return;
+    }
+    setState(() => _selectedDateTime = picked);
+  }
+
+  Future<String?> _pickFromList(
+      String title, List<String> options, String current) {
+    final cp = CourtThemeProvider.of(context);
+    return showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: cp.bg,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 20, 24, 8),
+              child: Text(title,
+                  style: TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                      color: cp.text)),
+            ),
+            for (final o in options)
+              ListTile(
+                title: Text(o, style: TextStyle(color: cp.text)),
+                trailing: o == current
+                    ? Icon(Icons.check, color: cp.accent)
+                    : null,
+                onTap: () => Navigator.pop(context, o),
+              ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+  }
 
   Future<void> _sendRequest() async {
     if (_sent || _loading) return;
     setState(() => _loading = true);
     final cp = CourtThemeProvider.of(context);
     try {
-      final proposedDate = DateTime.now().add(const Duration(days: 7));
       await dataService.sendMatchRequest(
         opponentId: widget.player.id,
-        proposedDate: proposedDate,
+        proposedDate: _selectedDateTime,
         court: _selectedCourt,
         format: _selectedFormat == 'Tekler' ? 'singles' : 'doubles',
       );
@@ -152,21 +246,21 @@ class _MatchRequestSheetState extends State<MatchRequestSheet> {
               icon: Icons.sports_tennis,
               label: 'Format',
               value: _selectedFormat,
-              onTap: () {}),
+              onTap: _sent ? () {} : _pickFormat),
           Divider(height: 1, color: cp.border),
           _SheetRow(
               cp: cp,
               icon: Icons.schedule,
-              label: 'Saat',
-              value: _selectedTime,
-              onTap: () {}),
+              label: 'Tarih & Saat',
+              value: _formatDateTime(_selectedDateTime),
+              onTap: _sent ? () {} : _pickDateTime),
           Divider(height: 1, color: cp.border),
           _SheetRow(
               cp: cp,
               icon: Icons.location_on_outlined,
               label: 'Kort',
               value: _selectedCourt,
-              onTap: () {}),
+              onTap: _sent ? () {} : _pickCourt),
           const SizedBox(height: 24),
           RallyButton(
             label: _sent ? 'İstek Gönderildi ✓' : 'İstek Gönder 🎾',
@@ -204,10 +298,18 @@ class _SheetRow extends StatelessWidget {
             Icon(icon, size: 18, color: cp.muted),
             const SizedBox(width: 12),
             Text(label, style: TextStyle(color: cp.text2, fontSize: 14)),
-            const Spacer(),
-            Text(value,
-                style: TextStyle(
-                    fontWeight: FontWeight.w600, fontSize: 14, color: cp.text)),
+            const SizedBox(width: 12),
+            // Long court names must ellipsize, not overflow the row.
+            Expanded(
+              child: Text(value,
+                  textAlign: TextAlign.end,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 14,
+                      color: cp.text)),
+            ),
             const SizedBox(width: 4),
             Icon(Icons.chevron_right, size: 18, color: cp.muted),
           ],

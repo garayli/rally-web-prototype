@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
+import '../config/court_options.dart';
 import '../theme/app_theme.dart';
 import '../widgets/shared_widgets.dart';
 import '../main.dart' show supabase;
@@ -24,7 +25,7 @@ class _OpenLobbyScreenState extends State<OpenLobbyScreen> {
 
   static const _sports = ['Tenis', 'Padel', 'Badminton', 'Squash'];
   static const _skillLevels = ['Her seviye', 'Başlangıç', 'Orta Seviye', 'İleri Seviye'];
-  static const _courts = ['Beşiktaş JK Tenis Kortları', 'Caddebostan Tenis Kortları', 'Galatasaray Tenis Kulübü', 'ENKA Spor Kortları', 'Fenerbahçe SK Tenis Kortları'];
+  static const _courts = courtOptions;
 
   bool get _canSubmit => _date != null && _time != null && _court.isNotEmpty;
 

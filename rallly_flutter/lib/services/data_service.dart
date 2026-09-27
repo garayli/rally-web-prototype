@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import '../config/profile_options.dart';
 import '../models/models.dart';
+import '../utils/initials.dart';
 import '../utils/uuid.dart';
 import '../main.dart' show supabase;
 
@@ -137,24 +138,13 @@ class MockDataService implements DataService {
     return Player.fromJson({...row, 'ntrp_rating': ntrp, 'match_score': score});
   }
 
-  static String _initialsOf(String name) {
-    final initials = name
-        .trim()
-        .split(RegExp(r'\s+'))
-        .where((w) => w.isNotEmpty)
-        .take(2)
-        .map((w) => w[0])
-        .join()
-        .toUpperCase();
-    return initials.isEmpty ? '?' : initials;
-  }
 
   Player _guestPlayer(String? name, String? phone) {
     final displayName = (name != null && name.isNotEmpty) ? name : 'Misafir Oyuncu';
     return Player(
       id: 'guest:${phone ?? displayName}',
       name: displayName,
-      initials: _initialsOf(displayName),
+      initials: initialsOf(displayName),
       ntrpRating: 3.0,
       location: '',
     );
@@ -586,7 +576,7 @@ class MockDataService implements DataService {
         skillLevel != null && skillLevel != _currentPlayer?.skillLevel;
     await supabase.from('profiles').update({
       'name': name,
-      'initials': _initialsOf(name),
+      'initials': initialsOf(name),
       'location': location,
       'about': about,
       'sports': sports,

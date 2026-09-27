@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
+import '../config/court_options.dart';
 import '../theme/app_theme.dart';
 import '../widgets/shared_widgets.dart';
 import '../models/models.dart';
@@ -24,14 +25,7 @@ class _DoublesOrganiseScreenState extends State<DoublesOrganiseScreen> {
 
   final _courtCtrl = TextEditingController();
 
-  final _courts = [
-    'Beşiktaş JK Tenis Kortları',
-    'Caddebostan Tenis Kortları',
-    'Galatasaray Tenis Kulübü',
-    'ENKA Spor Kortları',
-    'Fenerbahçe SK Tenis Kortları',
-    'Acıbadem Tenis Kulübü',
-  ];
+  static const _courts = courtOptions;
 
   Future<void> _pickDate() async {
     final dt = await showDatePicker(
