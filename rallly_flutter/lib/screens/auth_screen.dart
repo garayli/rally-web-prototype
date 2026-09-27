@@ -30,7 +30,9 @@ class _AuthEmailScreenState extends State<AuthEmailScreen> {
 
   String _translateError(String msg) {
     final lower = msg.toLowerCase();
-    if (lower.contains('rate limit') || lower.contains('email rate') || lower.contains('too many')) {
+    if (lower.contains('rate limit') ||
+        lower.contains('email rate') ||
+        lower.contains('too many')) {
       return 'Çok fazla kod isteği gönderildi. Lütfen birkaç dakika bekleyip tekrar deneyin.';
     }
     return 'Bir şeyler yanlış gitti. Lütfen tekrar deneyin.';
@@ -42,7 +44,10 @@ class _AuthEmailScreenState extends State<AuthEmailScreen> {
       setState(() => _error = 'Lütfen geçerli bir e-posta adresi girin.');
       return;
     }
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
 
     try {
       await supabase.auth.signInWithOtp(
@@ -56,7 +61,8 @@ class _AuthEmailScreenState extends State<AuthEmailScreen> {
       setState(() => _error = _translateError(e.message));
     } catch (e) {
       debugPrint('OTP SEND ERROR: $e');
-      setState(() => _error = 'Bir şeyler yanlış gitti. Lütfen tekrar deneyin.');
+      setState(
+          () => _error = 'Bir şeyler yanlış gitti. Lütfen tekrar deneyin.');
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -239,7 +245,8 @@ class AuthOtpScreen extends StatefulWidget {
 class _AuthOtpScreenState extends State<AuthOtpScreen>
     with SingleTickerProviderStateMixin {
   static const _codeLength = 8;
-  final _controllers = List.generate(_codeLength, (_) => TextEditingController());
+  final _controllers =
+      List.generate(_codeLength, (_) => TextEditingController());
   final _focusNodes = List.generate(_codeLength, (_) => FocusNode());
 
   bool _loading = false;
@@ -264,10 +271,14 @@ class _AuthOtpScreenState extends State<AuthOtpScreen>
 
   String _translateError(String msg) {
     final lower = msg.toLowerCase();
-    if (lower.contains('rate limit') || lower.contains('email rate') || lower.contains('too many')) {
+    if (lower.contains('rate limit') ||
+        lower.contains('email rate') ||
+        lower.contains('too many')) {
       return 'Çok fazla kod isteği gönderildi. Lütfen birkaç dakika bekleyip tekrar deneyin.';
     }
-    if (lower.contains('invalid') || lower.contains('expired') || lower.contains('otp')) {
+    if (lower.contains('invalid') ||
+        lower.contains('expired') ||
+        lower.contains('otp')) {
       return 'Kod geçersiz veya süresi dolmuş. Lütfen yeni kod isteyin.';
     }
     return msg;
@@ -296,7 +307,10 @@ class _AuthOtpScreenState extends State<AuthOtpScreen>
 
   Future<void> _verify() async {
     if (_loading) return;
-    setState(() { _loading = true; _error = null; });
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
 
     try {
       await supabase.auth.verifyOTP(
@@ -307,10 +321,16 @@ class _AuthOtpScreenState extends State<AuthOtpScreen>
       if (mounted) widget.onVerified();
     } on AuthException catch (e) {
       _triggerShake();
-      setState(() { _loading = false; _error = e.message; });
+      setState(() {
+        _loading = false;
+        _error = e.message;
+      });
     } catch (_) {
       _triggerShake();
-      setState(() { _loading = false; _error = 'Geçersiz kod. Lütfen tekrar deneyin.'; });
+      setState(() {
+        _loading = false;
+        _error = 'Geçersiz kod. Lütfen tekrar deneyin.';
+      });
     }
   }
 
@@ -321,7 +341,9 @@ class _AuthOtpScreenState extends State<AuthOtpScreen>
     }
     _focusNodes.first.requestFocus();
     setState(() => _shake = true);
-    Future.delayed(600.ms, () { if (mounted) setState(() => _shake = false); });
+    Future.delayed(600.ms, () {
+      if (mounted) setState(() => _shake = false);
+    });
   }
 
   @override
@@ -341,7 +363,7 @@ class _AuthOtpScreenState extends State<AuthOtpScreen>
     return Scaffold(
       backgroundColor: RallyColors.bg,
       body: SafeArea(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(28),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -370,7 +392,8 @@ class _AuthOtpScreenState extends State<AuthOtpScreen>
                     height: 1.5,
                   ),
                   children: [
-                    const TextSpan(text: 'E-posta adresinize 8 haneli kod gönderdik:\n'),
+                    const TextSpan(
+                        text: 'E-posta adresinize 8 haneli kod gönderdik:\n'),
                     TextSpan(
                       text: widget.email,
                       style: const TextStyle(
@@ -387,9 +410,8 @@ class _AuthOtpScreenState extends State<AuthOtpScreen>
               AnimatedBuilder(
                 animation: _shakeAnim,
                 builder: (context, child) {
-                  final shake = _shake
-                      ? 8 * (0.5 - (_shakeAnim.value - 0.5).abs())
-                      : 0.0;
+                  final shake =
+                      _shake ? 8 * (0.5 - (_shakeAnim.value - 0.5).abs()) : 0.0;
                   return Transform.translate(
                     offset: Offset(shake * 6, 0),
                     child: child,
@@ -398,49 +420,52 @@ class _AuthOtpScreenState extends State<AuthOtpScreen>
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: List.generate(_codeLength, (i) {
-                    return SizedBox(
-                      width: 40,
-                      height: 56,
-                      child: TextFormField(
-                        controller: _controllers[i],
-                        focusNode: _focusNodes[i],
-                        textAlign: TextAlign.center,
-                        keyboardType: TextInputType.number,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
-                          LengthLimitingTextInputFormatter(1),
-                        ],
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w700,
-                          fontFamily: 'InstrumentSerif',
-                        ),
-                        decoration: InputDecoration(
-                          filled: true,
-                          fillColor: _shake
-                              ? RallyColors.accent2Light
-                              : RallyColors.white,
-                          contentPadding: EdgeInsets.zero,
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
-                            borderSide: BorderSide(
-                              color: _shake
-                                  ? RallyColors.accent2
-                                  : RallyColors.border2,
-                              width: 1.5,
+                    // Flexible lets the 8 boxes shrink on screens narrower than 8×40px.
+                    return Flexible(
+                      child: SizedBox(
+                        width: 40,
+                        height: 56,
+                        child: TextFormField(
+                          controller: _controllers[i],
+                          focusNode: _focusNodes[i],
+                          textAlign: TextAlign.center,
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                            LengthLimitingTextInputFormatter(1),
+                          ],
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w700,
+                            fontFamily: 'InstrumentSerif',
+                          ),
+                          decoration: InputDecoration(
+                            filled: true,
+                            fillColor: _shake
+                                ? RallyColors.accent2Light
+                                : RallyColors.white,
+                            contentPadding: EdgeInsets.zero,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: BorderSide(
+                                color: _shake
+                                    ? RallyColors.accent2
+                                    : RallyColors.border2,
+                                width: 1.5,
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(14),
+                              borderSide: BorderSide(
+                                color: _shake
+                                    ? RallyColors.accent2
+                                    : RallyColors.border2,
+                                width: 1.5,
+                              ),
                             ),
                           ),
-                          enabledBorder: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(14),
-                            borderSide: BorderSide(
-                              color: _shake
-                                  ? RallyColors.accent2
-                                  : RallyColors.border2,
-                              width: 1.5,
-                            ),
-                          ),
+                          onChanged: (v) => _onDigitChanged(i, v),
                         ),
-                        onChanged: (v) => _onDigitChanged(i, v),
                       ),
                     );
                   }),
@@ -479,13 +504,18 @@ class _AuthOtpScreenState extends State<AuthOtpScreen>
                           try {
                             await supabase.auth.signInWithOtp(
                               email: widget.email,
-                              emailRedirectTo: 'io.supabase.rallly://login-callback/',
+                              emailRedirectTo:
+                                  'io.supabase.rallly://login-callback/',
                               shouldCreateUser: widget.isSignUp,
                             );
                           } on AuthException catch (e) {
-                            if (mounted) setState(() => _error = _translateError(e.message));
+                            if (mounted)
+                              setState(
+                                  () => _error = _translateError(e.message));
                           } catch (_) {
-                            if (mounted) setState(() => _error = 'Kod gönderilemedi. Lütfen tekrar deneyin.');
+                            if (mounted)
+                              setState(() => _error =
+                                  'Kod gönderilemedi. Lütfen tekrar deneyin.');
                           }
                         },
                         child: const Text(

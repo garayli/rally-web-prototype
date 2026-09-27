@@ -1,13 +1,13 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../theme/app_theme.dart';
 import '../theme/design_tokens.dart';
 import '../widgets/shared_widgets.dart';
+import '../widgets/match_request_sheet.dart';
 import '../models/models.dart';
 import '../services/data_service.dart';
-import '../utils/uuid.dart';
 import '../main.dart' show CourtThemeProvider;
 import 'player_profile_screen.dart';
 
@@ -396,55 +396,88 @@ class ConversationScreen extends StatefulWidget {
 }
 
 class _ConversationScreenState extends State<ConversationScreen> {
+  // An open chat polls faster than MainShell's background poll.
+  static const _pollInterval = Duration(seconds: 4);
+
   final _controller = TextEditingController();
   final _scrollController = ScrollController();
-  late List<ChatMessage> _messages;
-  final _deliveredIds = <String>{};
+  Timer? _poll;
+
+  /// Server-confirmed messages (from the DataService cache) plus local
+  /// outgoing ones that aren't confirmed yet, newest first (list is reversed).
+  List<ChatMessage> _messages = [];
+  final _pending = <ChatMessage>[];
+  final _failedIds = <String>{};
+
+  String get _otherId => widget.conversation.other.id;
 
   @override
   void initState() {
     super.initState();
     _messages = List.from(widget.conversation.messages.reversed);
+    dataService.cacheVersion.addListener(_syncFromCache);
+    _syncFromCache();
+    dataService.refreshLive();
+    _poll = Timer.periodic(_pollInterval, (_) => dataService.refreshLive());
   }
 
   @override
   void dispose() {
+    _poll?.cancel();
+    dataService.cacheVersion.removeListener(_syncFromCache);
     _controller.dispose();
     _scrollController.dispose();
     super.dispose();
   }
 
+  /// The cache is the source of truth — re-reading it (instead of keeping a
+  /// private copy of widget.conversation) is what keeps sent messages from
+  /// "disappearing" when the chat is closed and reopened.
+  void _syncFromCache() {
+    final convo = dataService
+        .getConversations()
+        .where((c) => c.other.id == _otherId)
+        .firstOrNull;
+    if (!mounted || convo == null) return;
+    dataService.markConversationRead(convo.id);
+    setState(() {
+      _messages = [..._pending.reversed, ...convo.messages.reversed];
+    });
+  }
+
   Future<void> _send() async {
     final text = _controller.text.trim();
     if (text.isEmpty) return;
-    final msgId = DateTime.now().toIso8601String();
-    setState(() {
-      _messages.insert(
-        0,
-        ChatMessage(
-          id: msgId,
-          senderId: dataService.currentUserId,
-          text: text,
-          timestamp: DateTime.now(),
-          isRead: false,
-        ),
-      );
-    });
     _controller.clear();
+    await _deliver(ChatMessage(
+      id: 'local_${DateTime.now().microsecondsSinceEpoch}',
+      senderId: dataService.currentUserId,
+      text: text,
+      timestamp: DateTime.now(),
+    ));
+  }
 
+  Future<void> _deliver(ChatMessage msg) async {
+    setState(() {
+      _failedIds.remove(msg.id);
+      if (!_pending.contains(msg)) _pending.add(msg);
+      _messages = [msg, ..._messages.where((m) => m.id != msg.id)];
+    });
     try {
-      final user = Supabase.instance.client.auth.currentUser;
-      if (user != null) {
-        await Supabase.instance.client.from('messages').insert({
-          'sender_id': user.id,
-          if (isUuid(widget.conversation.other.id))
-            'receiver_id': widget.conversation.other.id,
-          'text': text,
-        });
-        if (mounted) setState(() => _deliveredIds.add(msgId));
-      }
-    } catch (_) {
-      // No authenticated session — message stays local-only
+      await dataService.sendMessage(receiverId: _otherId, text: msg.text);
+      _pending.remove(msg);
+      _syncFromCache();
+    } catch (e) {
+      debugPrint('MESSAGE SEND ERROR: $e');
+      if (!mounted) return;
+      setState(() => _failedIds.add(msg.id));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(e is StateError
+            ? e.message
+            : 'Mesaj gönderilemedi. Tekrar denemek için mesaja dokun.'),
+        backgroundColor: RallyColors.accent2,
+        behavior: SnackBarBehavior.floating,
+      ));
     }
   }
 
@@ -518,14 +551,8 @@ class _ConversationScreenState extends State<ConversationScreen> {
           IconButton(
             tooltip: 'Maç İste',
             icon: Icon(Icons.sports_tennis, color: cp.accent),
-            onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(
-                  '${widget.conversation.other.name.split(' ').first} oyuncusuna maç isteği gönderildi! 🎾'),
-                backgroundColor: cp.accent,
-                behavior: SnackBarBehavior.floating,
-              ),
-            ),
+            onPressed: () =>
+                showMatchRequestSheet(context, widget.conversation.other),
           ),
         ],
         bottom: PreferredSize(
@@ -546,7 +573,9 @@ class _ConversationScreenState extends State<ConversationScreen> {
               itemBuilder: (context, i) {
                 final msg = _messages[i];
                 final isMe = msg.senderId == dataService.currentUserId;
-                return Align(
+                final failed = _failedIds.contains(msg.id);
+                final pending = _pending.contains(msg);
+                final bubble = Align(
                   alignment: isMe
                       ? Alignment.centerRight
                       : Alignment.centerLeft,
@@ -584,19 +613,25 @@ class _ConversationScreenState extends State<ConversationScreen> {
                         if (isMe) ...[
                           const SizedBox(height: 2),
                           Icon(
-                            _deliveredIds.contains(msg.id) || msg.isRead
-                                ? Icons.done_all
-                                : Icons.check,
+                            failed
+                                ? Icons.error_outline
+                                : pending
+                                    ? Icons.check
+                                    : Icons.done_all,
                             size: 13,
-                            color: _deliveredIds.contains(msg.id) || msg.isRead
-                                ? Colors.white
-                                : Colors.white60,
+                            color: pending && !failed
+                                ? Colors.white60
+                                : Colors.white,
                           ),
                         ],
                       ],
                     ),
                   ),
                 );
+                // Tap a failed bubble to retry it.
+                return failed
+                    ? GestureDetector(onTap: () => _deliver(msg), child: bubble)
+                    : bubble;
               },
             ),
           ),

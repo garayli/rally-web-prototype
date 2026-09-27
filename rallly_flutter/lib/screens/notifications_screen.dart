@@ -25,10 +25,21 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   void initState() {
     super.initState();
     _load();
+    // This tab stays mounted in MainShell's IndexedStack, so initState runs
+    // once — reload whenever a live poll brings in new data.
+    dataService.cacheVersion.addListener(_reloadSilently);
   }
 
-  Future<void> _load() async {
-    if (mounted) setState(() => _loading = true);
+  @override
+  void dispose() {
+    dataService.cacheVersion.removeListener(_reloadSilently);
+    super.dispose();
+  }
+
+  void _reloadSilently() => _load(silent: true);
+
+  Future<void> _load({bool silent = false}) async {
+    if (mounted && !silent) setState(() => _loading = true);
     final notifs = await dataService.getNotifications();
     if (!mounted) return;
     setState(() {
@@ -61,24 +72,23 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     return _notifs;
   }
 
-  void _accept(AppNotification n) {
-    setState(() {
-      final i = _notifs.indexOf(n);
-      _notifs[i] = AppNotification(
-        id: n.id,
-        type: NotifType.matchConfirmed,
-        title: 'Maç Kabul Edildi',
-        body: n.body,
-        timestamp: n.timestamp,
-        isRead: true,
-        avatarInitials: n.avatarInitials,
-        avatarColor: n.avatarColor,
-      );
-    });
-  }
-
-  void _decline(AppNotification n) {
-    setState(() => _notifs.removeWhere((x) => x.id == n.id));
+  Future<void> _respondToRequest(AppNotification n, {required bool accept}) async {
+    if (n.actionId == null) return;
+    try {
+      await dataService.respondToMatchRequest(
+          matchId: n.actionId!, notificationId: n.id, accept: accept);
+    } catch (e) {
+      debugPrint('MATCH REQUEST RESPONSE ERROR: $e');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('İşlem başarısız: $e'),
+        backgroundColor: RallyColors.accent2,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ));
+      return;
+    }
+    await _load(silent: true);
   }
 
   Future<void> _markAllRead() async {
@@ -274,8 +284,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                     _NotifTile(
                                       notif: n,
                                       cp: cp,
-                                      onAccept: () => _accept(n),
-                                      onDecline: () => _decline(n),
+                                      onAccept: () => _respondToRequest(n, accept: true),
+                                      onDecline: () => _respondToRequest(n, accept: false),
                                       onConfirm: () => _confirmResult(n),
                                       onDispute: () => _disputeResult(n),
                                     )

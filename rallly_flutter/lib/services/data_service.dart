@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import '../config/profile_options.dart';
 import '../models/models.dart';
 import '../utils/uuid.dart';
 import '../main.dart' show supabase;
@@ -13,6 +14,10 @@ abstract class DataService {
   String get currentUserId;
 
   List<Player> getPlayers();
+
+  /// The signed-in user's own profile, populated by warmCache(); null before
+  /// the first successful warmCache() or when there's no authenticated user.
+  Player? getCurrentPlayer();
   List<Conversation> getConversations();
   List<MatchSession> getUpcomingSessions();
 
@@ -25,6 +30,16 @@ abstract class DataService {
   /// Bumped every time a cache refresh completes — screens kept alive by
   /// IndexedStack can listen to this to know when to re-read the getters.
   ValueNotifier<int> get cacheVersion;
+
+  /// Re-fetches what *other* users can change under us — conversations,
+  /// upcoming sessions, notifications — and bumps [cacheVersion] only when
+  /// something actually changed. Polled by MainShell (and faster by an open
+  /// ConversationScreen); there is no Realtime subscription yet. Never throws.
+  Future<void> refreshLive();
+
+  /// Inserts a message to [receiverId] and refreshes the conversation cache
+  /// before returning. Throws on failure so the caller can mark it unsent.
+  Future<void> sendMessage({required String receiverId, required String text});
 
   /// Reads real notification rows from Supabase for the current user.
   Future<List<AppNotification>> getNotifications();
@@ -47,6 +62,15 @@ abstract class DataService {
     required String notificationId,
   });
 
+  /// Opponent accepts/declines a match request: sets `matches.status` to
+  /// confirmed/cancelled, then rewrites the notification so the choice
+  /// survives reloads. Throws if the match row couldn't be updated.
+  Future<void> respondToMatchRequest({
+    required String matchId,
+    required String notificationId,
+    required bool accept,
+  });
+
   /// Reactive unread count — listen to this to auto-update badges anywhere.
   ValueNotifier<int> get unreadNotifier;
 
@@ -57,6 +81,19 @@ abstract class DataService {
   /// Mark a conversation as read (all incoming messages seen).
   void markConversationRead(String conversationId);
   bool isConversationRead(String conversationId);
+
+  /// Saves the signed-in user's editable profile fields to `profiles`, then
+  /// refreshes getCurrentPlayer() and bumps cacheVersion. Throws on failure
+  /// so the caller can show an error.
+  Future<void> updateMyProfile({
+    required String name,
+    required String location,
+    required String about,
+    required List<String> sports,
+    required String? skillLevel,
+    required List<String> availableDays,
+    required List<String> timePrefs,
+  });
 
   /// Sends a match request to [opponentId]. In mock mode this simulates a
   /// network call; SupabaseDataService will insert into `matches`.
@@ -76,6 +113,7 @@ class MockDataService implements DataService {
   // see their "please confirm" alert in the running app.
   List<AppNotification> _cachedNotifs = [];
   List<Player> _cachedPlayers = [];
+  Player? _currentPlayer;
   List<Conversation> _cachedConversations = [];
   List<MatchSession> _cachedUpcomingSessions = [];
 
@@ -99,9 +137,8 @@ class MockDataService implements DataService {
     return Player.fromJson({...row, 'ntrp_rating': ntrp, 'match_score': score});
   }
 
-  Player _guestPlayer(String? name, String? phone) {
-    final displayName = (name != null && name.isNotEmpty) ? name : 'Misafir Oyuncu';
-    final initials = displayName
+  static String _initialsOf(String name) {
+    final initials = name
         .trim()
         .split(RegExp(r'\s+'))
         .where((w) => w.isNotEmpty)
@@ -109,10 +146,15 @@ class MockDataService implements DataService {
         .map((w) => w[0])
         .join()
         .toUpperCase();
+    return initials.isEmpty ? '?' : initials;
+  }
+
+  Player _guestPlayer(String? name, String? phone) {
+    final displayName = (name != null && name.isNotEmpty) ? name : 'Misafir Oyuncu';
     return Player(
       id: 'guest:${phone ?? displayName}',
       name: displayName,
-      initials: initials.isEmpty ? '?' : initials,
+      initials: _initialsOf(displayName),
       ntrpRating: 3.0,
       location: '',
     );
@@ -136,16 +178,77 @@ class MockDataService implements DataService {
     try {
       final uid = supabase.auth.currentUser?.id;
       final myNtrp = uid == null ? 3.0 : await _fetchMyNtrp(uid);
+      _myNtrp = myNtrp;
       await Future.wait([
         _refreshPlayers(myNtrp),
+        _refreshCurrentPlayer(uid),
         _refreshConversations(myNtrp),
         _refreshUpcomingSessions(myNtrp),
+        // The constructor's fetch can run before login (uid == null) and
+        // cache an empty list — reload once we know who's signed in.
+        _refreshNotifications(),
       ]);
     } catch (e) {
       debugPrint('CACHE WARM ERROR: $e');
     } finally {
       _cacheVersion.value++;
     }
+  }
+
+  double _myNtrp = 3.0;
+  bool _liveRefreshing = false;
+
+  @override
+  Future<void> refreshLive() async {
+    if (_liveRefreshing) return; // a slow poll must not stack up behind itself
+    _liveRefreshing = true;
+    try {
+      final before = _liveSignature();
+      await Future.wait([
+        _refreshConversations(_myNtrp),
+        _refreshUpcomingSessions(_myNtrp),
+        _refreshNotifications(),
+      ]);
+      // Only rebuild the IndexedStack tabs when a poll actually saw a change.
+      if (_liveSignature() != before) _cacheVersion.value++;
+    } catch (e) {
+      debugPrint('LIVE REFRESH ERROR: $e');
+    } finally {
+      _liveRefreshing = false;
+    }
+  }
+
+  String _liveSignature() => [
+        for (final c in _cachedConversations)
+          for (final m in c.messages) '${m.id}:${m.isRead}',
+        for (final s in _cachedUpcomingSessions)
+          '${s.id}:${s.status.name}:${s.result != null}',
+        for (final n in _cachedNotifs) '${n.id}:${n.isRead}',
+      ].join('|');
+
+  @override
+  Future<void> sendMessage({
+    required String receiverId,
+    required String text,
+  }) async {
+    final uid = supabase.auth.currentUser?.id;
+    if (uid == null) throw StateError('Oturum açmanız gerekiyor');
+    if (!isUuid(receiverId)) {
+      throw StateError('Bu oyuncu kayıtlı değil, mesaj gönderilemez');
+    }
+    await supabase.from('messages').insert({
+      'sender_id': uid,
+      'receiver_id': receiverId,
+      'text': text,
+    });
+    // The insert succeeded — a failed re-read must not surface as "unsent"
+    // (the user would retry and duplicate it); the next poll catches up.
+    try {
+      await _refreshConversations(_myNtrp);
+    } catch (e) {
+      debugPrint('CONVERSATIONS REFRESH ERROR: $e');
+    }
+    _cacheVersion.value++;
   }
 
   Future<void> _refreshPlayers(double myNtrp) async {
@@ -160,7 +263,27 @@ class MockDataService implements DataService {
         .toList();
   }
 
+  Future<void> _refreshCurrentPlayer(String? uid) async {
+    if (uid == null) {
+      _currentPlayer = null;
+      return;
+    }
+    try {
+      final row =
+          await supabase.from('profiles').select().eq('id', uid).maybeSingle();
+      _currentPlayer =
+          row != null ? Player.fromJson(Map<String, dynamic>.from(row)) : null;
+    } catch (e) {
+      debugPrint('CURRENT PLAYER FETCH ERROR: $e');
+    }
+  }
+
+  // A poll that started before sendMessage() can finish after it; only the
+  // most recently *started* fetch may overwrite the cache.
+  int _conversationsFetchSeq = 0;
+
   Future<void> _refreshConversations(double myNtrp) async {
+    final seq = ++_conversationsFetchSeq;
     final uid = supabase.auth.currentUser?.id;
     if (uid == null) {
       _cachedConversations = [];
@@ -187,11 +310,12 @@ class MockDataService implements DataService {
           ));
     }
     if (grouped.isEmpty) {
-      _cachedConversations = [];
+      if (seq == _conversationsFetchSeq) _cachedConversations = [];
       return;
     }
     final profileRows =
         await supabase.from('profiles').select().inFilter('id', grouped.keys.toList());
+    if (seq != _conversationsFetchSeq) return; // superseded by a newer fetch
     final profileById = {
       for (final r in profileRows as List)
         (r as Map)['id'] as String: _playerFromRow(Map<String, dynamic>.from(r), myNtrp),
@@ -203,7 +327,10 @@ class MockDataService implements DataService {
           return Conversation(id: e.key, other: other, messages: e.value);
         })
         .whereType<Conversation>()
-        .toList();
+        .toList()
+      // Inbox order: most recent activity first.
+      ..sort((a, b) =>
+          b.lastMessage!.timestamp.compareTo(a.lastMessage!.timestamp));
   }
 
   Future<void> _refreshUpcomingSessions(double myNtrp) async {
@@ -315,6 +442,9 @@ class MockDataService implements DataService {
   List<Player> getPlayers() => _cachedPlayers;
 
   @override
+  Player? getCurrentPlayer() => _currentPlayer;
+
+  @override
   List<Conversation> getConversations() => _cachedConversations;
 
   @override
@@ -354,6 +484,46 @@ class MockDataService implements DataService {
         .from('notifications')
         .update({'is_read': true}).eq('id', notificationId);
     await _refreshNotifications();
+  }
+
+  @override
+  Future<void> respondToMatchRequest({
+    required String matchId,
+    required String notificationId,
+    required bool accept,
+  }) async {
+    // RLS filters UPDATEs silently (0 rows, no error) — select the row back
+    // so a policy that doesn't let player2 update is reported, not hidden.
+    final updated = await supabase
+        .from('matches')
+        .update({'status': accept ? 'confirmed' : 'cancelled'})
+        .eq('id', matchId)
+        .select('player1_id, court');
+    if ((updated as List).isEmpty) {
+      throw StateError('Maç durumu güncellenemedi (yetki yok)');
+    }
+    final match = Map<String, dynamic>.from(updated.first as Map);
+    await _notifyRequesterOfResponse(
+      matchId: matchId,
+      requesterId: match['player1_id'] as String,
+      court: match['court'] as String? ?? '',
+      accept: accept,
+    );
+    // The match is already updated, so a failure here must not throw.
+    // Rewriting the type is what hides the accept/decline buttons on reload.
+    try {
+      await supabase.from('notifications').update({
+        'type': accept ? 'matchConfirmed' : 'matchDeclined',
+        'title': accept ? 'Maç Kabul Edildi' : 'Maç Reddedildi',
+        'is_read': true,
+      }).eq('id', notificationId);
+    } catch (e) {
+      debugPrint('MATCH REQUEST NOTIFICATION UPDATE ERROR: $e');
+      await supabase
+          .from('notifications')
+          .update({'is_read': true}).eq('id', notificationId);
+    }
+    await refreshLive();
   }
 
   @override
@@ -399,6 +569,37 @@ class MockDataService implements DataService {
       _readConversationIds.contains(conversationId);
 
   @override
+  Future<void> updateMyProfile({
+    required String name,
+    required String location,
+    required String about,
+    required List<String> sports,
+    required String? skillLevel,
+    required List<String> availableDays,
+    required List<String> timePrefs,
+  }) async {
+    final uid = supabase.auth.currentUser?.id;
+    if (uid == null) throw StateError('Oturum açmanız gerekiyor');
+    // Only reset ntrp_rating when the self-reported level actually changes,
+    // so an unrelated edit (e.g. bio) doesn't wipe a rating earned in matches.
+    final levelChanged =
+        skillLevel != null && skillLevel != _currentPlayer?.skillLevel;
+    await supabase.from('profiles').update({
+      'name': name,
+      'initials': _initialsOf(name),
+      'location': location,
+      'about': about,
+      'sports': sports,
+      'skill_level': skillLevel,
+      if (levelChanged) 'ntrp_rating': ntrpBySkillLevel[skillLevel],
+      'available_days': availableDays,
+      'time_prefs': timePrefs,
+    }).eq('id', uid);
+    await _refreshCurrentPlayer(uid);
+    _cacheVersion.value++;
+  }
+
+  @override
   Future<void> sendMatchRequest({
     required String opponentId,
     required DateTime proposedDate,
@@ -427,6 +628,35 @@ class MockDataService implements DataService {
 
     await _refreshUpcomingSessions(await _fetchMyNtrp(uid));
     _cacheVersion.value++;
+  }
+
+  /// Tells the requester (player1) that their request was accepted/declined.
+  /// Allowed by the "Opponent can notify requester of response" RLS policy
+  /// (player2 of [matchId] → player1, matchConfirmed/matchDeclined only).
+  Future<void> _notifyRequesterOfResponse({
+    required String matchId,
+    required String requesterId,
+    required String court,
+    required bool accept,
+  }) async {
+    try {
+      final me = _currentPlayer;
+      final name = me?.name ?? 'Rakibiniz';
+      await supabase.from('notifications').insert({
+        'user_id': requesterId,
+        'type': accept ? 'matchConfirmed' : 'matchDeclined',
+        'title': accept ? 'Maç İsteğin Kabul Edildi' : 'Maç İsteğin Reddedildi',
+        'body': accept
+            ? '$name $court maçını kabul etti. 🎾'
+            : '$name $court maç isteğini reddetti.',
+        'avatar_initials': me?.initials,
+        'avatar_color': me?.avatarGradientStart,
+        'action_id': matchId,
+      });
+    } catch (e) {
+      // The response itself already succeeded; don't fail it over this.
+      debugPrint('MATCH RESPONSE NOTIFICATION ERROR: $e');
+    }
   }
 
   Future<void> _notifyMatchRequest({

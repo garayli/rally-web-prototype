@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:rallly/main.dart' show CourtThemeProvider;
 import 'package:rallly/models/models.dart';
+import 'package:rallly/screens/edit_profile_screen.dart';
 import 'package:rallly/screens/log_result_screen.dart';
 import 'package:rallly/utils/uuid.dart';
 import 'package:rallly/screens/match_screen.dart';
@@ -105,6 +106,26 @@ void main() {
       expect(p.about, '');
       expect(p.availability, isEmpty);
       expect(p.preferredCourts, isEmpty);
+      expect(p.sports, isEmpty);
+      expect(p.skillLevel, isNull);
+      expect(p.availableDays, isEmpty);
+      expect(p.timePrefs, isEmpty);
+    });
+
+    test('fromJson reads signup profile fields', () {
+      final p = Player.fromJson({
+        'id': 'x',
+        'name': 'Bob',
+        'ntrp_rating': 3.5,
+        'sports': ['Tenis', 'Padel'],
+        'skill_level': 'Orta Seviye',
+        'available_days': ['Pzt', 'Cmt'],
+        'time_prefs': ['Akşam'],
+      });
+      expect(p.sports, ['Tenis', 'Padel']);
+      expect(p.skillLevel, 'Orta Seviye');
+      expect(p.availableDays, ['Pzt', 'Cmt']);
+      expect(p.timePrefs, ['Akşam']);
     });
   });
 
@@ -234,6 +255,42 @@ void main() {
         // After filtering, Advanced players should not appear
         expect(find.text('Advanced'), findsNothing);
       }
+    });
+  });
+
+// ── 7. EditProfileScreen ─────────────────────────────────────────────────────
+
+  group('EditProfileScreen', () {
+    const me = Player(
+      id: 'me',
+      name: 'Leyla Garayli',
+      initials: 'LG',
+      ntrpRating: 3.5,
+      location: 'Beşiktaş',
+      about: 'Toprak kort sever',
+      skillLevel: 'Orta Seviye',
+      sports: ['Tenis'],
+    );
+
+    testWidgets('prefills current profile values', (tester) async {
+      await tester.pumpWidget(_wrap(const EditProfileScreen(player: me)));
+      await tester.pump();
+
+      expect(find.text('Leyla Garayli'), findsOneWidget);
+      expect(find.text('Beşiktaş'), findsOneWidget);
+      expect(find.text('Toprak kort sever'), findsOneWidget);
+    });
+
+    testWidgets('save disabled when name is cleared', (tester) async {
+      await tester.pumpWidget(_wrap(const EditProfileScreen(player: me)));
+      await tester.pump();
+
+      FilledButton saveButton() => tester.widget<FilledButton>(find.byType(FilledButton));
+      expect(saveButton().onPressed, isNotNull);
+
+      await tester.enterText(find.text('Leyla Garayli'), '   ');
+      await tester.pump();
+      expect(saveButton().onPressed, isNull);
     });
   });
 }

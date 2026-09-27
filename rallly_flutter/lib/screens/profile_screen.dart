@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../theme/app_theme.dart';
@@ -7,6 +8,7 @@ import '../widgets/profile_completeness.dart';
 import '../models/models.dart';
 import '../services/data_service.dart';
 import '../main.dart' show supabase, CourtThemeProvider, courtThemeNotifier;
+import 'edit_profile_screen.dart';
 import 'reputation_screen.dart';
 import 'achievements_screen.dart';
 import 'notifications_preferences_screen.dart';
@@ -24,8 +26,27 @@ class _ProfileScreenState extends State<ProfileScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   bool _bannerDismissed = false;
-  static const int _completeness = 65;
-  static const _missingFields = ['fotoğraf', 'biyografi', 'müsaitlik'];
+
+  // Fields EditProfileScreen can fill beyond the required name/location.
+  // Photo is left out until upload exists, so the banner never asks for
+  // something the user can't provide.
+  static const _optionalFieldCount = 4;
+
+  static List<String> _missingFieldsOf(Player me) => [
+        if (me.about.isEmpty) 'biyografi',
+        if (me.availableDays.isEmpty) 'müsaitlik',
+        if (me.sports.isEmpty) 'spor',
+        if (me.skillLevel == null) 'seviye',
+      ];
+
+  static int _completenessOf(List<String> missing) =>
+      (100 * (1 - missing.length / (_optionalFieldCount + 2))).round();
+
+  static String _availabilitySummary(Player? me) {
+    if (me == null || me.availableDays.isEmpty) return 'Haftalık programını ayarla';
+    final days = me.availableDays.join(', ');
+    return me.timePrefs.isEmpty ? days : '$days · ${me.timePrefs.join(', ')}';
+  }
 
   @override
   void initState() {
@@ -50,6 +71,8 @@ class _ProfileScreenState extends State<ProfileScreen>
   Widget _buildScaffold(BuildContext context) {
     final cp = CourtThemeProvider.of(context);
     final me = dataService.getCurrentPlayer();
+    final missing = me == null ? const <String>[] : _missingFieldsOf(me);
+    final completeness = me == null ? 0 : _completenessOf(missing);
     final upcoming = dataService.getUpcomingSessions()
         .where((s) => s.status == MatchStatus.confirmed).toList();
     final past = dataService.getUpcomingSessions()
@@ -109,7 +132,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   Stack(
                     alignment: Alignment.center,
                     children: [
-                      CompletenessRing(score: _completeness, size: 100, strokeWidth: 3.5),
+                      CompletenessRing(score: completeness, size: 100, strokeWidth: 3.5),
                       PlayerAvatar(
                         initials: me?.initials ?? '?',
                         gradientStart: me?.avatarGradientStart ?? '#7b4fa6',
@@ -163,6 +186,16 @@ class _ProfileScreenState extends State<ProfileScreen>
                         ),
                       ],
                     ),
+                  if (me != null && me.about.isNotEmpty) ...[
+                    const SizedBox(height: 10),
+                    Text(
+                      me.about,
+                      textAlign: TextAlign.center,
+                      maxLines: 3,
+                      overflow: TextOverflow.ellipsis,
+                      style: RallyType.bodySM.copyWith(color: cp.text2),
+                    ),
+                  ],
                   const SizedBox(height: 12),
                   Container(
                     padding: const EdgeInsets.symmetric(
@@ -185,12 +218,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   ),
                   const SizedBox(height: 14),
                   GestureDetector(
-                    onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Profil düzenleme yakında'),
-                        behavior: SnackBarBehavior.floating,
-                      ),
-                    ),
+                    onTap: _openEditProfile,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 18, vertical: 9),
@@ -210,17 +238,12 @@ class _ProfileScreenState extends State<ProfileScreen>
           ),
 
           // ── Profile completeness banner ────────────────────────────────
-          if (!_bannerDismissed)
+          if (!_bannerDismissed && missing.isNotEmpty)
             SliverToBoxAdapter(
               child: ProfileCompletenessBanner(
-                score: _completeness,
-                missing: _missingFields,
-                onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Profil düzenleme yakında'),
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                ),
+                score: completeness,
+                missing: missing,
+                onTap: _openEditProfile,
                 onDismiss: () => setState(() => _bannerDismissed = true),
               ),
             ),
@@ -388,14 +411,9 @@ class _ProfileScreenState extends State<ProfileScreen>
               _SettingsItem(
                 icon: Icons.person_outline,
                 label: 'Profili Düzenle',
-                sub: 'Ad, fotoğraf, biyografi güncelle',
+                sub: 'Ad, konum, biyografi, seviye güncelle',
                 cp: cp,
-                onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Profil düzenleme yakında'),
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                ),
+                onTap: _openEditProfile,
               ),
               _SettingsItem(
                 icon: Icons.sports_tennis_outlined,
@@ -412,14 +430,9 @@ class _ProfileScreenState extends State<ProfileScreen>
               _SettingsItem(
                 icon: Icons.calendar_today_outlined,
                 label: 'Müsaitlik',
-                sub: 'Haftalık programını ayarla',
+                sub: _availabilitySummary(me),
                 cp: cp,
-                onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Müsaitlik ayarları yakında'),
-                    behavior: SnackBarBehavior.floating,
-                  ),
-                ),
+                onTap: _openEditProfile,
               ),
               _SettingsSection(title: 'UYGULAMA', cp: cp),
               _SettingsItem(
@@ -475,6 +488,27 @@ class _ProfileScreenState extends State<ProfileScreen>
         ],
       ),
     );
+  }
+
+  Future<void> _openEditProfile() async {
+    final me = dataService.getCurrentPlayer();
+    if (me == null) {
+      // Profile row not loaded yet (or warmCache failed) — retry the fetch.
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Profil yükleniyor, lütfen tekrar deneyin'),
+        behavior: SnackBarBehavior.floating,
+      ));
+      unawaited(dataService.warmCache());
+      return;
+    }
+    final saved = await Navigator.push<bool>(context,
+      MaterialPageRoute(builder: (_) => EditProfileScreen(player: me)));
+    if (saved == true && mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('Profil güncellendi'),
+        behavior: SnackBarBehavior.floating,
+      ));
+    }
   }
 
   void _showThemePicker(BuildContext context, CourtPalette current) {

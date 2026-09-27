@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../config/profile_options.dart';
 import '../theme/app_theme.dart';
 import '../widgets/shared_widgets.dart';
 import '../main.dart' show supabase;
@@ -31,27 +32,6 @@ class _SignupScreenState extends State<SignupScreen> {
   final _selectedTimes = <String>{};
 
   bool _loading = false;
-
-  static const _sports = [
-    ('🎾', 'Tenis', 'Tekler & çiftler'),
-    ('🏓', 'Padel', 'Raket sporu'),
-    ('🏸', 'Badminton', 'İç mekan & açık alan'),
-    ('🔲', 'Squash', 'Kort sporu'),
-  ];
-
-  static const _skills = [
-    ('🟢', 'Başlangıç', '1 yıldan az oynayan'),
-    ('🟡', 'Orta Seviye', '1–4 yıl deneyim'),
-    ('🟠', 'İleri Seviye', 'Rekabetçi oyun'),
-    ('🔴', 'Uzman', 'Turnuva seviyesi'),
-  ];
-
-  static const _days = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
-  static const _times = [
-    ('🌅', 'Sabah', '06:00–12:00'),
-    ('☀️', 'Öğleden Sonra', '12:00–18:00'),
-    ('🌙', 'Akşam', '18:00–23:00'),
-  ];
 
   void _next() {
     if (_step < 3) {
@@ -85,13 +65,6 @@ class _SignupScreenState extends State<SignupScreen> {
     }
   }
 
-  static const _ntrpBySkillLevel = {
-    'Başlangıç': 2.0,
-    'Orta Seviye': 3.5,
-    'İleri Seviye': 4.5,
-    'Uzman': 5.5,
-  };
-
   Future<void> _finish() async {
     setState(() => _loading = true);
     try {
@@ -103,7 +76,7 @@ class _SignupScreenState extends State<SignupScreen> {
           'location': _locationCtrl.text.trim(),
           'sports': _selectedSports.toList(),
           'skill_level': _skillLevel,
-          if (_skillLevel != null) 'ntrp_rating': _ntrpBySkillLevel[_skillLevel],
+          if (_skillLevel != null) 'ntrp_rating': ntrpBySkillLevel[_skillLevel],
           'available_days': _selectedDays.toList(),
           'time_prefs': _selectedTimes.toList(),
         });
@@ -282,13 +255,6 @@ class _Step2 extends StatelessWidget {
 
   const _Step2({required this.selected, required this.onChanged});
 
-  static const _sports = [
-    ('🎾', 'Tenis', 'Tekler & çiftler'),
-    ('🏓', 'Padel', 'Raket sporu'),
-    ('🏸', 'Badminton', 'İç mekan & açık alan'),
-    ('🔲', 'Squash', 'Kort sporu'),
-  ];
-
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -313,7 +279,7 @@ class _Step2 extends StatelessWidget {
             crossAxisSpacing: 10,
             mainAxisSpacing: 10,
             childAspectRatio: 1.35,
-            children: _sports.map((s) {
+            children: sportOptions.map((s) {
               final isSelected = selected.contains(s.$2);
               return GestureDetector(
                 onTap: () {
@@ -362,13 +328,6 @@ class _Step3 extends StatelessWidget {
 
   const _Step3({required this.selected, required this.onSelect});
 
-  static const _skills = [
-    ('🟢', 'Başlangıç', '1 yıldan az — temelleri öğreniyor'),
-    ('🟡', 'Orta Seviye', '1–4 yıl — rahatça ralli yapıyor'),
-    ('🟠', 'İleri Seviye', 'Rekabetçi — güçlü genel oyun'),
-    ('🔴', 'Uzman', 'Turnuva seviyesi — en iyi oyun'),
-  ];
-
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -386,8 +345,8 @@ class _Step3 extends StatelessWidget {
             style: TextStyle(color: RallyColors.textSecondary, fontSize: 15),
           ).animate().fadeIn(delay: 80.ms),
           const SizedBox(height: 28),
-          ...List.generate(_skills.length, (i) {
-            final skill = _skills[i];
+          ...List.generate(skillOptions.length, (i) {
+            final skill = skillOptions[i];
             final isSelected = selected == skill.$2;
             return Padding(
               padding: const EdgeInsets.only(bottom: 10),
@@ -448,13 +407,6 @@ class _Step4 extends StatelessWidget {
 
   const _Step4({required this.selectedDays, required this.selectedTimes, required this.onChanged});
 
-  static const _days = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
-  static const _times = [
-    ('🌅', 'Sabah', '06:00–12:00'),
-    ('☀️', 'Öğleden Sonra', '12:00–18:00'),
-    ('🌙', 'Akşam', '18:00–23:00'),
-  ];
-
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -477,7 +429,7 @@ class _Step4 extends StatelessWidget {
           const Text('GÜNLER', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: RallyColors.muted, letterSpacing: 0.8)),
           const SizedBox(height: 10),
           Row(
-            children: _days.map((d) {
+            children: dayOptions.map((d) {
               final isSelected = selectedDays.contains(d);
               return Expanded(
                 child: GestureDetector(
@@ -534,7 +486,7 @@ class _Step4 extends StatelessWidget {
           const Text('GÜNÜN SAATİ', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: RallyColors.muted, letterSpacing: 0.8)),
           const SizedBox(height: 10),
           Row(
-            children: _times.map((t) {
+            children: timeOptions.map((t) {
               final isSelected = selectedTimes.contains(t.$2);
               return Expanded(
                 child: GestureDetector(

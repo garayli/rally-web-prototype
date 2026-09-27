@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -20,8 +21,13 @@ class MainShell extends StatefulWidget {
   State<MainShell> createState() => _MainShellState();
 }
 
-class _MainShellState extends State<MainShell> {
+class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
   int _currentIndex = 0;
+
+  // No Supabase Realtime yet — poll so messages, match requests and
+  // notifications from the other player show up without an app restart.
+  static const _livePollInterval = Duration(seconds: 10);
+  Timer? _livePoll;
 
   // v2 key so users see the new onboarding tour once
   static const _prefsKey = 'onboarding_seen_v2';
@@ -39,14 +45,40 @@ class _MainShellState extends State<MainShell> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadSeenState();
     _warmCache();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _livePoll?.cancel();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Don't poll in the background; catch up immediately on return.
+    if (state == AppLifecycleState.resumed) {
+      _startLivePoll();
+      dataService.refreshLive();
+    } else if (state == AppLifecycleState.paused) {
+      _livePoll?.cancel();
+    }
+  }
+
+  void _startLivePoll() {
+    _livePoll?.cancel();
+    _livePoll = Timer.periodic(
+        _livePollInterval, (_) => dataService.refreshLive());
   }
 
   Future<void> _warmCache() async {
     await dataService.warmCache();
     if (!mounted) return;
     setState(() => _cacheLoaded = true);
+    _startLivePoll();
   }
 
   Future<void> _loadSeenState() async {

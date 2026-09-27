@@ -56,6 +56,35 @@ Implemented:
 - [ ] Repeat with a dispute path (`disputeResult()`)
 - [ ] Confirm `RESULT_WEBHOOK_SECRET` mismatch is actually rejected (negative test)
 
+### 2026-09-27 — Two-account test found critical bugs (see `bugs.md`)
+Setup: phone = leyla.garayli@gmail.com, Chrome = leila.rhcp@gmail.com.
+- Match requests reached neither side (no notification).
+- Messages "disappeared" for the sender and never arrived live on the other side.
+
+Fixed:
+- [x] The "Maç İste" buttons in PlayerProfile, Conversation and Map were fake (snackbar only). All four entry points now use the real sheet: `lib/widgets/match_request_sheet.dart` → `showMatchRequestSheet()`.
+- [x] Notifications were never loaded after login. `warmCache()` now loads them too.
+- [x] No live refresh anywhere. Added `DataService.refreshLive()`: MainShell polls it every 10s in the foreground and an open chat every 4s. `cacheVersion` is bumped only when the data actually changed.
+- [x] `NotificationsScreen` reloads silently on every `cacheVersion` change.
+- [x] Kabul/Reddet was local-only. It now goes through `respondToMatchRequest()`, which updates `matches.status` and rewrites the notification.
+- [x] Added `DataService.sendMessage()`. Insert errors are no longer swallowed: the bubble shows `error_outline`, and tapping it retries.
+- [x] `ConversationScreen` reads its thread from the cache, so a sent message no longer "disappears" on leave/reopen.
+- [x] Conversation fetches carry a sequence number, so an old poll can't overwrite newer data. The inbox is sorted by latest message.
+- [x] `flutter analyze` on the changed files: 0 issues. `flutter test`: 12 pass / 5 fail. The 5 failures are the known English-string tests, unrelated to this change.
+
+Verified in the Supabase Dashboard SQL Editor on 2026-09-27 (no migration needed):
+- [x] The notifications INSERT policy is live: "Requester can notify opponent of match request", `with_check` `type = 'matchRequest'::notif_type AND action_id …`.
+- [x] `matches` UPDATE policy "Match participants can update": `auth.uid() = player1_id OR auth.uid() = player2_id`. Kabul/Reddet can update the match.
+- [x] `notifications.type` is the `notif_type` enum. It includes `matchConfirmed` and `matchDeclined`, and "Users can update own notifications" (`auth.uid() = user_id`) exists, so the notification rewrite after Kabul/Reddet works.
+- [ ] Two-device retest: A sends from the Match tab, profile and chat → a notification reaches B within ≤10s. Messages flow both ways within ~4s while the chat is open, and each side's inbox shows the thread.
+
+Known follow-ups (not fixed in this pass):
+- [ ] The requester isn't notified when a request is accepted or declined; they only see the status change in Schedule. The notifications insert policy only allows `matchRequest`.
+- [ ] `resultPending` notifications come back with their buttons after confirm/dispute. Only `is_read` is set; the type isn't changed because n8n owns the result-notification types. Now more visible because of live reload.
+- [ ] `markConversationRead` only tracks read state locally, in memory. New messages in a thread that was already opened don't show as unread, and `messages.is_read` is never written.
+- [ ] Replace polling with Supabase Realtime. Checked 2026-09-27: `profiles`, `matches`, `messages` and `reviews` are already in the `supabase_realtime` publication; `notifications` is **not**. Adding it: `alter publication supabase_realtime add table notifications;`. Don't run it before the decision to switch to Realtime.
+- [ ] `messages` already has a "Receiver can mark as read" UPDATE policy (`auth.uid() = receiver_id`), so writing `is_read` needs no migration, only app code.
+
 ## Phase 3 — Full manual QA pass (all 21 screens)
 Use two real accounts from Phase 2 throughout, not mock/'me'.
 - [ ] Landing → Auth (email OTP) → OTP entry → Signup (4-step, new user only) → Home
@@ -96,7 +125,7 @@ Re-verify these don't regress (see `docs/project_notes/bugs.md`):
 - [ ] Confirm Supabase RLS policies are production-safe (no overly permissive `true` policies left over from dev) — cross-check against `mcp__supabase__get_advisors`
 - [ ] Remove/guard any dev-only affordances (e.g. debug prints, test accounts, seeded mock fallbacks) from the release build
 - [ ] **FIRST PLAY UPLOAD — add Google's app-signing SHA-1 to the Android API key.** Play re-signs every build it distributes (internal testing included) with its own certificate, and the Android key (restricted 2026-09-21) only allows the debug + upload SHA-1s. Until Play's SHA-1 is added, Firebase calls from Play-installed builds are rejected with 403. Steps + exact `gcloud` command: `docs/project_notes/key_facts.md` → "Firebase / Google Cloud".
-- [ ] Restrict (or delete) the still-unrestricted iOS and browser API keys once the iOS bundle ID and a web domain exist — same section of `key_facts.md`
+- [x] iOS and browser API keys deleted 2026-09-21 (unrestricted, exposed in git history). When iOS or web is set up later, create new keys restricted from day one — see `key_facts.md` → "Firebase / Google Cloud"
 
 ## Phase 6 — Final sign-off
 - [ ] `flutter analyze` clean

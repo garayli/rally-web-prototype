@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../widgets/shared_widgets.dart';
+import '../widgets/match_request_sheet.dart';
 import '../models/models.dart';
 import '../services/data_service.dart';
 import 'reputation_screen.dart';
@@ -191,15 +192,7 @@ class PlayerProfileScreen extends StatelessWidget {
                     child: RallyButton(
                       label: 'Maç İste',
                       icon: Icons.sports_tennis,
-                      onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('${player.name} oyuncusuna maç isteği gönderildi!'),
-                          backgroundColor: RallyColors.accent,
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12)),
-                        ),
-                      ),
+                      onPressed: () => showMatchRequestSheet(context, player),
                     ),
                   ),
                   const SizedBox(width: 10),
