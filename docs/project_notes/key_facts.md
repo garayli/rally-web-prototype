@@ -29,13 +29,15 @@ Project configuration, credentials, and constants.
 
 ### API key restrictions
 
-Firebase client keys aren't real secrets, but they must be restricted so a key copied from git history is useless elsewhere. All three keys have a Firebase-only API allowlist. App restrictions as of 2026-09-21:
+Firebase client keys aren't real secrets, but they must be restricted so a key copied from git history is useless elsewhere. The project had three auto-created keys, all with a Firebase-only API allowlist. State as of 2026-09-21:
 
-| Key | App restriction |
-|-----|-----------------|
-| Android | package `com.rallymatch.app` + the debug and upload SHA-1s |
-| iOS | **none** — set once the iOS bundle ID is final (no Xcode project yet; `firebase_options.dart` says `rallymatch`) |
-| Browser | **none** — no domain yet. Add HTTP referrers when the web build is hosted, or delete the key if web is never shipped |
+| Key | State |
+|-----|-------|
+| Android | active — restricted to package `com.rallymatch.app` + the debug and upload SHA-1s |
+| iOS | **deleted 2026-09-21** (was unrestricted and exposed in commit `489ab8f`). No iOS Xcode project existed. |
+| Browser | **deleted 2026-09-21** (same reason). No web domain existed; `flutter run -d chrome` has no working Firebase key until a new one is created. |
+
+Deleted keys can be restored for ~30 days with `gcloud services api-keys undelete`. When iOS or web is set up, create a **new** key restricted from day one (iOS bundle ID / HTTP referrers), via `flutterfire configure` or the Console, and never reuse the deleted ones (they are in git history).
 
 Key IDs and fingerprint values are deliberately not recorded here. Look up key IDs with `gcloud services api-keys list --project=rallymatch --format="table(displayName,uid)"`, and see what the Android key allows with `gcloud services api-keys describe <KEY_ID> --project=rallymatch --format="yaml(restrictions.androidKeyRestrictions)"`.
 

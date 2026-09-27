@@ -22,7 +22,7 @@ flutter test                            # run all tests
 flutter test test/widget_test.dart      # run a single test file
 ```
 
-**Firebase config is gitignored** (`lib/firebase_options.dart`, `android/app/google-services.json`) because GitHub secret scanning flags the API keys. On a fresh clone run `flutterfire configure` (or copy `lib/firebase_options.dart.example` and fill it in) before `flutter run`. The Android API key is restricted to the debug + upload SHA-1s — **add the Play app-signing SHA-1 at the first Play upload** or Firebase calls from Play-installed builds get 403 (steps in `docs/project_notes/key_facts.md` → Firebase / Google Cloud; remind the user before any Play upload). The iOS and browser keys are still unrestricted.
+**Firebase config is gitignored** (`lib/firebase_options.dart`, `android/app/google-services.json`) because GitHub secret scanning flags the API keys. On a fresh clone run `flutterfire configure` (or copy `lib/firebase_options.dart.example` and fill it in) before `flutter run`. The Android API key is restricted to the debug + upload SHA-1s — **add the Play app-signing SHA-1 at the first Play upload** or Firebase calls from Play-installed builds get 403 (steps in `docs/project_notes/key_facts.md` → Firebase / Google Cloud; remind the user before any Play upload). The iOS and browser keys were deleted (2026-09-21) — create new, restricted ones when iOS/web are set up; until then `flutter run -d chrome` has no working Firebase key.
 
 ## Architecture
 
@@ -62,6 +62,8 @@ All data is currently **mock only** (`lib/services/mock_data.dart`).
 - `getPlayers()`, `getConversations()`, `getUpcomingSessions()`, `getNotifications()`
 - `unreadNotifier` (`ValueNotifier<int>`) — reactive badge count used by MainShell
 - `markAllRead()`, `markConversationRead(id)`, `getNotifPrefs()`, `saveNotifPrefs()`
+
+**Live data:** There's no Supabase Realtime yet. `dataService.refreshLive()` re-reads conversations, sessions and notifications. It bumps `cacheVersion` only on a real change. `MainShell` polls it every 10s and an open `ConversationScreen` every 4s. Screens must read shared data from DataService and listen to `cacheVersion`, never keep a private copy. Writes go through DataService: `sendMessage()`, `sendMatchRequest()`, `respondToMatchRequest()`. Every "Maç İste" button must call `showMatchRequestSheet()` (`lib/widgets/match_request_sheet.dart`).
 
 The sentinel value `'me'` appears as `senderId` in mock conversations. Replace with `supabase.auth.currentUser!.id` when wiring Supabase.
 

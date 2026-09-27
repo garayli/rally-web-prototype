@@ -16,6 +16,11 @@ class Player {
   final int matchScore;              // % compatibility
   final String avatarGradientStart;
   final String avatarGradientEnd;
+  // Self-reported during signup; editable from EditProfileScreen.
+  final List<String> sports;
+  final String? skillLevel;          // one of skillOptions values
+  final List<String> availableDays;  // e.g. ['Pzt', 'Cmt']
+  final List<String> timePrefs;      // e.g. ['Sabah', 'Akşam']
 
   const Player({
     required this.id,
@@ -34,6 +39,10 @@ class Player {
     this.matchScore = 0,
     this.avatarGradientStart = '#5a8a00',
     this.avatarGradientEnd = '#8db600',
+    this.sports = const [],
+    this.skillLevel,
+    this.availableDays = const [],
+    this.timePrefs = const [],
   });
 
   String get skillLabel {
@@ -61,6 +70,10 @@ class Player {
         matchScore: j['match_score'] as int? ?? 0,
         avatarGradientStart: j['avatar_gradient_start'] as String? ?? '#5a8a00',
         avatarGradientEnd: j['avatar_gradient_end'] as String? ?? '#8db600',
+        sports: List<String>.from(j['sports'] as List? ?? []),
+        skillLevel: j['skill_level'] as String?,
+        availableDays: List<String>.from(j['available_days'] as List? ?? []),
+        timePrefs: List<String>.from(j['time_prefs'] as List? ?? []),
       );
 
   Map<String, dynamic> toJson() => {
@@ -80,6 +93,10 @@ class Player {
         'match_score': matchScore,
         'avatar_gradient_start': avatarGradientStart,
         'avatar_gradient_end': avatarGradientEnd,
+        'sports': sports,
+        'skill_level': skillLevel,
+        'available_days': availableDays,
+        'time_prefs': timePrefs,
       };
 }
 

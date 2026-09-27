@@ -1,4 +1,4 @@
-# Bug Log
+﻿# Bug Log
 
 A record of bugs encountered and their solutions.
 
@@ -274,4 +274,77 @@ When any auth/email-triggered flow silently fails in the UI with a generic error
 
 ---
 
+## Match Requests Never Reach the Opponent (No Notification)
+**Date:** 2026-09-27
+**Severity:** Critical
+
+### Problem
+Two-account test: phone signed in as leyla.garayli@gmail.com, Chrome as leila.rhcp@gmail.com. A match request was sent from each side, and neither side ever got a notification or saw the request.
+
+### Root Cause
+Three separate causes:
+1. **Three of the four "Maç İste" buttons were fake.** `PlayerProfileScreen`, `ConversationScreen` (app-bar tennis icon) and `MapScreen`'s player sheet only showed a "maç isteği gönderildi!" snackbar. Nothing was written to `matches` or `notifications`. Only the Match tab's `_RequestSheet` called `dataService.sendMatchRequest()`.
+2. **The receiver never re-read notifications.** `MockDataService` fetched them in its constructor, which can run before login (`uid == null` → cached empty list). After that it only fetched them in `NotificationsScreen.initState`, which runs once because `IndexedStack` keeps the tab mounted. `warmCache()` didn't include notifications. So a notification inserted while B was already in the app never reached B's badge or list.
+3. **No live refresh of any kind.** `warmCache()` ran once in `MainShell.initState`. Nothing re-read `matches`/`notifications` afterwards, and there's no Supabase Realtime subscription.
+
+Also found: the notification's Kabul/Reddet buttons only changed local widget state. `matches.status` stayed `pending`, and the choice was lost on reload.
+
+### Solution
+- Moved the sheet to `lib/widgets/match_request_sheet.dart` (`MatchRequestSheet` + `showMatchRequestSheet()`). All four entry points now use it.
+- `warmCache()` now also runs `_refreshNotifications()`.
+- Added `DataService.refreshLive()`. It re-fetches conversations, sessions and notifications and bumps `cacheVersion` only when a signature of the data actually changed. `MainShell` polls it every 10s while in the foreground, stops on `paused`, and refreshes right away on `resumed`. `NotificationsScreen` listens to `cacheVersion` and reloads silently.
+- Added `DataService.respondToMatchRequest()`. It updates `matches.status` (confirmed/cancelled) with `.select('id')`, so an RLS-blocked update (0 rows, no error) throws instead of passing silently. It then rewrites the notification to `matchConfirmed`/`matchDeclined`, so the buttons don't come back on reload.
+
+### Prevention
+- Never ship a button whose only effect is a success snackbar. Grep for the snackbar text when auditing a flow end-to-end.
+- Any data another user can change must be re-read after login (polling or Realtime), not only at shell init.
+- Verified in the DB on 2026-09-27: (a) the matchRequest notifications INSERT policy is live; (b) `matches` has a "Match participants can update" policy (player1 OR player2); (c) the `notif_type` enum includes `matchConfirmed`/`matchDeclined`, and users can update their own notifications. No migration needed. So the "no notification" bug came from the app side: fake buttons plus the missing refresh.
+
+---
+
+## Chat Messages "Disappear" for the Sender and Never Reach the Receiver Live
+**Date:** 2026-09-27
+**Severity:** Critical
+
+### Problem
+The same two accounts messaged each other:
+- "Merhaba" showed up for the receiver about 20s later.
+- After the sender left the chat and came back, "Merhaba" was gone on the sender's side.
+- The second message never appeared for the receiver.
+- The sender's Mesajlar inbox stayed empty. The receiver's inbox only ever showed "Merhaba".
+
+### Root Cause
+- **Stale, write-once cache.** `_refreshConversations()` only ran in `warmCache()` at `MainShell` init. `ConversationScreen._send()` inserted the row but never refreshed the cache, so the sender's inbox didn't know the thread existed.
+- **Chat screen seeded from a snapshot.** `ConversationScreen` copied `widget.conversation.messages` into local state. Opened from a profile, that is a throwaway `Conversation(id: 'new_…', messages: [])`. The sent message lived only in that widget's state and was gone once the screen was popped, so on reopen it looked deleted.
+- **No refresh on the receiving side.** Same as the match-request bug: no polling and no Realtime. The receiver only saw "Merhaba" because their session re-ran `warmCache()` (reload/re-login). They never refreshed again, so the second message never arrived.
+- **Send errors were swallowed.** `catch (_) {}` around the insert meant a failed insert looked the same as a successful one. We can't rule out that the second message failed too.
+
+### Solution
+- Added `DataService.sendMessage()`. It inserts the message, then re-reads conversations and bumps `cacheVersion`. It throws on a failed insert. A failed re-read after a successful insert is only logged, so the user never retries a message that was already delivered.
+- `ConversationScreen` now treats the DataService cache as the source of truth. It listens to `cacheVersion` and merges the cached thread (matched by `other.id`, so a `new_…` conversation picks up its thread once it exists) with local pending messages. While open it polls `refreshLive()` every 4s. Failed sends show `error_outline` and a snackbar, and tapping the bubble retries.
+- `_refreshConversations()` uses a fetch sequence number, so a poll that started before a send can't overwrite the newer post-send result. The inbox is now sorted by latest message.
+
+### Prevention
+- Never `catch (_) {}` around a write the user is waiting on. Surface the error and let them retry.
+- A screen must not keep a private copy of shared data. Read it from DataService and listen to `cacheVersion`.
+- Follow-up: replace polling with Supabase Realtime once `messages`/`notifications` are confirmed to be in the `supabase_realtime` publication.
+
+---
+
 <!-- Add new bugs above this line -->
+
+## OTP Screen Overflows When Keyboard Is Open
+**Date:** 2026-09-27
+**Severity:** Low
+
+### Problem
+On the S25 Ultra, the OTP entry screen ("E-postanı kontrol et") threw "A RenderFlex overflowed by 5.5 pixels on the bottom" (yellow/black stripe) once the number keyboard opened.
+
+### Root Cause
+`_AuthOtpScreenState.build()` in `auth_screen.dart` used a fixed `Padding > Column` inside `SafeArea`. With the keyboard up the body shrank to ~384px, shorter than the Column's natural height.
+
+### Solution
+Swapped `Padding` for `SingleChildScrollView(padding: EdgeInsets.all(28))`. The Column has no `Expanded`/`Spacer` children, so layout is unchanged when there's room.
+
+### Prevention
+Any form screen with a text field needs a scrollable body. The email screen in the same file already does this (`Expanded > SingleChildScrollView`).

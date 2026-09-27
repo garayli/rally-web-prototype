@@ -4,6 +4,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../theme/app_theme.dart';
 import '../widgets/shared_widgets.dart';
+import '../widgets/match_request_sheet.dart';
 import '../models/models.dart';
 import '../services/data_service.dart';
 import '../main.dart' show CourtThemeProvider;
@@ -22,15 +23,23 @@ class _MapScreenState extends State<MapScreen> {
   // Istanbul coordinates
   static const _center = LatLng(41.0422, 29.0083); // Beşiktaş
 
-  static final List<_MapPlayer> _mapPlayers = () {
+  // Placeholder pins until profiles carry real coordinates.
+  static const _playerSpots = [
+    LatLng(41.0422, 29.0083), // Beşiktaş
+    LatLng(40.9901, 29.0278), // Kadıköy
+    LatLng(41.0603, 28.9877), // Şişli
+    LatLng(41.0230, 29.0154), // Üsküdar
+  ];
+
+  // Pairs spots with however many players are loaded — the live player list
+  // can be shorter than the spot list.
+  List<_MapPlayer> get _mapPlayers {
     final players = dataService.getPlayers();
     return [
-      _MapPlayer(pos: const LatLng(41.0422, 29.0083), player: players[0]), // Beşiktaş
-      _MapPlayer(pos: const LatLng(40.9901, 29.0278), player: players[1]), // Kadıköy
-      _MapPlayer(pos: const LatLng(41.0603, 28.9877), player: players[2]), // Şişli
-      _MapPlayer(pos: const LatLng(41.0230, 29.0154), player: players[3]), // Üsküdar
+      for (var i = 0; i < players.length && i < _playerSpots.length; i++)
+        _MapPlayer(pos: _playerSpots[i], player: players[i]),
     ];
-  }();
+  }
 
   static const _courts = [
     _MapCourt(pos: LatLng(41.0435, 29.0062), name: 'Beşiktaş JK Tenis Kortları'),
@@ -124,6 +133,10 @@ class _MapScreenState extends State<MapScreen> {
             context,
             MaterialPageRoute(builder: (_) => PlayerProfileScreen(player: player)),
           );
+        },
+        onRequest: () {
+          Navigator.pop(context);
+          showMatchRequestSheet(context, player);
         },
       ),
     );
@@ -221,8 +234,13 @@ class _YouMarker extends StatelessWidget {
 class _PlayerMapSheet extends StatelessWidget {
   final Player player;
   final VoidCallback onViewProfile;
+  final VoidCallback onRequest;
 
-  const _PlayerMapSheet({required this.player, required this.onViewProfile});
+  const _PlayerMapSheet({
+    required this.player,
+    required this.onViewProfile,
+    required this.onRequest,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -286,17 +304,7 @@ class _PlayerMapSheet extends StatelessWidget {
                     Expanded(
                       child: RallyButton(
                         label: 'Maç İste',
-                        onPressed: () {
-                          Navigator.pop(context);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('${player.name} adlı oyuncuya maç isteği gönderildi!'),
-                              backgroundColor: cp.accent,
-                              behavior: SnackBarBehavior.floating,
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            ),
-                          );
-                        },
+                        onPressed: onRequest,
                       ),
                     ),
                   ],
