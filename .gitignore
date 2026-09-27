@@ -6,3 +6,17 @@
 # Local test/secret scripts
 test_figma.ps1
 export_prototype_components.ps1
+
+# Local Claude Code tooling — not part of the app
+.agents/
+.mcp.json
+.claude/skills/supabase/
+.claude/skills/supabase-postgres-best-practices/
+skills-lock.json
+antigravity-skills/
+n8n/
+
+# Node tooling pulled in by a skill — this is a Flutter project, pubspec.yaml is the real manifest
+rallly_flutter/node_modules/
+rallly_flutter/package.json
+rallly_flutter/package-lock.json
