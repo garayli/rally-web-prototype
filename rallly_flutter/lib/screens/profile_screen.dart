@@ -14,6 +14,7 @@ import 'achievements_screen.dart';
 import 'notifications_preferences_screen.dart';
 import 'log_result_screen.dart';
 import 'my_results_screen.dart';
+import 'player_profile_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -356,18 +357,26 @@ class _ProfileScreenState extends State<ProfileScreen>
             ),
           ),
 
-          // Tab content
+          // Tab content — sized to fit whatever the active tab holds, so a
+          // single session doesn't leave a tall empty box below it.
           SliverToBoxAdapter(
-            child: SizedBox(
-              height: 220,
-              child: TabBarView(
-                controller: _tabController,
-                children: [
-                  _SessionList(sessions: upcoming, cp: cp, emptyLabel: 'Yaklaşan maç yok'),
-                  _SessionList(sessions: past, cp: cp, emptyLabel: 'Geçmiş maç yok'),
-                  _SessionList(sessions: pending, cp: cp, emptyLabel: 'Bekleyen istek yok'),
-                ],
-              ),
+            child: AnimatedBuilder(
+              animation: _tabController,
+              builder: (context, _) {
+                const lists = ['upcoming', 'past', 'pending'];
+                final sessions = switch (lists[_tabController.index]) {
+                  'upcoming' => upcoming,
+                  'past' => past,
+                  _ => pending,
+                };
+                final emptyLabel = switch (lists[_tabController.index]) {
+                  'upcoming' => 'Yaklaşan maç yok',
+                  'past' => 'Geçmiş maç yok',
+                  _ => 'Bekleyen istek yok',
+                };
+                return _SessionList(
+                    sessions: sessions, cp: cp, emptyLabel: emptyLabel);
+              },
             ),
           ),
 
@@ -619,17 +628,22 @@ class _SessionList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (sessions.isEmpty) {
-      return Center(
-        child: Text(emptyLabel,
-          style: RallyType.body.copyWith(color: cp.muted)),
+      return SizedBox(
+        height: 96,
+        child: Center(
+          child: Text(emptyLabel,
+            style: RallyType.body.copyWith(color: cp.muted)),
+        ),
       );
     }
-    return ListView.builder(
+    return Padding(
       padding: const EdgeInsets.fromLTRB(
         Spacing.gutter, Spacing.sm, Spacing.gutter, Spacing.sm),
-      itemCount: sessions.length,
-      itemBuilder: (context, i) => _SessionCard(
-        session: sessions[i], cp: cp),
+      child: Column(
+        children: [
+          for (final s in sessions) _SessionCard(session: s, cp: cp),
+        ],
+      ),
     );
   }
 }
@@ -645,68 +659,80 @@ class _SessionCard extends StatelessWidget {
     final dt = session.dateTime;
     return Container(
       margin: const EdgeInsets.only(bottom: Spacing.sm),
-      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: cp.surface,
         borderRadius: BorderRadius.circular(RallyRadius.lg),
         border: Border.all(color: cp.border),
         boxShadow: RallyElevation.card,
       ),
-      child: Row(
-        children: [
-          // Time column
-          SizedBox(
-            width: 52,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(RallyRadius.lg),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(RallyRadius.lg),
+          onTap: () => _showMatchDetailSheet(context, session, cp),
+          child: Padding(
+            padding: const EdgeInsets.all(14),
+            child: Row(
               children: [
-                Text(
-                  DateFormat('HH:mm').format(dt),
-                  style: RallyType.displaySM.copyWith(
-                    color: cp.text, fontSize: 20),
+                // Time column
+                SizedBox(
+                  width: 52,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        DateFormat('HH:mm').format(dt),
+                        style: RallyType.displaySM.copyWith(
+                          color: cp.text, fontSize: 20),
+                      ),
+                      Text(
+                        DateFormat('EEE').format(dt).toUpperCase(),
+                        style: RallyType.micro.copyWith(
+                          color: cp.muted, letterSpacing: 0.4),
+                      ),
+                    ],
+                  ),
                 ),
-                Text(
-                  DateFormat('EEE').format(dt).toUpperCase(),
-                  style: RallyType.micro.copyWith(
-                    color: cp.muted, letterSpacing: 0.4),
+                Container(width: 1, height: 36, color: cp.border,
+                  margin: const EdgeInsets.symmetric(horizontal: 12)),
+                // Info
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'vs ${session.opponent.name}',
+                        style: RallyType.titleMD.copyWith(color: cp.text),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        session.court,
+                        style: RallyType.bodySM.copyWith(color: cp.muted),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
                 ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: cp.accentTint,
+                    borderRadius: BorderRadius.circular(RallyRadius.pill),
+                  ),
+                  child: Text(
+                    _statusLabel(session.status),
+                    style: RallyType.micro.copyWith(
+                      color: cp.accentStrong, letterSpacing: 0.3),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                Icon(Icons.chevron_right, size: 18, color: cp.muted),
               ],
             ),
           ),
-          Container(width: 1, height: 36, color: cp.border,
-            margin: const EdgeInsets.symmetric(horizontal: 12)),
-          // Info
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'vs ${session.opponent.name}',
-                  style: RallyType.titleMD.copyWith(color: cp.text),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  session.court,
-                  style: RallyType.bodySM.copyWith(color: cp.muted),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: cp.accentTint,
-              borderRadius: BorderRadius.circular(RallyRadius.pill),
-            ),
-            child: Text(
-              _statusLabel(session.status),
-              style: RallyType.micro.copyWith(
-                color: cp.accentStrong, letterSpacing: 0.3),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -718,6 +744,142 @@ class _SessionCard extends StatelessWidget {
       case MatchStatus.pending:    return 'BEKLİYOR';
       case MatchStatus.cancelled:  return 'İPTAL';
     }
+  }
+}
+
+// ─── Match detail sheet ────────────────────────────────────────────────────────
+void _showMatchDetailSheet(
+    BuildContext context, MatchSession session, CourtPalette cp) {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    backgroundColor: Colors.transparent,
+    builder: (_) => _MatchDetailSheet(session: session, cp: cp),
+  );
+}
+
+class _MatchDetailSheet extends StatelessWidget {
+  final MatchSession session;
+  final CourtPalette cp;
+
+  const _MatchDetailSheet({required this.session, required this.cp});
+
+  String _statusLabel(MatchStatus s) {
+    switch (s) {
+      case MatchStatus.confirmed:  return 'Onaylandı';
+      case MatchStatus.completed:  return 'Tamamlandı';
+      case MatchStatus.pending:    return 'Beklemede';
+      case MatchStatus.cancelled:  return 'İptal Edildi';
+    }
+  }
+
+  Widget _row(IconData icon, String label) => Padding(
+    padding: const EdgeInsets.only(bottom: Spacing.md),
+    child: Row(
+      children: [
+        Icon(icon, size: 18, color: cp.muted),
+        const SizedBox(width: Spacing.sm),
+        Expanded(
+          child: Text(label, style: RallyType.body.copyWith(color: cp.text)),
+        ),
+      ],
+    ),
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    final dt = session.dateTime;
+    final opponent = session.opponent;
+    final result = session.result;
+    return SafeArea(
+      child: Container(
+        decoration: BoxDecoration(
+          color: cp.bg,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(RallyRadius.sheet)),
+        ),
+        padding: const EdgeInsets.fromLTRB(
+          Spacing.xl, Spacing.lg, Spacing.xl, Spacing.xl),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: cp.muted2,
+                  borderRadius: BorderRadius.circular(2)),
+              ),
+            ),
+            const SizedBox(height: Spacing.xl),
+            GestureDetector(
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(
+                  builder: (_) => PlayerProfileScreen(player: opponent)));
+              },
+              child: Row(
+                children: [
+                  PlayerAvatar(
+                    initials: opponent.initials,
+                    gradientStart: opponent.avatarGradientStart,
+                    gradientEnd: opponent.avatarGradientEnd,
+                    size: 48,
+                  ),
+                  const SizedBox(width: Spacing.md),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('vs ${opponent.name}',
+                          style: RallyType.titleLG.copyWith(color: cp.text)),
+                        const SizedBox(height: 2),
+                        Text(_statusLabel(session.status),
+                          style: RallyType.bodySM.copyWith(color: cp.accentStrong)),
+                      ],
+                    ),
+                  ),
+                  Icon(Icons.chevron_right, color: cp.muted),
+                ],
+              ),
+            ),
+            const SizedBox(height: Spacing.xl),
+            _row(Icons.calendar_today_outlined, DateFormat('EEEE, d MMMM').format(dt)),
+            _row(Icons.access_time, DateFormat('HH:mm').format(dt)),
+            _row(Icons.place_outlined, session.court),
+            _row(Icons.sports_tennis_outlined,
+              session.format == MatchFormat.doubles ? 'Çiftler' : 'Tekler'),
+            if (result != null) ...[
+              const SizedBox(height: Spacing.sm),
+              _row(Icons.emoji_events_outlined,
+                result.sets.map((s) => '${s.player1}-${s.player2}').join(', ')),
+            ],
+            if (session.status == MatchStatus.confirmed) ...[
+              const SizedBox(height: Spacing.md),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: cp.accent,
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(RallyRadius.pill)),
+                  ),
+                  onPressed: () {
+                    Navigator.pop(context);
+                    Navigator.push(context, MaterialPageRoute(
+                      builder: (_) => LogResultScreen(opponent: opponent)));
+                  },
+                  child: const Text('Sonuç Kaydet',
+                    style: TextStyle(fontWeight: FontWeight.w700)),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
   }
 }
 
