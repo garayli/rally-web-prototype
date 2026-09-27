@@ -349,6 +349,75 @@ Before writing a `profiles` insert/upsert, check the NOT NULL columns (`list_tab
 
 ---
 
+## Profile Not Editable After Signup
+**Date:** 2026-09-27
+**Severity:** High
+
+### Problem
+After the signup wizard, users could never change their name, location, sports, level or availability again.
+
+### Root Cause
+Every entry point on `ProfileScreen` was fake and only showed a "Profil düzenleme yakında" snackbar: the hero "Profili Düzenle" button, the completeness banner and the HESAP → "Profili Düzenle" row. "Müsaitlik" said "Müsaitlik ayarları yakında". No edit screen existed. `Player` didn't even carry the signup fields (`sports`, `skill_level`, `available_days`, `time_prefs`), so nothing could be pre-filled.
+
+### Solution
+- New `lib/screens/edit_profile_screen.dart` (`EditProfileScreen`). It edits name, location, bio (`about`), sports, level, days and time of day, pre-filled from `dataService.getCurrentPlayer()`. Save is disabled while name or location is empty. It pops `true` on success, and a failed save shows an error snackbar instead of being swallowed.
+- `DataService.updateMyProfile()` updates `profiles` (and `initials` from the name), then re-reads the current player and bumps `cacheVersion`. `ntrp_rating` is reset from the level **only when the level changed**, so editing the bio doesn't wipe a rating earned in matches.
+- `Player` gained `sports`, `skillLevel`, `availableDays` and `timePrefs` (fromJson/toJson, with empty defaults).
+- The option lists and `ntrpBySkillLevel` moved to `lib/config/profile_options.dart`, shared by `SignupScreen` and `EditProfileScreen`, so both write identical values. Signup had two drifting copies of each list, and some were unused.
+- All four profile entry points above now open the editor. If the profile isn't loaded yet, the user gets a "Profil yükleniyor" snackbar and `warmCache()` is retried.
+
+### Prevention
+- Same lesson as the match-request bug: grep for "yakında" snackbars when auditing a flow. A button that only shows a snackbar is not a feature.
+- Any value a wizard writes must also be readable into the model, or it can never be edited later.
+- **Open:** `updateMyProfile()` doesn't use `.select()`, so an UPDATE that matches 0 rows (missing profile row, see the `initials` bug above, or RLS) "succeeds" silently. Add `.select('id')` and throw on an empty result, as `respondToMatchRequest()` does.
+
+---
+
+## Profile Screen Didn't Show Saved Availability / Bio
+**Date:** 2026-09-27
+**Severity:** Medium
+
+### Problem
+On the S25 Ultra the user edited their availability, saved (no error in logcat), and saw no change on the profile screen.
+
+### Root Cause
+The save worked, but `ProfileScreen` never rendered the data:
+- The "Müsaitlik" row subtitle was the static text "Haftalık programını ayarla".
+- `about` was not shown anywhere.
+- The completeness banner and avatar ring were hardcoded (`_completeness = 65`, `_missingFields = ['fotoğraf', 'biyografi', 'müsaitlik']`), so they said "müsaitlik" was missing whatever the user saved.
+
+### Solution
+- "Müsaitlik" subtitle → `_availabilitySummary(me)`, e.g. "Pzt, Çar, Cmt · Akşam". `EditProfileScreen` saves days and times in canonical option order, so the summary reads naturally.
+- The bio is shown under the location in the hero (max 3 lines).
+- The completeness score and missing list are computed from the real `Player` (`_missingFieldsOf`, `_completenessOf`). The banner hides itself once nothing is missing. The photo is deliberately not counted until upload exists, so the banner never asks for something the user can't provide.
+
+### Prevention
+When adding an editor for a field, check that some screen actually displays that field. Never hardcode completeness or "missing" state; derive it from the model.
+
+---
+
+## Phone Kept Running a Stale Build After `flutter run`
+**Date:** 2026-09-27
+**Severity:** Low (dev environment)
+
+### Problem
+The user ran `flutter run` after the profile-edit changes and saw "nothing changed". The old "yakında" behaviour was still on the phone.
+
+### Root Cause
+No new build was made. `build/app/outputs/flutter-apk/app-debug.apk` was timestamped 20:17, before the edits at 20:39–20:45. An earlier `flutter run` session was most likely still attached, so the phone kept running the old code.
+
+A related hazard came up the same evening. A `flutter build`/`run` started at 22:10 failed with `getCurrentPlayer isn't defined`. Another session had just run `git checkout main` + `pull` and re-applied the uncommitted changes, and the compile landed in the moment the files were reverted.
+
+### Solution
+- Quit the old session (`q`) and run `flutter run` again, or press `R` (hot restart; `r` isn't enough when a service interface changes). Confirm with `adb shell dumpsys package com.rallymatch.app | grep lastUpdateTime`.
+- A backgrounded `flutter run` (no stdin) exits once the app is installed ("Lost connection to device"). The app keeps running, but hot reload is gone. For the web, `flutter build web` + a static server (`python -m http.server 8080` in `build/web`) is more reliable than a detached `flutter run -d chrome`.
+
+### Prevention
+- When "nothing changed" on device, compare the APK / `lastUpdateTime` timestamp with the source edit time before debugging code.
+- Don't run two agents or sessions against the same working tree at once. A branch switch in one breaks builds and edits in the other.
+
+---
+
 <!-- Add new bugs above this line -->
 
 ## OTP Screen Overflows When Keyboard Is Open
