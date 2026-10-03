@@ -24,6 +24,7 @@ class _OpenLobbyScreenState extends State<OpenLobbyScreen> {
   String _court = '';
   final _notesCtrl = TextEditingController();
   bool _isPublic = true;
+  String _format = 'singles';
   bool _loading = false;
 
   static const _sports = ['Tenis', 'Padel', 'Badminton', 'Squash'];
@@ -73,6 +74,7 @@ class _OpenLobbyScreenState extends State<OpenLobbyScreen> {
         'date_time': dt.toUtc().toIso8601String(),
         'court': _court,
         'notes': _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
+        'format': _format,
         'is_public': _isPublic,
         'status': 'open',
       });
@@ -140,6 +142,16 @@ class _OpenLobbyScreenState extends State<OpenLobbyScreen> {
               selected: _sport,
               onSelect: (v) => setState(() => _sport = v),
             ).animate().fadeIn(delay: 100.ms),
+
+            const SizedBox(height: 20),
+            _Label(l.openLobbyFormat),
+            const SizedBox(height: 8),
+            _ChipRow(
+              items: const ['singles', 'doubles'],
+              labelOf: (v) => v == 'doubles' ? l.formatDoubles : l.formatSingles,
+              selected: _format,
+              onSelect: (v) => setState(() => _format = v),
+            ).animate().fadeIn(delay: 110.ms),
 
             const SizedBox(height: 20),
             _Label(l.openLobbyInvitedLevel),

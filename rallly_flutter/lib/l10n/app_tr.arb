@@ -226,6 +226,7 @@
   },
   "authErrorRateLimit": "Çok fazla kod isteği gönderildi. Lütfen birkaç dakika bekleyip tekrar deneyin.",
   "authErrorGeneric": "Bir şeyler yanlış gitti. Lütfen tekrar deneyin.",
+  "authErrorNoAccount": "Bu e-posta adresine ait bir hesap bulunamadı. Geri dönüp \"Başla\" ile kayıt olabilirsin.",
   "authErrorInvalidEmail": "Lütfen geçerli bir e-posta adresi girin.",
   "authErrorCodeInvalidOrExpired": "Kod geçersiz veya süresi dolmuş. Lütfen yeni kod isteyin.",
   "authErrorInvalidCode": "Geçersiz kod. Lütfen tekrar deneyin.",
@@ -624,6 +625,52 @@
   "errorAlreadyRequested": "Bu lobiye zaten katılma isteği gönderdin",
   "lobbyYours": "Senin lobin",
   "lobbyRequested": "İstek gönderildi",
+  "errorLobbyQueueFull": "Bu lobide bekleyen istek sınırına ulaşıldı. Organizatör yanıtlayınca tekrar dene.",
+  "errorLobbyFull": "Bu lobinin kadrosu dolu.",
+  "errorLobbyClosed": "Bu lobi artık istek almıyor.",
+  "openLobbyFormat": "Maç türü",
+  "lobbyQueueFull": "Şimdilik dolu",
+  "lobbyQueueFullHint": "Organizatör yanıtlayınca yer açılır",
+  "lobbyRosterFull": "Kadro dolu",
+  "lobbyManage": "Yönet",
+  "lobbyCounts": "{accepted}/{capacity} kabul · {pending} bekleyen",
+  "@lobbyCounts": {
+    "placeholders": {
+      "accepted": {"type": "int"},
+      "capacity": {"type": "int"},
+      "pending": {"type": "int"}
+    }
+  },
+  "lobbyManageTitle": "Lobi yönetimi",
+  "lobbyPendingSection": "Bekleyen istekler",
+  "lobbyAcceptedSection": "Kabul edilenler",
+  "lobbyNoParticipants": "Henüz istek yok.",
+  "lobbyAccept": "Kabul et",
+  "lobbyDecline": "Reddet",
+  "lobbyMessage": "Mesaj",
+  "lobbyRemove": "Çıkar",
+  "lobbyRemoveTitle": "Oyuncuyu çıkar?",
+  "lobbyRemoveBody": "{name} lobiden çıkarılacak, maçı iptal olacak ve bilgilendirilecek.",
+  "@lobbyRemoveBody": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "lobbyClose": "Lobiyi kapat",
+  "lobbyCloseTitle": "Lobi kapatılsın mı?",
+  "lobbyCloseBody": "Yeni istek alınmaz, bekleyen istekler reddedilir. Kabul ettiklerinin maçı korunur.",
+  "lobbyClosedDone": "Lobi kapatıldı.",
+  "lobbyRemovedDone": "Oyuncu lobiden çıkarıldı.",
+  "lobbyAcceptedDone": "İstek kabul edildi.",
+  "lobbyDeclinedDone": "İstek reddedildi.",
+  "lobbyJoined": "Katıldın",
+  "lobbyMatched": "Eşleşti",
+  "lobbyIncomingRequests": "{count} istek",
+  "@lobbyIncomingRequests": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
   "requestIncomingLabel": "Sana gelen istek",
   "requestSentLabel": "Yanıt bekleniyor",
   "matchDetailRespondHint": "Kabul veya Reddet için Bildirimler sekmesine bak.",

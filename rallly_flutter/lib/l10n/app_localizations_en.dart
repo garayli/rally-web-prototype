@@ -463,6 +463,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authErrorGeneric => 'Something went wrong. Please try again.';
 
   @override
+  String get authErrorNoAccount =>
+      'No account found for this email. Go back and choose \"Get started\" to sign up.';
+
+  @override
   String get authErrorInvalidEmail => 'Please enter a valid email address.';
 
   @override
@@ -1339,6 +1343,107 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get lobbyRequested => 'Request sent';
+
+  @override
+  String get errorLobbyQueueFull =>
+      'This lobby has reached its limit of waiting requests. Try again once the organiser answers some.';
+
+  @override
+  String get errorLobbyFull => 'This lobby\'s roster is full.';
+
+  @override
+  String get errorLobbyClosed => 'This lobby no longer takes requests.';
+
+  @override
+  String get openLobbyFormat => 'Match type';
+
+  @override
+  String get lobbyQueueFull => 'Full for now';
+
+  @override
+  String get lobbyQueueFullHint => 'A spot opens when the organiser answers';
+
+  @override
+  String get lobbyRosterFull => 'Roster full';
+
+  @override
+  String get lobbyManage => 'Manage';
+
+  @override
+  String lobbyCounts(int accepted, int capacity, int pending) {
+    return '$accepted/$capacity accepted · $pending waiting';
+  }
+
+  @override
+  String get lobbyManageTitle => 'Manage lobby';
+
+  @override
+  String get lobbyPendingSection => 'Waiting requests';
+
+  @override
+  String get lobbyAcceptedSection => 'Accepted';
+
+  @override
+  String get lobbyNoParticipants => 'No requests yet.';
+
+  @override
+  String get lobbyAccept => 'Accept';
+
+  @override
+  String get lobbyDecline => 'Decline';
+
+  @override
+  String get lobbyMessage => 'Message';
+
+  @override
+  String get lobbyRemove => 'Remove';
+
+  @override
+  String get lobbyRemoveTitle => 'Remove player?';
+
+  @override
+  String lobbyRemoveBody(String name) {
+    return '$name will be removed from the lobby, their match cancelled, and they\'ll be notified.';
+  }
+
+  @override
+  String get lobbyClose => 'Close lobby';
+
+  @override
+  String get lobbyCloseTitle => 'Close this lobby?';
+
+  @override
+  String get lobbyCloseBody =>
+      'No new requests, and waiting requests are declined. Matches you already accepted stay.';
+
+  @override
+  String get lobbyClosedDone => 'Lobby closed.';
+
+  @override
+  String get lobbyRemovedDone => 'Player removed from the lobby.';
+
+  @override
+  String get lobbyAcceptedDone => 'Request accepted.';
+
+  @override
+  String get lobbyDeclinedDone => 'Request declined.';
+
+  @override
+  String get lobbyJoined => 'You\'re in';
+
+  @override
+  String get lobbyMatched => 'Matched';
+
+  @override
+  String lobbyIncomingRequests(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count requests',
+      one: '1 request',
+    );
+    return '$_temp0';
+  }
 
   @override
   String get requestIncomingLabel => 'Request for you';

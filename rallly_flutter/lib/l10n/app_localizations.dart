@@ -932,6 +932,12 @@ abstract class AppLocalizations {
   /// **'Bir şeyler yanlış gitti. Lütfen tekrar deneyin.'**
   String get authErrorGeneric;
 
+  /// No description provided for @authErrorNoAccount.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu e-posta adresine ait bir hesap bulunamadı. Geri dönüp \"Başla\" ile kayıt olabilirsin.'**
+  String get authErrorNoAccount;
+
   /// No description provided for @authErrorInvalidEmail.
   ///
   /// In tr, this message translates to:
@@ -2545,6 +2551,180 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'İstek gönderildi'**
   String get lobbyRequested;
+
+  /// No description provided for @errorLobbyQueueFull.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu lobide bekleyen istek sınırına ulaşıldı. Organizatör yanıtlayınca tekrar dene.'**
+  String get errorLobbyQueueFull;
+
+  /// No description provided for @errorLobbyFull.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu lobinin kadrosu dolu.'**
+  String get errorLobbyFull;
+
+  /// No description provided for @errorLobbyClosed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu lobi artık istek almıyor.'**
+  String get errorLobbyClosed;
+
+  /// No description provided for @openLobbyFormat.
+  ///
+  /// In tr, this message translates to:
+  /// **'Maç türü'**
+  String get openLobbyFormat;
+
+  /// No description provided for @lobbyQueueFull.
+  ///
+  /// In tr, this message translates to:
+  /// **'Şimdilik dolu'**
+  String get lobbyQueueFull;
+
+  /// No description provided for @lobbyQueueFullHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Organizatör yanıtlayınca yer açılır'**
+  String get lobbyQueueFullHint;
+
+  /// No description provided for @lobbyRosterFull.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kadro dolu'**
+  String get lobbyRosterFull;
+
+  /// No description provided for @lobbyManage.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yönet'**
+  String get lobbyManage;
+
+  /// No description provided for @lobbyCounts.
+  ///
+  /// In tr, this message translates to:
+  /// **'{accepted}/{capacity} kabul · {pending} bekleyen'**
+  String lobbyCounts(int accepted, int capacity, int pending);
+
+  /// No description provided for @lobbyManageTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Lobi yönetimi'**
+  String get lobbyManageTitle;
+
+  /// No description provided for @lobbyPendingSection.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bekleyen istekler'**
+  String get lobbyPendingSection;
+
+  /// No description provided for @lobbyAcceptedSection.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kabul edilenler'**
+  String get lobbyAcceptedSection;
+
+  /// No description provided for @lobbyNoParticipants.
+  ///
+  /// In tr, this message translates to:
+  /// **'Henüz istek yok.'**
+  String get lobbyNoParticipants;
+
+  /// No description provided for @lobbyAccept.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kabul et'**
+  String get lobbyAccept;
+
+  /// No description provided for @lobbyDecline.
+  ///
+  /// In tr, this message translates to:
+  /// **'Reddet'**
+  String get lobbyDecline;
+
+  /// No description provided for @lobbyMessage.
+  ///
+  /// In tr, this message translates to:
+  /// **'Mesaj'**
+  String get lobbyMessage;
+
+  /// No description provided for @lobbyRemove.
+  ///
+  /// In tr, this message translates to:
+  /// **'Çıkar'**
+  String get lobbyRemove;
+
+  /// No description provided for @lobbyRemoveTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oyuncuyu çıkar?'**
+  String get lobbyRemoveTitle;
+
+  /// No description provided for @lobbyRemoveBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'{name} lobiden çıkarılacak, maçı iptal olacak ve bilgilendirilecek.'**
+  String lobbyRemoveBody(String name);
+
+  /// No description provided for @lobbyClose.
+  ///
+  /// In tr, this message translates to:
+  /// **'Lobiyi kapat'**
+  String get lobbyClose;
+
+  /// No description provided for @lobbyCloseTitle.
+  ///
+  /// In tr, this message translates to:
+  /// **'Lobi kapatılsın mı?'**
+  String get lobbyCloseTitle;
+
+  /// No description provided for @lobbyCloseBody.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yeni istek alınmaz, bekleyen istekler reddedilir. Kabul ettiklerinin maçı korunur.'**
+  String get lobbyCloseBody;
+
+  /// No description provided for @lobbyClosedDone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Lobi kapatıldı.'**
+  String get lobbyClosedDone;
+
+  /// No description provided for @lobbyRemovedDone.
+  ///
+  /// In tr, this message translates to:
+  /// **'Oyuncu lobiden çıkarıldı.'**
+  String get lobbyRemovedDone;
+
+  /// No description provided for @lobbyAcceptedDone.
+  ///
+  /// In tr, this message translates to:
+  /// **'İstek kabul edildi.'**
+  String get lobbyAcceptedDone;
+
+  /// No description provided for @lobbyDeclinedDone.
+  ///
+  /// In tr, this message translates to:
+  /// **'İstek reddedildi.'**
+  String get lobbyDeclinedDone;
+
+  /// No description provided for @lobbyJoined.
+  ///
+  /// In tr, this message translates to:
+  /// **'Katıldın'**
+  String get lobbyJoined;
+
+  /// No description provided for @lobbyMatched.
+  ///
+  /// In tr, this message translates to:
+  /// **'Eşleşti'**
+  String get lobbyMatched;
+
+  /// No description provided for @lobbyIncomingRequests.
+  ///
+  /// In tr, this message translates to:
+  /// **'{count} istek'**
+  String lobbyIncomingRequests(int count);
 
   /// No description provided for @requestIncomingLabel.
   ///

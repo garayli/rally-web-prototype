@@ -234,3 +234,22 @@ Device testing showed (1) profiles "not saving": signup swallowed a failed save 
 ---
 
 <!-- Add new ADRs above this line -->
+---
+
+## ADR-013: Lobby v2 — format, 10-pending cap, roster, close (DB-enforced)
+**Date:** 2026-10-04
+**Status:** Accepted (supersedes the "lobby stays open" consequence of ADR-012)
+
+### Context
+Lobbies had no format, no limit on requests, no way to see/remove accepted players or to close. Other users can't read someone else's `matches` (RLS), so "is this lobby full?" can't be derived on the client.
+
+### Decision
+- `lobbies.format` (singles/doubles), `pending_count`, `accepted_count`, status `open|full|closed|cancelled`; `matches.lobby_id`. Migration: `docs/migrations/2026-10-04_lobby_v2.sql`.
+- Rules live in DB triggers (row-locked, so no race): max **10 pending** requests, roster 1 (singles) / 3 (doubles); counters and open↔full are recomputed on every `matches` change; closing declines pending requests and notifies.
+- Client: `Lobby` model, `lobbyCardState()` (`utils/lobby_state.dart`, unit-tested), lobbies cached in `DataService` (`getLobbies`, polled by `refreshLive`), organiser `showLobbyManageSheet()`; server errors `lobby_queue_full|lobby_full|lobby_closed` map to `DataError`.
+- The cap counts *pending* only: accepting one frees a slot for exactly one more request.
+
+### Consequences
+- **Positive:** every card is correct for every viewer; two people can't take the last slot.
+- **Negative:** code needs the migration applied first (`lobbies.format` insert fails otherwise). Requests made before the migration have no `lobby_id` and don't count toward a lobby.
+- **How to apply:** any new way of changing `matches.status` for lobby rows must go through the trigger-protected columns; never write the counters from the app.
