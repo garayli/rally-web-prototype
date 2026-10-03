@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../theme/app_theme.dart';
 import '../widgets/shared_widgets.dart';
 import '../main.dart' show supabase;
+import '../services/data_service.dart';
 import '../l10n/l10n.dart';
 
 // ─── Step 1: Enter email ──────────────────────────────────────────────────────
@@ -35,6 +36,11 @@ class _AuthEmailScreenState extends State<AuthEmailScreen> {
         lower.contains('email rate') ||
         lower.contains('too many')) {
       return l.authErrorRateLimit;
+    }
+    // shouldCreateUser:false + unknown email → 422 otp_disabled.
+    if (lower.contains('signups not allowed') ||
+        lower.contains('user not found')) {
+      return l.authErrorNoAccount;
     }
     return l.authErrorGeneric;
   }
@@ -324,6 +330,17 @@ class _AuthOtpScreenState extends State<AuthOtpScreen>
         token: _code,
         type: OtpType.email,
       );
+      // "Zaten hesabım var" must not let someone who never finished signing
+      // up in (an unverified signup still leaves an auth user behind).
+      if (!widget.isSignUp && !await dataService.hasCompletedProfile()) {
+        await supabase.auth.signOut();
+        if (!mounted) return;
+        setState(() {
+          _loading = false;
+          _error = l.authErrorNoAccount;
+        });
+        return;
+      }
       if (mounted) widget.onVerified();
     } on AuthException catch (e) {
       _triggerShake();
