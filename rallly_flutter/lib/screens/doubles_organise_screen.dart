@@ -8,6 +8,7 @@ import '../models/models.dart';
 import '../services/data_service.dart';
 import '../l10n/l10n.dart';
 import '../l10n/option_labels.dart';
+import '../l10n/data_error_message.dart';
 
 class DoublesOrganiseScreen extends StatefulWidget {
   final bool isSingles;
@@ -61,23 +62,49 @@ class _DoublesOrganiseScreenState extends State<DoublesOrganiseScreen> {
 
   bool get _canSubmit => _opponent != null && _selectedDate != null && _selectedTime != null && _court.isNotEmpty;
 
-  void _submit() {
+  Future<void> _submit() async {
+    if (_loading) return;
     final l = context.l10n;
+    final messenger = ScaffoldMessenger.of(context);
+    final navigator = Navigator.of(context);
     setState(() => _loading = true);
-    Future.delayed(const Duration(milliseconds: 800), () {
+    try {
+      final opponent = _opponent!;
+      final dt = DateTime(_selectedDate!.year, _selectedDate!.month,
+          _selectedDate!.day, _selectedTime!.hour, _selectedTime!.minute);
+      // Doubles is sent to the opponent as a doubles request. `matches` has no
+      // partner column yet, so the chosen partner isn't stored (see bugs.md).
+      await dataService.sendMatchRequest(
+        opponentId: opponent.id,
+        proposedDate: dt,
+        court: _court,
+        format: widget.isSingles ? 'singles' : 'doubles',
+      );
       if (!mounted) return;
-      Navigator.pop(context);
-      ScaffoldMessenger.of(context).showSnackBar(
+      navigator.pop();
+      messenger.showSnackBar(
         SnackBar(
           content: Text(widget.isSingles
-              ? l.matchRequestSentToName(_opponent!.name)
+              ? l.matchRequestSentToName(opponent.name)
               : l.doublesInviteSent),
           backgroundColor: RallyColors.accent,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         ),
       );
-    });
+    } catch (e) {
+      debugPrint('DOUBLES/SINGLES REQUEST ERROR: $e');
+      if (!mounted) return;
+      setState(() => _loading = false);
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(l.actionFailed(dataErrorMessage(l, e))),
+          backgroundColor: RallyColors.accent2,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+    }
   }
 
   @override

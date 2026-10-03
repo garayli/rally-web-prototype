@@ -16,6 +16,9 @@ import 'package:rallly/screens/reputation_screen.dart';
 import 'package:rallly/screens/log_result_screen.dart';
 import 'package:rallly/utils/uuid.dart';
 import 'package:rallly/screens/match_screen.dart';
+import 'package:rallly/screens/my_results_screen.dart';
+import 'package:rallly/screens/games_screen.dart';
+import 'package:rallly/screens/notifications_screen.dart';
 import 'package:rallly/theme/app_theme.dart';
 
 // ignore_for_file: unused_import
@@ -387,5 +390,52 @@ void main() {
         });
       }
     }
+  });
+
+  // ── Regression: screens must not assume a minimum number of players ────────
+  group('Screens with an empty cache (fewer than 5 players)', () {
+    testWidgets('MyResultsScreen shows the empty state instead of RangeError', (tester) async {
+      await tester.pumpWidget(_wrap(const MyResultsScreen()));
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('Geçmiş maç yok'), findsOneWidget);
+    });
+
+    testWidgets('GamesScreen past tab renders without placeholder players', (tester) async {
+      await tester.pumpWidget(_wrap(const GamesScreen()));
+      await tester.pump(const Duration(seconds: 1));
+      await tester.tap(find.text('Geçmiş'));
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  // ── Regression: iOS has no system back button ───────────────────────────────
+  group('NotificationsScreen back button', () {
+    testWidgets('shown when pushed onto a route', (tester) async {
+      await tester.pumpWidget(_wrap(Builder(
+        builder: (context) => TextButton(
+          onPressed: () => Navigator.push(context,
+              MaterialPageRoute(builder: (_) => const NotificationsScreen())),
+          child: const Text('open'),
+        ),
+      )));
+      await tester.tap(find.text('open'));
+      await tester.pumpAndSettle();
+
+      expect(find.byIcon(Icons.arrow_back_ios_new), findsOneWidget);
+      await tester.tap(find.byIcon(Icons.arrow_back_ios_new));
+      await tester.pumpAndSettle();
+      expect(find.text('open'), findsOneWidget);
+    });
+
+    testWidgets('hidden when used as a root tab', (tester) async {
+      await tester.pumpWidget(_wrap(const NotificationsScreen()));
+      await tester.pump();
+
+      expect(find.byIcon(Icons.arrow_back_ios_new), findsNothing);
+    });
   });
 }

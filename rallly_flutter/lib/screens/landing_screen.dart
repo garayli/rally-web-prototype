@@ -141,20 +141,6 @@ class LandingScreen extends StatelessWidget {
 
                 const Spacer(),
 
-                // ── Stats row ────────────────────────────────────────────────
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 28),
-                  child: Row(
-                    children: [
-                      _StatChip(value: '2.400+', label: context.l10n.landingStatPlayers),
-                      const SizedBox(width: 10),
-                      _StatChip(value: '98%', label: context.l10n.landingStatMatchRate),
-                      const SizedBox(width: 10),
-                      _StatChip(value: '4.9★', label: context.l10n.landingStatRating),
-                    ],
-                  ),
-                ).animate().fadeIn(delay: 450.ms),
-
                 const SizedBox(height: 28),
 
                 // ── CTA card ──────────────────────────────────────────────────
@@ -213,53 +199,6 @@ class LandingScreen extends StatelessWidget {
   }
 }
 
-class _StatChip extends StatelessWidget {
-  final String value;
-  final String label;
-  const _StatChip({required this.value, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.12)),
-        ),
-        child: Column(
-          children: [
-            Text(
-              value,
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontFamily: 'InstrumentSerif',
-                fontSize: 20,
-                color: Colors.white,
-                letterSpacing: -0.5,
-              ),
-            ),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 10,
-                color: Colors.white54,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.3,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 // ─── Court line painter ───────────────────────────────────────────────────────
 class _CourtPainter extends CustomPainter {

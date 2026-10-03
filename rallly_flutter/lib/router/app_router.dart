@@ -12,6 +12,8 @@ import '../screens/player_profile_screen.dart';
 import '../screens/messages_screen.dart';
 import '../models/models.dart';
 import '../services/analytics_service.dart';
+import '../services/data_service.dart';
+import '../theme/app_theme.dart';
 
 // ── Auth refresh listenable ───────────────────────────────────────────────────
 
@@ -105,8 +107,10 @@ final appRouter = GoRouter(
         return AuthOtpScreen(
           email: email,
           isSignUp: isSignUp,
-          onVerified: () =>
-              context.go(isSignUp ? AppRoutes.signup : AppRoutes.home),
+          // /home decides: _ProfileGate sends users without a saved profile
+          // to the wizard, so "Başla" on an existing account can't re-run it
+          // (and overwrite the profile).
+          onVerified: () => context.go(AppRoutes.home),
           onBack: () => context.go(
             AppRoutes.authEmail,
             extra: {'isSignUp': isSignUp},
@@ -125,7 +129,7 @@ final appRouter = GoRouter(
     // ── Authenticated routes ─────────────────────────────────────────────────
     GoRoute(
       path: AppRoutes.home,
-      builder: (context, state) => const MainShell(),
+      builder: (context, state) => const _ProfileGate(child: MainShell()),
     ),
 
     GoRoute(
@@ -150,3 +154,55 @@ final appRouter = GoRouter(
     ),
   ],
 );
+
+// ── Profile gate ──────────────────────────────────────────────────────────────
+
+/// Sends a signed-in user whose profile was never saved (signup abandoned or
+/// its save failed) back to the signup wizard instead of into an app that has
+/// no profile to show. Works for every entry — fresh OTP login, "sign in" on
+/// an unfinished account, or a restored session on app start.
+class _ProfileGate extends StatefulWidget {
+  final Widget child;
+  const _ProfileGate({required this.child});
+
+  @override
+  State<_ProfileGate> createState() => _ProfileGateState();
+}
+
+class _ProfileGateState extends State<_ProfileGate> {
+  late final Future<bool> _complete = _check();
+
+  Future<bool> _check() async {
+    try {
+      return await dataService.hasCompletedProfile();
+    } catch (e) {
+      // Offline or a transient error must not lock anyone out of the app.
+      debugPrint('PROFILE CHECK ERROR: $e');
+      return true;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<bool>(
+      future: _complete,
+      builder: (context, snap) {
+        if (snap.connectionState != ConnectionState.done) {
+          return const Scaffold(
+            backgroundColor: RallyColors.bg,
+            body: Center(
+                child: CircularProgressIndicator(color: RallyColors.accent)),
+          );
+        }
+        if (snap.data == false) {
+          // Can't navigate during build; hop to the next frame.
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) context.go(AppRoutes.signup);
+          });
+          return const Scaffold(backgroundColor: RallyColors.bg);
+        }
+        return widget.child;
+      },
+    );
+  }
+}

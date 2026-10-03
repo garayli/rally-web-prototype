@@ -58,9 +58,14 @@ class _SignupScreenState extends State<SignupScreen> {
     }
   }
 
+  /// "Ad Soyad" needs both words — a lone first name was being followed by a
+  /// surname typed into the location field below it.
+  bool get _hasFullName =>
+      _nameCtrl.text.trim().split(RegExp(r'\s+')).where((w) => w.isNotEmpty).length >= 2;
+
   bool get _canProceed {
     switch (_step) {
-      case 0: return _nameCtrl.text.trim().isNotEmpty && _locationCtrl.text.trim().isNotEmpty;
+      case 0: return _hasFullName && _locationCtrl.text.trim().isNotEmpty;
       case 1: return _selectedSports.isNotEmpty;
       case 2: return _skillLevel != null;
       case 3: return _selectedDays.isNotEmpty;
@@ -72,29 +77,32 @@ class _SignupScreenState extends State<SignupScreen> {
     setState(() => _loading = true);
     try {
       final userId = supabase.auth.currentUser?.id;
-      if (userId != null) {
-        await supabase.from('profiles').upsert({
-          'id': userId,
-          'name': _nameCtrl.text.trim(),
-          // NOT NULL in `profiles` — omitting it failed every new signup.
-          'initials': initialsOf(_nameCtrl.text),
-          'location': _locationCtrl.text.trim(),
-          'sports': _selectedSports.toList(),
-          'skill_level': _skillLevel,
-          if (_skillLevel != null) 'ntrp_rating': ntrpBySkillLevel[_skillLevel],
-          'available_days': _selectedDays.toList(),
-          'time_prefs': _selectedTimes.toList(),
-        });
-      }
+      if (userId == null) throw StateError('no signed-in user');
+      await supabase.from('profiles').upsert({
+        'id': userId,
+        'name': _nameCtrl.text.trim(),
+        // NOT NULL in `profiles` — omitting it failed every new signup.
+        'initials': initialsOf(_nameCtrl.text),
+        'location': _locationCtrl.text.trim(),
+        'sports': _selectedSports.toList(),
+        'skill_level': _skillLevel,
+        if (_skillLevel != null) 'ntrp_rating': ntrpBySkillLevel[_skillLevel],
+        'available_days': _selectedDays.toList(),
+        'time_prefs': _selectedTimes.toList(),
+      });
+      if (mounted) widget.onComplete();
     } catch (e) {
-      // Profile save failed — user can retry from the profile screen, but log it
-      // so a schema mismatch or RLS issue doesn't fail silently again.
+      // Stay on the wizard: moving on after a failed save is what made
+      // profiles "disappear" and forced a re-signup on every login.
       debugPrint('SIGNUP PROFILE SAVE ERROR: $e');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(context.l10n.signupSaveFailed),
+        backgroundColor: RallyColors.accent2,
+        behavior: SnackBarBehavior.floating,
+      ));
     } finally {
-      if (mounted) {
-        setState(() => _loading = false);
-        widget.onComplete();
-      }
+      if (mounted) setState(() => _loading = false);
     }
   }
 

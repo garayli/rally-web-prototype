@@ -179,5 +179,17 @@ Found while migrating (not i18n, not fixed):
 
 ---
 
+## 2026-10-03 — Device-test bug batch (see bugs.md "Device-Test Batch")
+- [x] Tümünü gör → GamesScreen; Geçmiş sekmesi + Sonuçlarım real data (RangeError)
+- [x] Match cards tappable (shared `showMatchDetailSheet`); incoming vs sent pending labels
+- [x] Lobby join writes a request + notifies creator; own lobby blocked
+- [x] Avatar initials, back button in Bildirimler, nearby-players tile moved
+- [x] Profile persistence: signup no longer swallows save errors, `_ProfileGate` on /home
+- [x] Doubles/singles organise screen really sends the request
+- [x] Hardcoded stats removed (profile, landing)
+- [x] `flutter analyze`: 0 errors; `flutter test`: 44 pass
+- [ ] Device retest (two accounts): lobby join → creator gets notification ≤10s; fresh signup → kill app → login lands on Home with the same profile
+- [ ] Reputation / Achievements still demo data — decide hide vs wire before store review
+
 ## Review (fill in after execution)
 _To be completed once phases are executed — summary of what passed, what broke, and what's still open before store submission._

@@ -619,5 +619,15 @@
   "shareResult": "Sonucu Paylaş 🎾",
   "done": "Tamam",
   "victory": "Zafer 🏆",
-  "defeat": "Yenilgi"
+  "defeat": "Yenilgi",
+  "errorOwnLobby": "Bu senin kendi lobin",
+  "errorAlreadyRequested": "Bu lobiye zaten katılma isteği gönderdin",
+  "lobbyYours": "Senin lobin",
+  "lobbyRequested": "İstek gönderildi",
+  "requestIncomingLabel": "Sana gelen istek",
+  "requestSentLabel": "Yanıt bekleniyor",
+  "matchDetailRespondHint": "Kabul veya Reddet için Bildirimler sekmesine bak.",
+  "signupNameNeedsSurname": "Adını ve soyadını birlikte yaz",
+  "signupSaveFailed": "Profilin kaydedilemedi, tekrar dene",
+  "emptyPastHint": "Tamamlanan maçların burada görünür"
 }

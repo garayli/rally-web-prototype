@@ -1324,4 +1324,36 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get defeat => 'Yenilgi';
+
+  @override
+  String get errorOwnLobby => 'Bu senin kendi lobin';
+
+  @override
+  String get errorAlreadyRequested =>
+      'Bu lobiye zaten katılma isteği gönderdin';
+
+  @override
+  String get lobbyYours => 'Senin lobin';
+
+  @override
+  String get lobbyRequested => 'İstek gönderildi';
+
+  @override
+  String get requestIncomingLabel => 'Sana gelen istek';
+
+  @override
+  String get requestSentLabel => 'Yanıt bekleniyor';
+
+  @override
+  String get matchDetailRespondHint =>
+      'Kabul veya Reddet için Bildirimler sekmesine bak.';
+
+  @override
+  String get signupNameNeedsSurname => 'Adını ve soyadını birlikte yaz';
+
+  @override
+  String get signupSaveFailed => 'Profilin kaydedilemedi, tekrar dene';
+
+  @override
+  String get emptyPastHint => 'Tamamlanan maçların burada görünür';
 }

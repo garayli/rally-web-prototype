@@ -2521,6 +2521,66 @@ abstract class AppLocalizations {
   /// In tr, this message translates to:
   /// **'Yenilgi'**
   String get defeat;
+
+  /// No description provided for @errorOwnLobby.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu senin kendi lobin'**
+  String get errorOwnLobby;
+
+  /// No description provided for @errorAlreadyRequested.
+  ///
+  /// In tr, this message translates to:
+  /// **'Bu lobiye zaten katılma isteği gönderdin'**
+  String get errorAlreadyRequested;
+
+  /// No description provided for @lobbyYours.
+  ///
+  /// In tr, this message translates to:
+  /// **'Senin lobin'**
+  String get lobbyYours;
+
+  /// No description provided for @lobbyRequested.
+  ///
+  /// In tr, this message translates to:
+  /// **'İstek gönderildi'**
+  String get lobbyRequested;
+
+  /// No description provided for @requestIncomingLabel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Sana gelen istek'**
+  String get requestIncomingLabel;
+
+  /// No description provided for @requestSentLabel.
+  ///
+  /// In tr, this message translates to:
+  /// **'Yanıt bekleniyor'**
+  String get requestSentLabel;
+
+  /// No description provided for @matchDetailRespondHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Kabul veya Reddet için Bildirimler sekmesine bak.'**
+  String get matchDetailRespondHint;
+
+  /// No description provided for @signupNameNeedsSurname.
+  ///
+  /// In tr, this message translates to:
+  /// **'Adını ve soyadını birlikte yaz'**
+  String get signupNameNeedsSurname;
+
+  /// No description provided for @signupSaveFailed.
+  ///
+  /// In tr, this message translates to:
+  /// **'Profilin kaydedilemedi, tekrar dene'**
+  String get signupSaveFailed;
+
+  /// No description provided for @emptyPastHint.
+  ///
+  /// In tr, this message translates to:
+  /// **'Tamamlanan maçların burada görünür'**
+  String get emptyPastHint;
 }
 
 class _AppLocalizationsDelegate

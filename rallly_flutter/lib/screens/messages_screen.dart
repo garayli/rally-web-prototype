@@ -454,8 +454,19 @@ class _ConversationScreenState extends State<ConversationScreen> {
         .firstOrNull;
     if (!mounted || convo == null) return;
     dataService.markConversationRead(convo.id);
+    // Newest first (the list is reversed). Always order by timestamp so a
+    // refresh can never leave the latest message above older ones, and drop
+    // a pending bubble once the server already returned its twin — sendMessage
+    // bumps the cache before _deliver gets to clear _pending, which briefly
+    // showed every just-sent message twice.
+    final server = [...convo.messages]
+      ..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    final unmatched = _pending.where((p) => !server.any((m) =>
+        m.senderId == p.senderId &&
+        m.text == p.text &&
+        !m.timestamp.isBefore(p.timestamp.subtract(const Duration(minutes: 2)))));
     setState(() {
-      _messages = [..._pending.reversed, ...convo.messages.reversed];
+      _messages = [...unmatched.toList().reversed, ...server];
     });
   }
 

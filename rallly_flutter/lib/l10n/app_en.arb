@@ -619,5 +619,15 @@
   "shareResult": "Share Result 🎾",
   "done": "Done",
   "victory": "Victory 🏆",
-  "defeat": "Defeat"
+  "defeat": "Defeat",
+  "errorOwnLobby": "This is your own lobby",
+  "errorAlreadyRequested": "You already asked to join this lobby",
+  "lobbyYours": "Your lobby",
+  "lobbyRequested": "Request sent",
+  "requestIncomingLabel": "Request for you",
+  "requestSentLabel": "Awaiting reply",
+  "matchDetailRespondHint": "Accept or decline from the Notifications tab.",
+  "signupNameNeedsSurname": "Enter your first and last name",
+  "signupSaveFailed": "Couldn't save your profile, please try again",
+  "emptyPastHint": "Completed matches will show up here"
 }

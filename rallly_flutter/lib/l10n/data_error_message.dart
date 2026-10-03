@@ -8,6 +8,8 @@ String dataErrorMessage(AppLocalizations l, Object error) {
       DataError.notSignedIn => l.errorNotSignedIn,
       DataError.recipientNotRegistered => l.errorRecipientNotRegistered,
       DataError.matchUpdateDenied => l.errorMatchUpdateDenied,
+      DataError.ownLobby => l.errorOwnLobby,
+      DataError.alreadyRequested => l.errorAlreadyRequested,
     };
   }
   return l.errorUnknown;

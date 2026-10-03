@@ -7,59 +7,29 @@ import '../models/models.dart';
 import '../services/data_service.dart';
 import 'player_profile_screen.dart';
 import '../l10n/l10n.dart';
+import '../l10n/option_labels.dart';
 
 class MyResultsScreen extends StatelessWidget {
   const MyResultsScreen({super.key});
 
-  static final List<_PastMatch> _results = () {
-    final players = dataService.getPlayers();
-    return [
-      _PastMatch(
-        opponent: players[0],
-        date: DateTime.now().subtract(const Duration(days: 5)),
-        court: 'Beşiktaş JK Tenis Kortları',
-        won: true,
-        sets: const [SetScore(6, 4), SetScore(7, 5)],
-        ratingDelta: 12,
-      ),
-      _PastMatch(
-        opponent: players[2],
-        date: DateTime.now().subtract(const Duration(days: 12)),
-        court: 'Galatasaray Tenis Kulübü',
-        won: false,
-        sets: const [SetScore(4, 6), SetScore(5, 7)],
-        ratingDelta: -8,
-      ),
-      _PastMatch(
-        opponent: players[3],
-        date: DateTime.now().subtract(const Duration(days: 20)),
-        court: 'Acıbadem Tenis Kulübü',
-        won: true,
-        sets: const [SetScore(6, 2), SetScore(6, 3)],
-        ratingDelta: 15,
-      ),
-      _PastMatch(
-        opponent: players[1],
-        date: DateTime.now().subtract(const Duration(days: 34)),
-        court: 'Caddebostan Tenis Kortları',
-        won: true,
-        sets: const [SetScore(7, 5), SetScore(4, 6), SetScore(10, 8)],
-        ratingDelta: 18,
-      ),
-      _PastMatch(
-        opponent: players[0],
-        date: DateTime.now().subtract(const Duration(days: 48)),
-        court: 'Levent Tenis Kulübü',
-        won: false,
-        sets: const [SetScore(3, 6), SetScore(6, 4), SetScore(5, 7)],
-        ratingDelta: -10,
-      ),
-    ];
-  }();
-
-  int get _wins => _results.where((r) => r.won).length;
-  int get _losses => _results.where((r) => !r.won).length;
-  int get _totalPoints => _results.fold(0, (s, r) => s + r.ratingDelta);
+  /// Completed matches that carry a score, newest first. Built from the live
+  /// cache — never from a fixed player index, so any number of players works.
+  static List<_PastMatch> _loadResults() {
+    final me = dataService.currentUserId;
+    final results = <_PastMatch>[
+      for (final s in dataService.getUpcomingSessions())
+        if (s.status == MatchStatus.completed && s.wonBy(me) != null)
+          _PastMatch(
+            opponent: s.opponent,
+            date: s.dateTime,
+            court: s.court,
+            won: s.wonBy(me)!,
+            sets: s.setsForMe(),
+            ratingDelta: s.ratingDeltaForMe().round(),
+          ),
+    ]..sort((a, b) => b.date.compareTo(a.date));
+    return results;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,7 +43,36 @@ class MyResultsScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: CustomScrollView(
+      body: ValueListenableBuilder<int>(
+        valueListenable: dataService.cacheVersion,
+        builder: (context, _, __) => _body(context, _loadResults()),
+      ),
+    );
+  }
+
+  Widget _body(BuildContext context, List<_PastMatch> results) {
+    final l = context.l10n;
+    if (results.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('🏆', style: TextStyle(fontSize: 48)),
+              const SizedBox(height: 14),
+              Text(l.emptyPast, style: const TextStyle(fontFamily: 'InstrumentSerif', fontSize: 22)),
+              const SizedBox(height: 6),
+              Text(l.emptyPastHint, textAlign: TextAlign.center, style: const TextStyle(color: RallyColors.muted, fontSize: 14)),
+            ],
+          ),
+        ),
+      );
+    }
+    final wins = results.where((r) => r.won).length;
+    final losses = results.length - wins;
+    final totalPoints = results.fold(0, (sum, r) => sum + r.ratingDelta);
+    return CustomScrollView(
         slivers: [
           SliverToBoxAdapter(
             child: Container(
@@ -91,13 +90,13 @@ class MyResultsScreen extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _Stat(label: l.statWins, value: '$_wins', light: true),
+                  _Stat(label: l.statWins, value: '$wins', light: true),
                   Container(width: 1, height: 40, color: Colors.white.withValues(alpha: 0.25)),
-                  _Stat(label: l.statLosses, value: '$_losses', light: true),
+                  _Stat(label: l.statLosses, value: '$losses', light: true),
                   Container(width: 1, height: 40, color: Colors.white.withValues(alpha: 0.25)),
                   _Stat(
                     label: l.statRating,
-                    value: '${_totalPoints > 0 ? '+' : ''}$_totalPoints',
+                    value: '${totalPoints > 0 ? '+' : ''}$totalPoints',
                     light: true,
                   ),
                 ],
@@ -109,13 +108,12 @@ class MyResultsScreen extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(20, 12, 20, 60),
             sliver: SliverList(
               delegate: SliverChildBuilderDelegate(
-                (context, i) => _ResultCard(match: _results[i]).animate().fadeIn(delay: (i * 60).ms),
-                childCount: _results.length,
+                (context, i) => _ResultCard(match: results[i]).animate().fadeIn(delay: (i * 60).ms),
+                childCount: results.length,
               ),
             ),
           ),
         ],
-      ),
     );
   }
 }
@@ -201,7 +199,7 @@ class _ResultCard extends StatelessWidget {
                     style: const TextStyle(fontSize: 12, color: RallyColors.muted),
                   ),
                   Text(
-                    match.court,
+                    courtDisplay(context.l10n, match.court),
                     style: const TextStyle(fontSize: 12, color: RallyColors.muted),
                     overflow: TextOverflow.ellipsis,
                     maxLines: 1,

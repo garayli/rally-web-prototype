@@ -14,7 +14,7 @@ import 'achievements_screen.dart';
 import 'notifications_preferences_screen.dart';
 import 'log_result_screen.dart';
 import 'my_results_screen.dart';
-import 'player_profile_screen.dart';
+import '../widgets/match_detail_sheet.dart';
 import '../l10n/l10n.dart';
 import '../l10n/option_labels.dart';
 
@@ -85,6 +85,10 @@ class _ProfileScreenState extends State<ProfileScreen>
         .where((s) => s.status == MatchStatus.completed).toList();
     final pending = dataService.getUpcomingSessions()
         .where((s) => s.status == MatchStatus.pending).toList();
+    // Record from the user's own logged results (not placeholder numbers).
+    final myId = dataService.currentUserId;
+    final decided = past.where((s) => s.wonBy(myId) != null).toList();
+    final wins = decided.where((s) => s.wonBy(myId)!).length;
 
     return Scaffold(
       backgroundColor: cp.bg,
@@ -266,13 +270,13 @@ class _ProfileScreenState extends State<ProfileScreen>
               ),
               child: Row(
                 children: [
-                  _StatBox(value: '18', label: l.statWins,
+                  _StatBox(value: '$wins', label: l.statWins,
                     color: cp.accent, cp: cp),
-                  _StatBox(value: '7', label: l.statLosses,
+                  _StatBox(value: '${decided.length - wins}', label: l.statLosses,
                     color: cp.text, cp: cp),
-                  _StatBox(value: '25', label: l.statPlayed,
+                  _StatBox(value: '${decided.length}', label: l.statPlayed,
                     color: cp.text, cp: cp),
-                  _StatBox(value: '4.8★', label: l.statRating,
+                  _StatBox(value: me?.ntrpDisplay ?? '–', label: 'NTRP',
                     color: cp.accent, cp: cp),
                 ],
               ),
@@ -675,7 +679,7 @@ class _SessionCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(RallyRadius.lg),
         child: InkWell(
           borderRadius: BorderRadius.circular(RallyRadius.lg),
-          onTap: () => _showMatchDetailSheet(context, session, cp),
+          onTap: () => showMatchDetailSheet(context, session),
           child: Padding(
             padding: const EdgeInsets.all(14),
             child: Row(
@@ -727,7 +731,9 @@ class _SessionCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(RallyRadius.pill),
                   ),
                   child: Text(
-                    _statusLabel(context.l10n, session.status),
+                    session.status == MatchStatus.pending
+                        ? sessionStatusLabel(context.l10n, session).toUpperCase()
+                        : _statusLabel(context.l10n, session.status),
                     style: RallyType.micro.copyWith(
                       color: cp.accentStrong, letterSpacing: 0.3),
                   ),
@@ -749,144 +755,6 @@ class _SessionCard extends StatelessWidget {
       case MatchStatus.pending:    return l.statusPendingUpper;
       case MatchStatus.cancelled:  return l.statusCancelledUpper;
     }
-  }
-}
-
-// ─── Match detail sheet ────────────────────────────────────────────────────────
-void _showMatchDetailSheet(
-    BuildContext context, MatchSession session, CourtPalette cp) {
-  showModalBottomSheet(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: Colors.transparent,
-    builder: (_) => _MatchDetailSheet(session: session, cp: cp),
-  );
-}
-
-class _MatchDetailSheet extends StatelessWidget {
-  final MatchSession session;
-  final CourtPalette cp;
-
-  const _MatchDetailSheet({required this.session, required this.cp});
-
-  String _statusLabel(AppLocalizations l, MatchStatus s) {
-    switch (s) {
-      case MatchStatus.confirmed:  return l.statusConfirmed;
-      case MatchStatus.completed:  return l.statusCompleted;
-      case MatchStatus.pending:    return l.statusPending;
-      case MatchStatus.cancelled:  return l.statusCancelled;
-    }
-  }
-
-  Widget _row(IconData icon, String label) => Padding(
-    padding: const EdgeInsets.only(bottom: Spacing.md),
-    child: Row(
-      children: [
-        Icon(icon, size: 18, color: cp.muted),
-        const SizedBox(width: Spacing.sm),
-        Expanded(
-          child: Text(label, style: RallyType.body.copyWith(color: cp.text)),
-        ),
-      ],
-    ),
-  );
-
-  @override
-  Widget build(BuildContext context) {
-    final dt = session.dateTime;
-    final opponent = session.opponent;
-    final result = session.result;
-    return SafeArea(
-      child: Container(
-        decoration: BoxDecoration(
-          color: cp.bg,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(RallyRadius.sheet)),
-        ),
-        padding: const EdgeInsets.fromLTRB(
-          Spacing.xl, Spacing.lg, Spacing.xl, Spacing.xl),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: cp.muted2,
-                  borderRadius: BorderRadius.circular(2)),
-              ),
-            ),
-            const SizedBox(height: Spacing.xl),
-            GestureDetector(
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(
-                  builder: (_) => PlayerProfileScreen(player: opponent)));
-              },
-              child: Row(
-                children: [
-                  PlayerAvatar(
-                    initials: opponent.initials,
-                    gradientStart: opponent.avatarGradientStart,
-                    gradientEnd: opponent.avatarGradientEnd,
-                    size: 48,
-                  ),
-                  const SizedBox(width: Spacing.md),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(context.l10n.vsOpponent(opponent.name),
-                          style: RallyType.titleLG.copyWith(color: cp.text)),
-                        const SizedBox(height: 2),
-                        Text(_statusLabel(context.l10n, session.status),
-                          style: RallyType.bodySM.copyWith(color: cp.accentStrong)),
-                      ],
-                    ),
-                  ),
-                  Icon(Icons.chevron_right, color: cp.muted),
-                ],
-              ),
-            ),
-            const SizedBox(height: Spacing.xl),
-            _row(Icons.calendar_today_outlined, DateFormat('EEEE, d MMMM', context.localeName).format(dt)),
-            _row(Icons.access_time, DateFormat('HH:mm', context.localeName).format(dt)),
-            _row(Icons.place_outlined, courtDisplay(context.l10n, session.court)),
-            _row(Icons.sports_tennis_outlined,
-              session.format == MatchFormat.doubles
-                  ? context.l10n.formatDoubles
-                  : context.l10n.formatSingles),
-            if (result != null) ...[
-              const SizedBox(height: Spacing.sm),
-              _row(Icons.emoji_events_outlined,
-                result.sets.map((s) => '${s.player1}-${s.player2}').join(', ')),
-            ],
-            if (session.status == MatchStatus.confirmed) ...[
-              const SizedBox(height: Spacing.md),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  style: FilledButton.styleFrom(
-                    backgroundColor: cp.accent,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(RallyRadius.pill)),
-                  ),
-                  onPressed: () {
-                    Navigator.pop(context);
-                    Navigator.push(context, MaterialPageRoute(
-                      builder: (_) => LogResultScreen(opponent: opponent)));
-                  },
-                  child: Text(context.l10n.logResult,
-                    style: const TextStyle(fontWeight: FontWeight.w700)),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
   }
 }
 

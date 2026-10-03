@@ -214,4 +214,23 @@ All UI strings were hardcoded Turkish literals spread across ~30 files, and `Dat
 
 ---
 
+## ADR-012: Profile gate on /home; lobby join as a match request
+**Date:** 2026-10-03
+**Status:** Accepted
+
+### Context
+Device testing showed (1) profiles "not saving": signup swallowed a failed save and entered the app anyway, and "Başla" on an existing account re-ran the wizard; (2) the lobby "Katıl" button only showed a snackbar. A join table plus a new notification type would have needed a migration.
+
+### Decision
+- `/home` is wrapped in `_ProfileGate` (`router/app_router.dart`). It calls `dataService.hasCompletedProfile()` → `isProfileComplete()` (`utils/profile_check.dart`): a row with a real name and a location. The auth trigger's `'New Player'` placeholder doesn't count. Incomplete → `/signup`. OTP verification always goes to `/home`; the gate decides. `SignupScreen` stays on the wizard when the save fails.
+- Joining a lobby = `dataService.joinLobby()`, which inserts a `matches` row (player1 = joiner, player2 = lobby creator, lobby's date/court, `pending`) and sends the standard `matchRequest` notification. It reuses existing RLS policies and the Kabul/Reddet flow. Own lobby → `DataError.ownLobby`; duplicate (same pair, slot, court, not cancelled) → `DataError.alreadyRequested`.
+- `MatchSession.isRequester` records which side the user is. Set scores, `rating_delta` and the pending state are from player1's view; `wonBy()`, `setsForMe()`, `ratingDeltaForMe()` translate them. `log_result_screen` writes `winner_id` only when player1 wins, so an empty winner means player2 won.
+
+### Consequences
+- **Positive:** No migration; every entry path is covered by one gate; request cards can say "Sana gelen istek" vs "Yanıt bekleniyor".
+- **Negative:** A lobby stays open after its creator accepts (no `lobby_id` on `matches`, and only the creator can update `lobbies`). The sport isn't stored on the match. A doubles partner can't be stored (no column).
+- **How to apply:** Never call a screen's completion callback from `finally` after a write that can fail. If lobbies need capacity/closing, add `matches.lobby_id` + a lobby-update policy first.
+
+---
+
 <!-- Add new ADRs above this line -->

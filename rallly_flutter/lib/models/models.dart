@@ -113,6 +113,10 @@ class MatchSession {
   final MatchFormat format;
   final MatchResult? result;
 
+  /// True when the signed-in user created the row (player1). Request status,
+  /// set scores and the rating delta are all stored from player1's side.
+  final bool isRequester;
+
   const MatchSession({
     required this.id,
     required this.opponent,
@@ -121,7 +125,40 @@ class MatchSession {
     required this.status,
     this.format = MatchFormat.singles,
     this.result,
+    this.isRequester = true,
   });
+
+  /// Still ahead of us: confirmed or awaiting an answer, and not long past.
+  bool get isUpcoming =>
+      (status == MatchStatus.confirmed || status == MatchStatus.pending) &&
+      dateTime.isAfter(DateTime.now().subtract(const Duration(hours: 3)));
+
+  /// A request someone else sent me that I haven't answered yet.
+  bool get isIncomingRequest => status == MatchStatus.pending && !isRequester;
+
+  /// Whether [userId] won; null while there is no result. `log_result_screen`
+  /// stores `winner_id` only when player1 won, so for player2 an empty winner
+  /// means player2 won.
+  bool? wonBy(String userId) {
+    final r = result;
+    if (r == null) return null;
+    if (r.winnerId == userId) return true;
+    return !isRequester && r.winnerId.isEmpty;
+  }
+
+  /// Set scores from the signed-in user's point of view (own games first).
+  List<SetScore> setsForMe() => result == null
+      ? const []
+      : isRequester
+          ? result!.sets
+          : [for (final s in result!.sets) SetScore(s.player2, s.player1)];
+
+  /// Rating change from the signed-in user's point of view.
+  double ratingDeltaForMe() => result == null
+      ? 0
+      : isRequester
+          ? result!.ratingDelta
+          : -result!.ratingDelta;
 
   factory MatchSession.fromJson(Map<String, dynamic> j) => MatchSession(
         id: j['id'] as String,

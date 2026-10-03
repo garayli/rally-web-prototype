@@ -8,6 +8,7 @@ import '../theme/design_tokens.dart';
 import '../main.dart' show CourtThemeProvider;
 import '../l10n/l10n.dart';
 import '../l10n/data_error_message.dart';
+import 'map_screen.dart';
 
 enum _Filter {
   all,
@@ -188,6 +189,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   Spacing.gutter, Spacing.lg, Spacing.md, Spacing.sm),
               child: Row(
                 children: [
+                  // Pushed from the Match tab there is no bottom-nav tap to go
+                  // back with (iOS has no system back button) — add one.
+                  if (Navigator.of(context).canPop())
+                    IconButton(
+                      icon: Icon(Icons.arrow_back_ios_new, size: 18, color: cp.text),
+                      tooltip: l.back,
+                      onPressed: () => Navigator.maybePop(context),
+                    ),
                   Text(
                     l.notifications,
                     style: TextStyle(
@@ -271,6 +280,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               ),
             ),
             const SizedBox(height: Spacing.md),
+
+            // ─── Nearby players summary (moved here from the Match tab) ──
+            if (_filter != _Filter.matches &&
+                dataService.getPlayers().isNotEmpty)
+              _NearbyPlayersTile(
+                count: dataService.getPlayers().length,
+                cp: cp,
+                onTap: () => Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const MapScreen())),
+              ),
 
             // ─── List ────────────────────────────────────────────────────
             Expanded(
@@ -617,6 +636,51 @@ class _ActionBtn extends StatelessWidget {
               color: outlined ? cp.text : Colors.white,
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+
+class _NearbyPlayersTile extends StatelessWidget {
+  final int count;
+  final CourtPalette cp;
+  final VoidCallback onTap;
+  const _NearbyPlayersTile(
+      {required this.count, required this.cp, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final l = context.l10n;
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.fromLTRB(
+            Spacing.gutter, 0, Spacing.gutter, Spacing.md),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: cp.accentTint,
+          borderRadius: BorderRadius.circular(RallyRadius.xl),
+          border: Border.all(color: cp.border),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.people_outline, color: cp.accentStrong),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(l.nearbyPlayersTitle,
+                      style: RallyType.titleMD.copyWith(color: cp.text)),
+                  Text(l.playersWaiting(count),
+                      style: RallyType.bodySM.copyWith(color: cp.text2)),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right, color: cp.muted),
+          ],
         ),
       ),
     );

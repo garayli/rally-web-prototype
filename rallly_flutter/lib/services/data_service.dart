@@ -3,12 +3,19 @@ import 'package:flutter/foundation.dart';
 import '../config/profile_options.dart';
 import '../models/models.dart';
 import '../utils/initials.dart';
+import '../utils/profile_check.dart';
 import '../utils/uuid.dart';
 import '../main.dart' show supabase;
 
 /// Why a DataService write failed. The UI maps these to localized text with
 /// `dataErrorMessage()` — never put user-facing strings in the data layer.
-enum DataError { notSignedIn, recipientNotRegistered, matchUpdateDenied }
+enum DataError {
+  notSignedIn,
+  recipientNotRegistered,
+  matchUpdateDenied,
+  ownLobby,
+  alreadyRequested,
+}
 
 class DataException implements Exception {
   final DataError error;
@@ -106,6 +113,23 @@ abstract class DataService {
     required String? skillLevel,
     required List<String> availableDays,
     required List<String> timePrefs,
+  });
+
+  /// Whether the signed-in user already has a named profile row. Decides if a
+  /// freshly verified login goes to the signup wizard or straight home. The
+  /// `handle_new_user` trigger creates a placeholder row ('New Player') on
+  /// auth signup, so a row alone doesn't count as a finished profile.
+  Future<bool> hasCompletedProfile();
+
+  /// Asks to join an open lobby. A lobby has no join table, so this is a
+  /// match request to the lobby's creator (same RLS, notification and
+  /// Kabul/Reddet flow as "Maç İste"). Throws [DataError.ownLobby] for the
+  /// user's own lobby and [DataError.alreadyRequested] for a repeat request.
+  Future<void> joinLobby({
+    required String creatorId,
+    required DateTime dateTime,
+    required String court,
+    required String sport,
   });
 
   /// Sends a match request to [opponentId]. In mock mode this simulates a
@@ -374,6 +398,7 @@ class MockDataService implements DataService {
       return MatchSession(
         id: row['id'] as String,
         opponent: opponent,
+        isRequester: row['player1_id'] == uid,
         dateTime: DateTime.parse(row['date_time'] as String),
         court: row['court'] as String? ?? '',
         status: MatchStatus.values.firstWhere(
@@ -438,7 +463,15 @@ class MockDataService implements DataService {
   }
 
   @override
-  String get currentUserId => supabase.auth.currentUser?.id ?? 'me';
+  String get currentUserId {
+    // Supabase isn't initialized in widget tests; the getter touching it
+    // throws there, so fall back to the 'me' sentinel like "no session".
+    try {
+      return supabase.auth.currentUser?.id ?? 'me';
+    } catch (_) {
+      return 'me';
+    }
+  }
 
   @override
   List<Player> getPlayers() => _cachedPlayers;
@@ -602,6 +635,64 @@ class MockDataService implements DataService {
   }
 
   @override
+  Future<bool> hasCompletedProfile() async {
+    final uid = supabase.auth.currentUser?.id;
+    if (uid == null) return false;
+    final row = await supabase
+        .from('profiles')
+        .select('name, location')
+        .eq('id', uid)
+        .maybeSingle();
+    return isProfileComplete(
+        row == null ? null : Map<String, dynamic>.from(row));
+  }
+
+  @override
+  Future<void> joinLobby({
+    required String creatorId,
+    required DateTime dateTime,
+    required String court,
+    required String sport,
+  }) async {
+    final uid = supabase.auth.currentUser?.id;
+    if (uid == null) throw const DataException(DataError.notSignedIn);
+    if (creatorId == uid) throw const DataException(DataError.ownLobby);
+    if (!isUuid(creatorId)) {
+      throw const DataException(DataError.recipientNotRegistered);
+    }
+    final slot = dateTime.toUtc().toIso8601String();
+    final existing = await supabase
+        .from('matches')
+        .select('id')
+        .eq('player1_id', uid)
+        .eq('player2_id', creatorId)
+        .eq('date_time', slot)
+        .eq('court', court)
+        .neq('status', 'cancelled')
+        .limit(1);
+    if ((existing as List).isNotEmpty) {
+      throw const DataException(DataError.alreadyRequested);
+    }
+    final inserted = await supabase.from('matches').insert({
+      'player1_id': uid,
+      'player2_id': creatorId,
+      'date_time': slot,
+      'court': court,
+      'format': 'singles',
+      'status': 'pending',
+    }).select('id').single();
+    await _notifyMatchRequest(
+      matchId: inserted['id'] as String,
+      opponentId: creatorId,
+      requesterId: uid,
+      court: court,
+      body: (name) => '$name, $sport lobine katılmak istiyor ($court).',
+    );
+    await _refreshUpcomingSessions(await _fetchMyNtrp(uid));
+    _cacheVersion.value++;
+  }
+
+  @override
   Future<void> sendMatchRequest({
     required String opponentId,
     required DateTime proposedDate,
@@ -666,6 +757,7 @@ class MockDataService implements DataService {
     required String opponentId,
     required String requesterId,
     required String court,
+    String Function(String name)? body,
   }) async {
     try {
       final me = await supabase
@@ -678,7 +770,7 @@ class MockDataService implements DataService {
         'user_id': opponentId,
         'type': 'matchRequest',
         'title': 'Yeni Maç İsteği',
-        'body': '$name sizinle $court için maç yapmak istiyor.',
+        'body': body?.call(name) ?? '$name sizinle $court için maç yapmak istiyor.',
         'avatar_initials': me?['initials'],
         'avatar_color': me?['avatar_gradient_start'],
         'action_id': matchId,

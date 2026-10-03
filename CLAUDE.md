@@ -33,7 +33,7 @@ flutter test test/widget_test.dart      # run a single test file
 The app uses **GoRouter** (`lib/router/app_router.dart`) for top-level routing. `_AppRouter` in `main.dart` handles the Supabase init check via a `_AppPage` enum + `switch` expression, then hands off to GoRouter.
 
 ```
-landing → /auth/email → /auth/otp → /signup (new users only) → /home (MainShell)
+landing → /auth/email → /auth/otp → /home (MainShell); /home's _ProfileGate sends users without a finished profile to /signup
 ```
 
 GoRouter's `redirect()` enforces the auth guard — logged-in users are bounced from `/landing`/`/auth/*`/`/signup`; unauthenticated users from `/home` and below. `_GoRouterRefreshStream` listens to `supabase.auth.onAuthStateChange` and triggers redirects on logout.
@@ -46,10 +46,10 @@ Supabase credentials live in `lib/config/supabase_config.dart` (`supabaseUrl` an
 
 ### Navigation inside the app (`lib/screens/main_shell.dart`)
 
-`MainShell` is a bottom-nav shell with 5 tabs using `IndexedStack` (state is preserved across tabs):
-- Match, Schedule, Messages, Notifications, Profile
+`MainShell` is a bottom-nav shell with 4 tabs using `IndexedStack` (state is preserved across tabs):
+- Match, Messages, Notifications, Profile
 
-`IndexedStack` keeps all 5 screens alive — higher memory use, but no scroll-position loss on tab switch.
+`IndexedStack` keeps all 4 screens alive — higher memory use, but no scroll-position loss on tab switch.
 
 A custom `OnboardingOverlay` (not a third-party package) is shown once per tab. Seen-state is persisted in `SharedPreferences` using key `'onboarding_seen'` (list of seen tab indices).
 
@@ -65,7 +65,7 @@ All data is currently **mock only** (`lib/services/mock_data.dart`).
 - `unreadNotifier` (`ValueNotifier<int>`) — reactive badge count used by MainShell
 - `markAllRead()`, `markConversationRead(id)`, `getNotifPrefs()`, `saveNotifPrefs()`
 
-**Live data:** There's no Supabase Realtime yet. `dataService.refreshLive()` re-reads conversations, sessions and notifications. It bumps `cacheVersion` only on a real change. `MainShell` polls it every 10s and an open `ConversationScreen` every 4s. Screens must read shared data from DataService and listen to `cacheVersion`, never keep a private copy. Writes go through DataService: `sendMessage()`, `sendMatchRequest()`, `respondToMatchRequest()`. Every "Maç İste" button must call `showMatchRequestSheet()` (`lib/widgets/match_request_sheet.dart`).
+**Live data:** There's no Supabase Realtime yet. `dataService.refreshLive()` re-reads conversations, sessions and notifications. It bumps `cacheVersion` only on a real change. `MainShell` polls it every 10s and an open `ConversationScreen` every 4s. Screens must read shared data from DataService and listen to `cacheVersion`, never keep a private copy. Writes go through DataService: `sendMessage()`, `sendMatchRequest()`, `respondToMatchRequest()`. Match cards open `showMatchDetailSheet()` (`lib/widgets/match_detail_sheet.dart`). Lobby "Katıl" = `joinLobby()`, a match request to the creator (ADR-012). Every "Maç İste" button must call `showMatchRequestSheet()` (`lib/widgets/match_request_sheet.dart`).
 
 The sentinel value `'me'` appears as `senderId` in mock conversations. Replace with `supabase.auth.currentUser!.id` when wiring Supabase.
 

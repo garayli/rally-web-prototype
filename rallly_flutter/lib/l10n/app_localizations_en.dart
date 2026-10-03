@@ -1327,4 +1327,36 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get defeat => 'Defeat';
+
+  @override
+  String get errorOwnLobby => 'This is your own lobby';
+
+  @override
+  String get errorAlreadyRequested => 'You already asked to join this lobby';
+
+  @override
+  String get lobbyYours => 'Your lobby';
+
+  @override
+  String get lobbyRequested => 'Request sent';
+
+  @override
+  String get requestIncomingLabel => 'Request for you';
+
+  @override
+  String get requestSentLabel => 'Awaiting reply';
+
+  @override
+  String get matchDetailRespondHint =>
+      'Accept or decline from the Notifications tab.';
+
+  @override
+  String get signupNameNeedsSurname => 'Enter your first and last name';
+
+  @override
+  String get signupSaveFailed =>
+      'Couldn\'t save your profile, please try again';
+
+  @override
+  String get emptyPastHint => 'Completed matches will show up here';
 }

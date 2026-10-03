@@ -157,3 +157,9 @@ RLS: anyone can SELECT where `is_public=true AND status='open'`; only `creator_i
 
 - Update this file when configuration changes
 - Never commit actual credentials to version control
+
+## Local Android build (macOS)
+- Android Studio's bundled JDK is **25**, which Gradle 8.14 here can't use (build fails with just `25.0.3`). Use JDK 21: `flutter config --jdk-dir <jdk21 home>` (installed at `~/development/jdk21` on the dev Mac) and `flutter config --android-sdk ~/Library/Android/sdk`, then `flutter doctor --android-licenses`.
+- Flutter lives at `~/development/flutter/bin` and isn't on PATH by default.
+- A build also needs the gitignored `android/app/google-services.json` and a real `lib/firebase_options.dart` (the `.example` placeholders `YOUR_API_KEY` fail at startup).
+- `flutter run -d web-server --web-port 8099` serves the web build; a stale server on 8080 once showed old code — check `lsof -iTCP:<port>` when "nothing changed".

@@ -13,6 +13,9 @@ import 'map_screen.dart';
 import 'notifications_screen.dart';
 import 'profile_screen.dart';
 import 'open_lobby_screen.dart';
+import 'games_screen.dart';
+import '../widgets/match_detail_sheet.dart';
+import '../l10n/data_error_message.dart';
 import '../l10n/l10n.dart';
 import '../l10n/option_labels.dart';
 
@@ -97,7 +100,12 @@ class _MatchScreenState extends State<MatchScreen> {
   Widget _buildScaffold(BuildContext context) {
     final cp = CourtThemeProvider.of(context);
     final l = context.l10n;
-    final upcoming = dataService.getUpcomingSessions().take(5).toList();
+    final me = dataService.getCurrentPlayer();
+    final upcoming = dataService
+        .getUpcomingSessions()
+        .where((s) => s.isUpcoming)
+        .take(5)
+        .toList();
     final players = _filteredPlayers;
 
     return Scaffold(
@@ -134,12 +142,12 @@ class _MatchScreenState extends State<MatchScreen> {
                 borderRadius: BorderRadius.circular(17),
                 onTap: () => Navigator.push(context,
                     MaterialPageRoute(builder: (_) => const ProfileScreen())),
-                child: const Padding(
-                  padding: EdgeInsets.only(right: 16),
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 16),
                   child: PlayerAvatar(
-                    initials: 'LG',
-                    gradientStart: '#7b4fa6',
-                    gradientEnd: '#a97fcb',
+                    initials: me?.initials ?? '?',
+                    gradientStart: me?.avatarGradientStart ?? '#7b4fa6',
+                    gradientEnd: me?.avatarGradientEnd ?? '#a97fcb',
                     size: 34,
                   ),
                 ),
@@ -155,9 +163,6 @@ class _MatchScreenState extends State<MatchScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ── Court hero ─────────────────────────────────────────────
-                _CourtHero(cp: cp, playerCount: players.length),
-
                 // ── Search bar ─────────────────────────────────────────────
                 Padding(
                   padding: const EdgeInsets.fromLTRB(
@@ -205,7 +210,7 @@ class _MatchScreenState extends State<MatchScreen> {
                     title: l.upcomingMatchesHeader,
                     action: l.seeAll,
                     onAction: () => Navigator.push(context,
-                        MaterialPageRoute(builder: (_) => const ProfileScreen())),
+                        MaterialPageRoute(builder: (_) => const GamesScreen())),
                   ),
                   SizedBox(
                     height: 120,
@@ -349,82 +354,6 @@ class _Wordmark extends StatelessWidget {
           style: TextStyle(
               fontFamily: 'InstrumentSerif', fontSize: 24, color: cp.accent)),
       ]),
-    );
-  }
-}
-
-// ─── Court hero strip ─────────────────────────────────────────────────────────
-class _CourtHero extends StatelessWidget {
-  final CourtPalette cp;
-  final int playerCount;
-  const _CourtHero({required this.cp, required this.playerCount});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.fromLTRB(
-          Spacing.gutter, Spacing.lg, Spacing.gutter, 0),
-      height: 128,
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [cp.gradA, cp.gradB],
-        ),
-        borderRadius: BorderRadius.circular(22),
-        boxShadow: [
-          BoxShadow(
-              color: cp.gradB.withValues(alpha: 0.30),
-              blurRadius: 28,
-              offset: const Offset(0, 12))
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(22),
-        child: Stack(
-          children: [
-            Positioned(
-              right: -22,
-              top: -22,
-              child: Container(
-                width: 112,
-                height: 112,
-                decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: cp.highlight.withValues(alpha: 0.50)),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(18),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(context.l10n.nearbyPlayersEyebrow,
-                      style: RallyType.eyebrow
-                          .copyWith(color: Colors.white.withValues(alpha: 0.78))),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(context.l10n.navFindOpponent,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: RallyType.displayMD.copyWith(
-                              color: Colors.white, letterSpacing: -1.2)),
-                      const SizedBox(height: 4),
-                      Text(context.l10n.playersWaiting(playerCount),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: RallyType.bodySM.copyWith(
-                              color: Colors.white.withValues(alpha: 0.82))),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }
@@ -791,7 +720,9 @@ class _UpcomingCard extends StatelessWidget {
     final dayStr = DateFormat('EEE', context.localeName).format(dt).toUpperCase();
     final timeStr = DateFormat('HH:mm', context.localeName).format(dt);
 
-    return Container(
+    return GestureDetector(
+      onTap: () => showMatchDetailSheet(context, session),
+      child: Container(
       width: 160,
       margin: const EdgeInsets.only(right: Spacing.sm),
       padding: const EdgeInsets.all(12),
@@ -823,8 +754,13 @@ class _UpcomingCard extends StatelessWidget {
               style: RallyType.bodySM
                   .copyWith(color: cp.text2, fontWeight: FontWeight.w600),
               overflow: TextOverflow.ellipsis),
+          if (session.status == MatchStatus.pending)
+            Text(sessionStatusLabel(context.l10n, session),
+                style: RallyType.micro.copyWith(color: cp.accentStrong),
+                overflow: TextOverflow.ellipsis),
         ],
       ),
+    ),
     );
   }
 }
@@ -1106,10 +1042,62 @@ class _FilterSheetState extends State<_FilterSheet> {
 }
 
 // ─── Open lobby card ──────────────────────────────────────────────────────────
-class _LobbyCard extends StatelessWidget {
+class _LobbyCard extends StatefulWidget {
   final Map<String, dynamic> lobby;
   final CourtPalette cp;
   const _LobbyCard({required this.lobby, required this.cp});
+
+  @override
+  State<_LobbyCard> createState() => _LobbyCardState();
+}
+
+class _LobbyCardState extends State<_LobbyCard> {
+  bool _joined = false;
+  bool _joining = false;
+
+  Map<String, dynamic> get lobby => widget.lobby;
+  CourtPalette get cp => widget.cp;
+
+  bool get _isMine => lobby['creator_id'] == dataService.currentUserId;
+
+  Future<void> _join(DateTime dt, String sport, String court) async {
+    final l = context.l10n;
+    final messenger = ScaffoldMessenger.of(context);
+    setState(() => _joining = true);
+    try {
+      await dataService.joinLobby(
+        creatorId: lobby['creator_id'] as String,
+        dateTime: dt,
+        court: court,
+        sport: sportLabel(l, sport),
+      );
+      if (!mounted) return;
+      setState(() {
+        _joined = true;
+        _joining = false;
+      });
+      messenger.showSnackBar(SnackBar(
+        content: Text(l.lobbyJoinSent(sportLabel(l, sport))),
+        backgroundColor: RallyColors.accent,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ));
+    } catch (e) {
+      debugPrint('LOBBY JOIN ERROR: $e');
+      if (!mounted) return;
+      final already = e is DataException && e.error == DataError.alreadyRequested;
+      setState(() {
+        _joined = already;
+        _joining = false;
+      });
+      messenger.showSnackBar(SnackBar(
+        content: Text(l.actionFailed(dataErrorMessage(l, e))),
+        backgroundColor: RallyColors.accent2,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      ));
+    }
+  }
 
   static const _sportEmojis = {
     'Tenis': '🎾',
@@ -1176,15 +1164,10 @@ class _LobbyCard extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: FilledButton(
-              onPressed: () =>
-                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                content:
-                    Text(context.l10n.lobbyJoinSent(sportLabel(context.l10n, sport))),
-                backgroundColor: RallyColors.accent,
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12)),
-              )),
+              // Own lobby, already-sent and in-flight requests can't be tapped.
+              onPressed: (_isMine || _joined || _joining || dt == null)
+                  ? null
+                  : () => _join(dt, sport, court),
               style: FilledButton.styleFrom(
                 backgroundColor: cp.accent,
                 minimumSize: const Size(0, 32),
@@ -1194,7 +1177,11 @@ class _LobbyCard extends StatelessWidget {
                 textStyle: const TextStyle(
                     fontSize: 12, fontWeight: FontWeight.w600),
               ),
-              child: Text(context.l10n.join),
+              child: Text(_isMine
+                  ? context.l10n.lobbyYours
+                  : _joined
+                      ? context.l10n.lobbyRequested
+                      : context.l10n.join),
             ),
           ),
         ],
