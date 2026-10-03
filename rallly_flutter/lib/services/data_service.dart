@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' show PostgrestException;
 import '../config/profile_options.dart';
 import '../models/models.dart';
 import '../utils/initials.dart';
@@ -15,6 +16,9 @@ enum DataError {
   matchUpdateDenied,
   ownLobby,
   alreadyRequested,
+  lobbyQueueFull,
+  lobbyFull,
+  lobbyClosed,
 }
 
 class DataException implements Exception {
@@ -85,9 +89,13 @@ abstract class DataService {
   /// Opponent accepts/declines a match request: sets `matches.status` to
   /// confirmed/cancelled, then rewrites the notification so the choice
   /// survives reloads. Throws if the match row couldn't be updated.
+  ///
+  /// [notificationId] is the request notification to retire; when null (the
+  /// lobby management sheet has no notification in hand) it is looked up by
+  /// `action_id`. Accepting into a full lobby throws [DataError.lobbyFull].
   Future<void> respondToMatchRequest({
     required String matchId,
-    required String notificationId,
+    String? notificationId,
     required bool accept,
   });
 
@@ -124,13 +132,30 @@ abstract class DataService {
   /// Asks to join an open lobby. A lobby has no join table, so this is a
   /// match request to the lobby's creator (same RLS, notification and
   /// Kabul/Reddet flow as "Maç İste"). Throws [DataError.ownLobby] for the
-  /// user's own lobby and [DataError.alreadyRequested] for a repeat request.
+  /// user's own lobby, [DataError.alreadyRequested] for a repeat request, and
+  /// [DataError.lobbyQueueFull] / [lobbyFull] / [lobbyClosed] when the server
+  /// refuses (10 pending requests, roster complete, organiser closed it).
   Future<void> joinLobby({
+    required String lobbyId,
     required String creatorId,
     required DateTime dateTime,
     required String court,
     required String sport,
   });
+
+  /// Open/full lobbies visible to the user (cached; refreshed by [refreshLive]).
+  List<Lobby> getLobbies();
+
+  /// Pending and accepted players of one of the user's own lobbies.
+  Future<List<LobbyParticipant>> getLobbyParticipants(String lobbyId);
+
+  /// Organiser takes an accepted player out again: the match is cancelled, the
+  /// spot is freed (the DB reopens a full lobby) and the player is notified.
+  Future<void> removeFromLobby({required String matchId});
+
+  /// Organiser stops the lobby: no new requests, pending ones are declined by
+  /// the DB (with notifications), accepted players keep their match.
+  Future<void> closeLobby(String lobbyId);
 
   /// Sends a match request to [opponentId]. In mock mode this simulates a
   /// network call; SupabaseDataService will insert into `matches`.
@@ -153,6 +178,7 @@ class MockDataService implements DataService {
   Player? _currentPlayer;
   List<Conversation> _cachedConversations = [];
   List<MatchSession> _cachedUpcomingSessions = [];
+  List<Lobby> _cachedLobbies = [];
 
   final ValueNotifier<int> _unreadNotifier = ValueNotifier(0);
   final ValueNotifier<int> _cacheVersion = ValueNotifier(0);
@@ -210,6 +236,7 @@ class MockDataService implements DataService {
         _refreshCurrentPlayer(uid),
         _refreshConversations(myNtrp),
         _refreshUpcomingSessions(myNtrp),
+        _refreshLobbies(),
         // The constructor's fetch can run before login (uid == null) and
         // cache an empty list — reload once we know who's signed in.
         _refreshNotifications(),
@@ -233,6 +260,7 @@ class MockDataService implements DataService {
       await Future.wait([
         _refreshConversations(_myNtrp),
         _refreshUpcomingSessions(_myNtrp),
+        _refreshLobbies(),
         _refreshNotifications(),
       ]);
       // Only rebuild the IndexedStack tabs when a poll actually saw a change.
@@ -250,6 +278,8 @@ class MockDataService implements DataService {
         for (final s in _cachedUpcomingSessions)
           '${s.id}:${s.status.name}:${s.result != null}',
         for (final n in _cachedNotifs) '${n.id}:${n.isRead}',
+        for (final b in _cachedLobbies)
+          '${b.id}:${b.status}:${b.pendingCount}:${b.acceptedCount}',
       ].join('|');
 
   @override
@@ -399,6 +429,7 @@ class MockDataService implements DataService {
         id: row['id'] as String,
         opponent: opponent,
         isRequester: row['player1_id'] == uid,
+        lobbyId: row['lobby_id'] as String?,
         dateTime: DateTime.parse(row['date_time'] as String),
         court: row['court'] as String? ?? '',
         status: MatchStatus.values.firstWhere(
@@ -486,6 +517,31 @@ class MockDataService implements DataService {
   List<MatchSession> getUpcomingSessions() => _cachedUpcomingSessions;
 
   @override
+  List<Lobby> getLobbies() => _cachedLobbies;
+
+  Future<void> _refreshLobbies() async {
+    final uid = supabase.auth.currentUser?.id;
+    if (uid == null) {
+      _cachedLobbies = [];
+      return;
+    }
+    try {
+      final rows = await supabase
+          .from('lobbies')
+          .select()
+          .inFilter('status', ['open', 'full'])
+          .or('is_public.eq.true,creator_id.eq.$uid')
+          .order('date_time');
+      _cachedLobbies = (rows as List)
+          .map((r) => Lobby.fromJson(Map<String, dynamic>.from(r as Map)))
+          .toList();
+    } catch (e) {
+      // Keep the last good list: a flaky poll must not blank the lobby row.
+      debugPrint('LOBBIES REFRESH ERROR: $e');
+    }
+  }
+
+  @override
   Future<List<AppNotification>> getNotifications() async {
     await _refreshNotifications();
     return List.from(_cachedNotifs);
@@ -524,19 +580,28 @@ class MockDataService implements DataService {
   @override
   Future<void> respondToMatchRequest({
     required String matchId,
-    required String notificationId,
+    String? notificationId,
     required bool accept,
   }) async {
     // RLS filters UPDATEs silently (0 rows, no error) — select the row back
     // so a policy that doesn't let player2 update is reported, not hidden.
-    final updated = await supabase
-        .from('matches')
-        .update({'status': accept ? 'confirmed' : 'cancelled'})
-        .eq('id', matchId)
-        .select('player1_id, court');
-    if ((updated as List).isEmpty) {
+    // Only a still-pending request can be answered (a lobby close or a
+    // withdrawn request must not be revived by a stale Kabul button).
+    final List updated;
+    try {
+      updated = await supabase
+          .from('matches')
+          .update({'status': accept ? 'confirmed' : 'cancelled'})
+          .eq('id', matchId)
+          .eq('status', 'pending')
+          .select('player1_id, court');
+    } on PostgrestException catch (e) {
+      throw _lobbyError(e) ?? e;
+    }
+    if (updated.isEmpty) {
       throw const DataException(DataError.matchUpdateDenied);
     }
+    notificationId ??= await _requestNotificationId(matchId);
     final match = Map<String, dynamic>.from(updated.first as Map);
     await _notifyRequesterOfResponse(
       matchId: matchId,
@@ -546,17 +611,20 @@ class MockDataService implements DataService {
     );
     // The match is already updated, so a failure here must not throw.
     // Rewriting the type is what hides the accept/decline buttons on reload.
-    try {
-      await supabase.from('notifications').update({
-        'type': accept ? 'matchConfirmed' : 'matchDeclined',
-        'title': accept ? 'Maç Kabul Edildi' : 'Maç Reddedildi',
-        'is_read': true,
-      }).eq('id', notificationId);
-    } catch (e) {
-      debugPrint('MATCH REQUEST NOTIFICATION UPDATE ERROR: $e');
-      await supabase
-          .from('notifications')
-          .update({'is_read': true}).eq('id', notificationId);
+    final nid = notificationId;
+    if (nid != null) {
+      try {
+        await supabase.from('notifications').update({
+          'type': accept ? 'matchConfirmed' : 'matchDeclined',
+          'title': accept ? 'Maç Kabul Edildi' : 'Maç Reddedildi',
+          'is_read': true,
+        }).eq('id', nid);
+      } catch (e) {
+        debugPrint('MATCH REQUEST NOTIFICATION UPDATE ERROR: $e');
+        await supabase
+            .from('notifications')
+            .update({'is_read': true}).eq('id', nid);
+      }
     }
     await refreshLive();
   }
@@ -647,8 +715,43 @@ class MockDataService implements DataService {
         row == null ? null : Map<String, dynamic>.from(row));
   }
 
+  /// Maps the lobby trigger's `RAISE EXCEPTION 'lobby_…'` to a [DataError].
+  DataException? _lobbyError(PostgrestException e) {
+    final m = e.message;
+    if (m.contains('lobby_queue_full')) {
+      return const DataException(DataError.lobbyQueueFull);
+    }
+    if (m.contains('lobby_full')) return const DataException(DataError.lobbyFull);
+    if (m.contains('lobby_closed') || m.contains('lobby_request_ended')) {
+      return const DataException(DataError.lobbyClosed);
+    }
+    if (m.contains('lobby_already_requested')) {
+      return const DataException(DataError.alreadyRequested);
+    }
+    if (m.contains('lobby_own')) return const DataException(DataError.ownLobby);
+    return null;
+  }
+
+  Future<String?> _requestNotificationId(String matchId) async {
+    final uid = supabase.auth.currentUser?.id;
+    if (uid == null) return null;
+    try {
+      final rows = await supabase
+          .from('notifications')
+          .select('id')
+          .eq('user_id', uid)
+          .eq('action_id', matchId)
+          .eq('type', 'matchRequest')
+          .limit(1);
+      return (rows as List).isEmpty ? null : (rows.first as Map)['id'] as String;
+    } catch (_) {
+      return null;
+    }
+  }
+
   @override
   Future<void> joinLobby({
+    required String lobbyId,
     required String creatorId,
     required DateTime dateTime,
     required String court,
@@ -660,27 +763,22 @@ class MockDataService implements DataService {
     if (!isUuid(creatorId)) {
       throw const DataException(DataError.recipientNotRegistered);
     }
-    final slot = dateTime.toUtc().toIso8601String();
-    final existing = await supabase
-        .from('matches')
-        .select('id')
-        .eq('player1_id', uid)
-        .eq('player2_id', creatorId)
-        .eq('date_time', slot)
-        .eq('court', court)
-        .neq('status', 'cancelled')
-        .limit(1);
-    if ((existing as List).isNotEmpty) {
-      throw const DataException(DataError.alreadyRequested);
+    // The DB trigger enforces closed / full / 10-pending / duplicate under a
+    // row lock, so two people tapping the last slot can't both get in.
+    final Map<String, dynamic> inserted;
+    try {
+      inserted = await supabase.from('matches').insert({
+        'player1_id': uid,
+        'player2_id': creatorId,
+        'lobby_id': lobbyId,
+        'date_time': dateTime.toUtc().toIso8601String(),
+        'court': court,
+        'format': 'singles',
+        'status': 'pending',
+      }).select('id').single();
+    } on PostgrestException catch (e) {
+      throw _lobbyError(e) ?? e;
     }
-    final inserted = await supabase.from('matches').insert({
-      'player1_id': uid,
-      'player2_id': creatorId,
-      'date_time': slot,
-      'court': court,
-      'format': 'singles',
-      'status': 'pending',
-    }).select('id').single();
     await _notifyMatchRequest(
       matchId: inserted['id'] as String,
       opponentId: creatorId,
@@ -689,6 +787,81 @@ class MockDataService implements DataService {
       body: (name) => '$name, $sport lobine katılmak istiyor ($court).',
     );
     await _refreshUpcomingSessions(await _fetchMyNtrp(uid));
+    await _refreshLobbies();
+    _cacheVersion.value++;
+  }
+
+  @override
+  Future<List<LobbyParticipant>> getLobbyParticipants(String lobbyId) async {
+    final rows = await supabase
+        .from('matches')
+        .select('id, player1_id, status')
+        .eq('lobby_id', lobbyId)
+        .inFilter('status', ['pending', 'confirmed'])
+        .order('created_at');
+    final list = (rows as List).map((r) => Map<String, dynamic>.from(r as Map)).toList();
+    if (list.isEmpty) return [];
+    final profiles = await supabase
+        .from('profiles')
+        .select()
+        .inFilter('id', list.map((r) => r['player1_id'] as String).toList());
+    final byId = {
+      for (final r in profiles as List)
+        (r as Map)['id'] as String: _playerFromRow(Map<String, dynamic>.from(r), _myNtrp),
+    };
+    return [
+      for (final r in list)
+        if (byId[r['player1_id']] != null)
+          LobbyParticipant(
+            matchId: r['id'] as String,
+            player: byId[r['player1_id']]!,
+            accepted: r['status'] == 'confirmed',
+          ),
+    ];
+  }
+
+  @override
+  Future<void> removeFromLobby({required String matchId}) async {
+    final updated = await supabase
+        .from('matches')
+        .update({'status': 'cancelled'})
+        .eq('id', matchId)
+        .eq('status', 'confirmed')
+        .select('player1_id, court');
+    if ((updated as List).isEmpty) {
+      throw const DataException(DataError.matchUpdateDenied);
+    }
+    final requesterId = (updated.first as Map)['player1_id'] as String;
+    // Same insert path as accept/decline replies (RLS: player2 → player1).
+    try {
+      final name = _currentPlayer?.name ?? 'Organizatör';
+      await supabase.from('notifications').insert({
+        'user_id': requesterId,
+        'type': 'matchDeclined',
+        'title': 'Lobiden Çıkarıldın',
+        'body': '$name seni lobiden çıkardı.',
+        'avatar_initials': _currentPlayer?.initials,
+        'avatar_color': _currentPlayer?.avatarGradientStart,
+        'action_id': matchId,
+      });
+    } catch (e) {
+      debugPrint('LOBBY REMOVE NOTIFICATION ERROR: $e');
+    }
+    await refreshLive();
+    _cacheVersion.value++;
+  }
+
+  @override
+  Future<void> closeLobby(String lobbyId) async {
+    final updated = await supabase
+        .from('lobbies')
+        .update({'status': 'closed'})
+        .eq('id', lobbyId)
+        .select('id');
+    if ((updated as List).isEmpty) {
+      throw const DataException(DataError.matchUpdateDenied);
+    }
+    await refreshLive();
     _cacheVersion.value++;
   }
 

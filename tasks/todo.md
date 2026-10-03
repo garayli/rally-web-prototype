@@ -193,3 +193,53 @@ Found while migrating (not i18n, not fixed):
 
 ## Review (fill in after execution)
 _To be completed once phases are executed — summary of what passed, what broke, and what's still open before store submission._
+
+---
+
+## 2026-10-04 — Lobby v2: format, request cap, roster, close, remove, messaging (PLAN — awaiting approval)
+
+### Rules (agreed with user)
+- Lobby has a **format**: `singles` (organiser + 1) or `doubles` (organiser + 3). Chosen when creating the lobby.
+- **Request cap = 10 *pending* requests per lobby** (accepted/declined ones don't count). 10 pending → accept 1 → 9 pending → exactly 1 more person can ask; the next one is blocked until the organiser answers another.
+- **Roster capacity** = accepted players: 1 (singles) / 3 (doubles). When reached the lobby is `full` (cards say so, no new requests) and reopens if the organiser removes someone.
+- Organiser can **close** a lobby at any time (stops new requests; pending ones are auto-declined + notified; already accepted players keep their match).
+- Organiser sees **who is accepted** (and pending) per lobby, can **message** both pending and accepted people, and can **remove** an accepted person later (match cancelled, spot freed, person notified).
+
+### Card text (joiner side) — proposal
+| State | Button | Small line |
+|---|---|---|
+| can join | Katıl | – |
+| I asked, pending | İstek gönderildi | – |
+| I'm accepted | Katıldın | – |
+| 10 pending (I'm not one of them) | Şimdilik dolu | "Organizatör yanıtlayınca yer açılır" |
+| roster full (I'm not in) | Kadro dolu | – |
+| organiser closed (I was declined/removed or never asked) | card disappears from the list |
+| I was declined / removed | Katıl again only if lobby still open & has room |
+Organiser card: format chip + `1/3 kabul · 4 bekleyen` ; tap → management sheet.
+
+### DB (needs migration — Supabase MCP not authorised in this session; SQL file will be written to `docs/migrations/`)
+- [x] (SQL written, **user runs it**) `lobbies`: `format` (singles|doubles, default singles), `pending_count`, `accepted_count` (counters so *every* user can read "full" despite `matches` RLS), status check gains `closed` (already has open/full/cancelled)
+- [ ] `matches.lobby_id` FK → `lobbies(id)`
+- [ ] SECURITY DEFINER trigger on `matches` (insert/update/delete): keeps counters, sets `lobbies.status` open↔full, raises named errors on insert when lobby closed / full / pending ≥ 10 (server-side → no race when two people tap the last slot)
+- [ ] On lobby close: pending matches → cancelled
+- [ ] RLS: lobbies SELECT for status open+full; notifications INSERT policy extended to `cancellation` (organiser → removed player) and a lobby-closed notice
+- [ ] `NOTIFY pgrst, 'reload schema'` + verify with `list_tables`
+
+### App
+- [x] `OpenLobbyScreen`: Tekli/Çiftli selector
+- [x] `DataService`: `lobbies` moved into the shared cache (`refreshLive`, `cacheVersion`) instead of one-shot load in `match_screen`; `joinLobby` sends `lobby_id` and maps server errors → `DataError.lobbyQueueFull / lobbyFull / lobbyClosed`; new `getLobbyParticipants`, `respondToLobbyRequest(matchId)`, `removeFromLobby`, `closeLobby`
+- [x] Pure function `lobbyCardState(lobby, mySessions, uid)` (unit-tested) replaces the inline logic in `_LobbyCardState`
+- [x] `LobbyManageSheet` (organiser): pending list (Kabul / Reddet / Mesaj), accepted list (Mesaj / Çıkar), Lobiyi kapat
+- [ ] Messaging: "Mesaj" opens the existing 1:1 conversation with that player (works before any message exists); joiner also gets a "Mesaj" entry on their lobby card sheet
+- [x] l10n (TR + EN) for all new strings; `flutter gen-l10n`
+- [ ] Tests: card-state function, cap/full rules; SQL rules exercised with two real accounts after migration
+- [x] ADR-013 + key_facts `lobbies`/`matches` update; supersede the ADR-012 "lobby stays open" consequence
+
+### Open questions
+1. Doubles = organiser + 3 accepted (4 players total) — OK?
+2. "Close" keeps already-accepted matches and auto-declines pending ones — OK?
+3. Migration: authorise Supabase MCP (I apply + verify), or I write the SQL and you run it in the SQL editor?
+
+### Status 2026-10-04
+- Done: SQL file, app code, l10n, 7 new unit tests (`test/lobby_state_test.dart`); `flutter analyze` 0 errors, `flutter test` 51 pass.
+- Not done: migration not run by me; two-account device test of the whole flow; joiner-side "message organiser" entry point (organiser → player only, replies work both ways).

@@ -10,6 +10,9 @@ String dataErrorMessage(AppLocalizations l, Object error) {
       DataError.matchUpdateDenied => l.errorMatchUpdateDenied,
       DataError.ownLobby => l.errorOwnLobby,
       DataError.alreadyRequested => l.errorAlreadyRequested,
+      DataError.lobbyQueueFull => l.errorLobbyQueueFull,
+      DataError.lobbyFull => l.errorLobbyFull,
+      DataError.lobbyClosed => l.errorLobbyClosed,
     };
   }
   return l.errorUnknown;

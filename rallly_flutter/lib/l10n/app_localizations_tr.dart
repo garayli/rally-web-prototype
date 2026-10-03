@@ -462,6 +462,10 @@ class AppLocalizationsTr extends AppLocalizations {
       'Bir şeyler yanlış gitti. Lütfen tekrar deneyin.';
 
   @override
+  String get authErrorNoAccount =>
+      'Bu e-posta adresine ait bir hesap bulunamadı. Geri dönüp \"Başla\" ile kayıt olabilirsin.';
+
+  @override
   String get authErrorInvalidEmail =>
       'Lütfen geçerli bir e-posta adresi girin.';
 
@@ -1337,6 +1341,101 @@ class AppLocalizationsTr extends AppLocalizations {
 
   @override
   String get lobbyRequested => 'İstek gönderildi';
+
+  @override
+  String get errorLobbyQueueFull =>
+      'Bu lobide bekleyen istek sınırına ulaşıldı. Organizatör yanıtlayınca tekrar dene.';
+
+  @override
+  String get errorLobbyFull => 'Bu lobinin kadrosu dolu.';
+
+  @override
+  String get errorLobbyClosed => 'Bu lobi artık istek almıyor.';
+
+  @override
+  String get openLobbyFormat => 'Maç türü';
+
+  @override
+  String get lobbyQueueFull => 'Şimdilik dolu';
+
+  @override
+  String get lobbyQueueFullHint => 'Organizatör yanıtlayınca yer açılır';
+
+  @override
+  String get lobbyRosterFull => 'Kadro dolu';
+
+  @override
+  String get lobbyManage => 'Yönet';
+
+  @override
+  String lobbyCounts(int accepted, int capacity, int pending) {
+    return '$accepted/$capacity kabul · $pending bekleyen';
+  }
+
+  @override
+  String get lobbyManageTitle => 'Lobi yönetimi';
+
+  @override
+  String get lobbyPendingSection => 'Bekleyen istekler';
+
+  @override
+  String get lobbyAcceptedSection => 'Kabul edilenler';
+
+  @override
+  String get lobbyNoParticipants => 'Henüz istek yok.';
+
+  @override
+  String get lobbyAccept => 'Kabul et';
+
+  @override
+  String get lobbyDecline => 'Reddet';
+
+  @override
+  String get lobbyMessage => 'Mesaj';
+
+  @override
+  String get lobbyRemove => 'Çıkar';
+
+  @override
+  String get lobbyRemoveTitle => 'Oyuncuyu çıkar?';
+
+  @override
+  String lobbyRemoveBody(String name) {
+    return '$name lobiden çıkarılacak, maçı iptal olacak ve bilgilendirilecek.';
+  }
+
+  @override
+  String get lobbyClose => 'Lobiyi kapat';
+
+  @override
+  String get lobbyCloseTitle => 'Lobi kapatılsın mı?';
+
+  @override
+  String get lobbyCloseBody =>
+      'Yeni istek alınmaz, bekleyen istekler reddedilir. Kabul ettiklerinin maçı korunur.';
+
+  @override
+  String get lobbyClosedDone => 'Lobi kapatıldı.';
+
+  @override
+  String get lobbyRemovedDone => 'Oyuncu lobiden çıkarıldı.';
+
+  @override
+  String get lobbyAcceptedDone => 'İstek kabul edildi.';
+
+  @override
+  String get lobbyDeclinedDone => 'İstek reddedildi.';
+
+  @override
+  String get lobbyJoined => 'Katıldın';
+
+  @override
+  String get lobbyMatched => 'Eşleşti';
+
+  @override
+  String lobbyIncomingRequests(int count) {
+    return '$count istek';
+  }
 
   @override
   String get requestIncomingLabel => 'Sana gelen istek';

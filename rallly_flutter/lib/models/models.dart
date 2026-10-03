@@ -117,6 +117,9 @@ class MatchSession {
   /// set scores and the rating delta are all stored from player1's side.
   final bool isRequester;
 
+  /// Set when the row is a request to join a lobby (`matches.lobby_id`).
+  final String? lobbyId;
+
   const MatchSession({
     required this.id,
     required this.opponent,
@@ -126,6 +129,7 @@ class MatchSession {
     this.format = MatchFormat.singles,
     this.result,
     this.isRequester = true,
+    this.lobbyId,
   });
 
   /// Still ahead of us: confirmed or awaiting an answer, and not long past.
@@ -363,4 +367,70 @@ class Conversation {
         'messages': messages.map((m) => m.toJson()).toList(),
         'is_online': isOnline,
       };
+}
+
+
+/// An open game somebody organises. Counters come from DB triggers (see
+/// `docs/migrations/2026-10-04_lobby_v2.sql`) so every user can see "full"
+/// without being able to read other people's matches.
+class Lobby {
+  /// Max requests waiting for an answer before nobody else can ask.
+  static const maxPending = 10;
+
+  final String id;
+  final String creatorId;
+  final String sport;
+  final String skillLevel;
+  final DateTime? dateTime;
+  final String court;
+  final String? notes;
+  final bool isDoubles;
+  final String status; // open | full | closed | cancelled
+  final int pendingCount;
+  final int acceptedCount;
+
+  const Lobby({
+    required this.id,
+    required this.creatorId,
+    required this.sport,
+    required this.skillLevel,
+    required this.dateTime,
+    required this.court,
+    this.notes,
+    this.isDoubles = false,
+    this.status = 'open',
+    this.pendingCount = 0,
+    this.acceptedCount = 0,
+  });
+
+  /// Accepted players besides the organiser: 1 singles, 3 doubles.
+  int get capacity => isDoubles ? 3 : 1;
+  bool get rosterFull => status == 'full' || acceptedCount >= capacity;
+  bool get queueFull => pendingCount >= maxPending;
+
+  factory Lobby.fromJson(Map<String, dynamic> j) => Lobby(
+        id: j['id'] as String,
+        creatorId: j['creator_id'] as String,
+        sport: j['sport'] as String? ?? 'Tenis',
+        skillLevel: j['skill_level'] as String? ?? '',
+        dateTime: DateTime.tryParse(j['date_time'] as String? ?? '')?.toLocal(),
+        court: j['court'] as String? ?? '',
+        notes: j['notes'] as String?,
+        isDoubles: j['format'] == 'doubles',
+        status: j['status'] as String? ?? 'open',
+        pendingCount: (j['pending_count'] as num?)?.toInt() ?? 0,
+        acceptedCount: (j['accepted_count'] as num?)?.toInt() ?? 0,
+      );
+}
+
+/// Someone who asked to join a lobby (pending) or was accepted (confirmed).
+class LobbyParticipant {
+  final String matchId;
+  final Player player;
+  final bool accepted;
+  const LobbyParticipant({
+    required this.matchId,
+    required this.player,
+    required this.accepted,
+  });
 }

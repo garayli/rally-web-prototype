@@ -7,7 +7,7 @@ import '../widgets/shared_widgets.dart';
 import '../widgets/match_request_sheet.dart';
 import '../models/models.dart';
 import '../services/data_service.dart';
-import '../main.dart' show supabase, CourtThemeProvider;
+import '../main.dart' show CourtThemeProvider;
 import 'player_profile_screen.dart';
 import 'map_screen.dart';
 import 'notifications_screen.dart';
@@ -15,6 +15,8 @@ import 'profile_screen.dart';
 import 'open_lobby_screen.dart';
 import 'games_screen.dart';
 import '../widgets/match_detail_sheet.dart';
+import '../widgets/lobby_manage_sheet.dart';
+import '../utils/lobby_state.dart';
 import '../l10n/data_error_message.dart';
 import '../l10n/l10n.dart';
 import '../l10n/option_labels.dart';
@@ -32,38 +34,16 @@ class _MatchScreenState extends State<MatchScreen> {
   String _searchQuery = '';
   final _searchController = TextEditingController();
   final _sentRequests = <String>{};
-  List<Map<String, dynamic>> _lobbies = [];
-  bool _lobbiesLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadLobbies();
   }
 
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
-  }
-
-  Future<void> _loadLobbies() async {
-    try {
-      final data = await supabase
-          .from('lobbies')
-          .select()
-          .eq('is_public', true)
-          .eq('status', 'open')
-          .order('date_time');
-      if (mounted) {
-        setState(() {
-          _lobbies = List<Map<String, dynamic>>.from(data);
-          _lobbiesLoading = false;
-        });
-      }
-    } catch (_) {
-      if (mounted) setState(() => _lobbiesLoading = false);
-    }
   }
 
   List<Player> get _filteredPlayers {
@@ -258,7 +238,7 @@ class _MatchScreenState extends State<MatchScreen> {
           ),
 
           // ── Open lobbies rail ──────────────────────────────────────────
-          if (!_lobbiesLoading && _lobbies.isNotEmpty)
+          if (dataService.getLobbies().isNotEmpty)
             SliverToBoxAdapter(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -270,17 +250,17 @@ class _MatchScreenState extends State<MatchScreen> {
                     onAction: () => Navigator.push(context,
                         MaterialPageRoute(
                             builder: (_) => const OpenLobbyScreen()))
-                        .then((_) => _loadLobbies()),
+                        .then((_) => dataService.refreshLive()),
                   ),
                   SizedBox(
-                    height: 172,
+                    height: 214,
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.fromLTRB(
                           Spacing.gutter, 0, Spacing.gutter, Spacing.sm),
-                      itemCount: _lobbies.length,
+                      itemCount: dataService.getLobbies().length,
                       itemBuilder: (context, i) =>
-                          _LobbyCard(lobby: _lobbies[i], cp: cp),
+                          _LobbyCard(lobby: dataService.getLobbies()[i], cp: cp),
                     ),
                   ),
                 ],
@@ -1043,7 +1023,7 @@ class _FilterSheetState extends State<_FilterSheet> {
 
 // ─── Open lobby card ──────────────────────────────────────────────────────────
 class _LobbyCard extends StatefulWidget {
-  final Map<String, dynamic> lobby;
+  final Lobby lobby;
   final CourtPalette cp;
   const _LobbyCard({required this.lobby, required this.cp});
 
@@ -1052,32 +1032,41 @@ class _LobbyCard extends StatefulWidget {
 }
 
 class _LobbyCardState extends State<_LobbyCard> {
-  bool _joined = false;
   bool _joining = false;
 
-  Map<String, dynamic> get lobby => widget.lobby;
+  Lobby get lobby => widget.lobby;
   CourtPalette get cp => widget.cp;
 
-  bool get _isMine => lobby['creator_id'] == dataService.currentUserId;
+  /// The viewer's own pending/confirmed request to this lobby, if any. State
+  /// comes from the shared sessions cache, so it survives a reload and follows
+  /// the organiser's accept/decline/remove.
+  MatchSession? get _mine => dataService
+      .getUpcomingSessions()
+      .where((s) =>
+          s.lobbyId == lobby.id &&
+          s.isRequester &&
+          (s.status == MatchStatus.pending ||
+              s.status == MatchStatus.confirmed))
+      .firstOrNull;
 
-  Future<void> _join(DateTime dt, String sport, String court) async {
+  Future<void> _join() async {
+    final dt = lobby.dateTime;
+    if (dt == null) return;
     final l = context.l10n;
     final messenger = ScaffoldMessenger.of(context);
     setState(() => _joining = true);
     try {
       await dataService.joinLobby(
-        creatorId: lobby['creator_id'] as String,
+        lobbyId: lobby.id,
+        creatorId: lobby.creatorId,
         dateTime: dt,
-        court: court,
-        sport: sportLabel(l, sport),
+        court: lobby.court,
+        sport: sportLabel(l, lobby.sport),
       );
       if (!mounted) return;
-      setState(() {
-        _joined = true;
-        _joining = false;
-      });
+      setState(() => _joining = false);
       messenger.showSnackBar(SnackBar(
-        content: Text(l.lobbyJoinSent(sportLabel(l, sport))),
+        content: Text(l.lobbyJoinSent(sportLabel(l, lobby.sport))),
         backgroundColor: RallyColors.accent,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -1085,11 +1074,9 @@ class _LobbyCardState extends State<_LobbyCard> {
     } catch (e) {
       debugPrint('LOBBY JOIN ERROR: $e');
       if (!mounted) return;
-      final already = e is DataException && e.error == DataError.alreadyRequested;
-      setState(() {
-        _joined = already;
-        _joining = false;
-      });
+      setState(() => _joining = false);
+      // The card was stale (someone filled the lobby meanwhile): re-read.
+      dataService.refreshLive();
       messenger.showSnackBar(SnackBar(
         content: Text(l.actionFailed(dataErrorMessage(l, e))),
         backgroundColor: RallyColors.accent2,
@@ -1108,11 +1095,23 @@ class _LobbyCardState extends State<_LobbyCard> {
 
   @override
   Widget build(BuildContext context) {
-    final dt =
-        DateTime.tryParse(lobby['date_time'] as String? ?? '')?.toLocal();
-    final sport = lobby['sport'] as String? ?? 'Tenis';
-    final court = lobby['court'] as String? ?? '';
-    final skill = lobby['skill_level'] as String? ?? '';
+    final l = context.l10n;
+    final dt = lobby.dateTime;
+    final state =
+        lobbyCardState(lobby, _mine, dataService.currentUserId);
+    final label = switch (state) {
+      LobbyCardState.own => l.lobbyManage,
+      LobbyCardState.canJoin => l.join,
+      LobbyCardState.requested => l.lobbyRequested,
+      LobbyCardState.joined => l.lobbyJoined,
+      LobbyCardState.queueFull => l.lobbyQueueFull,
+      LobbyCardState.rosterFull => l.lobbyRosterFull,
+    };
+    final VoidCallback? onPressed = switch (state) {
+      LobbyCardState.own => () => showLobbyManageSheet(context, lobby),
+      LobbyCardState.canJoin => (_joining || dt == null) ? null : _join,
+      _ => null,
+    };
 
     return Container(
       width: 178,
@@ -1129,28 +1128,22 @@ class _LobbyCardState extends State<_LobbyCard> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Row(children: [
-            Text(_sportEmojis[sport] ?? '🎾',
+            Text(_sportEmojis[lobby.sport] ?? '🎾',
                 style: const TextStyle(fontSize: 18)),
             const SizedBox(width: 6),
             Expanded(
-              child: Text(sportLabel(context.l10n, sport),
+              child: Text(sportLabel(l, lobby.sport),
                   style: RallyType.titleSM.copyWith(color: cp.text),
                   overflow: TextOverflow.ellipsis),
             ),
           ]),
           const SizedBox(height: 6),
-          Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
-            decoration: BoxDecoration(
-              color: cp.accentTint,
-              borderRadius: BorderRadius.circular(RallyRadius.pill),
-            ),
-            child: Text(skillLevelLabel(context.l10n, skill),
-                style: RallyType.micro.copyWith(color: cp.accentStrong)),
-          ),
+          Wrap(spacing: 4, runSpacing: 4, children: [
+            _chip(skillLevelLabel(l, lobby.skillLevel)),
+            _chip(lobby.isDoubles ? l.formatDoubles : l.formatSingles),
+          ]),
           const SizedBox(height: 8),
-          Text(court,
+          Text(lobby.court,
               style: RallyType.bodySM.copyWith(color: cp.muted),
               maxLines: 1,
               overflow: TextOverflow.ellipsis),
@@ -1160,14 +1153,21 @@ class _LobbyCardState extends State<_LobbyCard> {
                 style: RallyType.caption
                     .copyWith(fontWeight: FontWeight.w600, color: cp.text)),
           ],
+          const SizedBox(height: 3),
+          Text(
+            state == LobbyCardState.queueFull
+                ? l.lobbyQueueFullHint
+                : l.lobbyCounts(
+                    lobby.acceptedCount, lobby.capacity, lobby.pendingCount),
+            style: RallyType.caption.copyWith(color: cp.muted),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
           const SizedBox(height: 8),
           SizedBox(
             width: double.infinity,
             child: FilledButton(
-              // Own lobby, already-sent and in-flight requests can't be tapped.
-              onPressed: (_isMine || _joined || _joining || dt == null)
-                  ? null
-                  : () => _join(dt, sport, court),
+              onPressed: onPressed,
               style: FilledButton.styleFrom(
                 backgroundColor: cp.accent,
                 minimumSize: const Size(0, 32),
@@ -1177,15 +1177,21 @@ class _LobbyCardState extends State<_LobbyCard> {
                 textStyle: const TextStyle(
                     fontSize: 12, fontWeight: FontWeight.w600),
               ),
-              child: Text(_isMine
-                  ? context.l10n.lobbyYours
-                  : _joined
-                      ? context.l10n.lobbyRequested
-                      : context.l10n.join),
+              child: Text(label),
             ),
           ),
         ],
       ),
     );
   }
+
+  Widget _chip(String text) => Container(
+        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+        decoration: BoxDecoration(
+          color: cp.accentTint,
+          borderRadius: BorderRadius.circular(RallyRadius.pill),
+        ),
+        child: Text(text,
+            style: RallyType.micro.copyWith(color: cp.accentStrong)),
+      );
 }

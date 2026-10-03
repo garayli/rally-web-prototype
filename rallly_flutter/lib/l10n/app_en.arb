@@ -226,6 +226,7 @@
   },
   "authErrorRateLimit": "Too many code requests. Please wait a few minutes and try again.",
   "authErrorGeneric": "Something went wrong. Please try again.",
+  "authErrorNoAccount": "No account found for this email. Go back and choose \"Get started\" to sign up.",
   "authErrorInvalidEmail": "Please enter a valid email address.",
   "authErrorCodeInvalidOrExpired": "The code is invalid or has expired. Please request a new one.",
   "authErrorInvalidCode": "Invalid code. Please try again.",
@@ -624,6 +625,52 @@
   "errorAlreadyRequested": "You already asked to join this lobby",
   "lobbyYours": "Your lobby",
   "lobbyRequested": "Request sent",
+  "errorLobbyQueueFull": "This lobby has reached its limit of waiting requests. Try again once the organiser answers some.",
+  "errorLobbyFull": "This lobby's roster is full.",
+  "errorLobbyClosed": "This lobby no longer takes requests.",
+  "openLobbyFormat": "Match type",
+  "lobbyQueueFull": "Full for now",
+  "lobbyQueueFullHint": "A spot opens when the organiser answers",
+  "lobbyRosterFull": "Roster full",
+  "lobbyManage": "Manage",
+  "lobbyCounts": "{accepted}/{capacity} accepted · {pending} waiting",
+  "@lobbyCounts": {
+    "placeholders": {
+      "accepted": {"type": "int"},
+      "capacity": {"type": "int"},
+      "pending": {"type": "int"}
+    }
+  },
+  "lobbyManageTitle": "Manage lobby",
+  "lobbyPendingSection": "Waiting requests",
+  "lobbyAcceptedSection": "Accepted",
+  "lobbyNoParticipants": "No requests yet.",
+  "lobbyAccept": "Accept",
+  "lobbyDecline": "Decline",
+  "lobbyMessage": "Message",
+  "lobbyRemove": "Remove",
+  "lobbyRemoveTitle": "Remove player?",
+  "lobbyRemoveBody": "{name} will be removed from the lobby, their match cancelled, and they'll be notified.",
+  "@lobbyRemoveBody": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "lobbyClose": "Close lobby",
+  "lobbyCloseTitle": "Close this lobby?",
+  "lobbyCloseBody": "No new requests, and waiting requests are declined. Matches you already accepted stay.",
+  "lobbyClosedDone": "Lobby closed.",
+  "lobbyRemovedDone": "Player removed from the lobby.",
+  "lobbyAcceptedDone": "Request accepted.",
+  "lobbyDeclinedDone": "Request declined.",
+  "lobbyJoined": "You're in",
+  "lobbyMatched": "Matched",
+  "lobbyIncomingRequests": "{count, plural, =1{1 request} other{{count} requests}}",
+  "@lobbyIncomingRequests": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
   "requestIncomingLabel": "Request for you",
   "requestSentLabel": "Awaiting reply",
   "matchDetailRespondHint": "Accept or decline from the Notifications tab.",

@@ -111,6 +111,7 @@ Google Play re-signs every build it distributes (internal-testing track included
 | `rating_delta` | real | nullable |
 | `opponent_name` | text | nullable — unregistered opponent display name |
 | `opponent_phone` | text | nullable — unregistered opponent phone (min 10 digits) |
+| `lobby_id` | uuid | nullable FK → `lobbies.id` — set when the row is a lobby join request (lobby v2) |
 | `created_at` | timestamptz | auto |
 | `updated_at` | timestamptz | auto |
 
@@ -125,9 +126,11 @@ Google Play re-signs every build it distributes (internal-testing track included
 | `court` | text | NOT NULL |
 | `notes` | text | nullable |
 | `is_public` | bool | NOT NULL, default true |
-| `status` | text | `'open'` \| `'full'` \| `'cancelled'`, default `'open'` |
+| `status` | text | `'open'` \| `'full'` \| `'closed'` \| `'cancelled'`, default `'open'` (closed/full via lobby v2 migration) |
+| `format` | text | `'singles'` \| `'doubles'`, default singles (lobby v2) |
+| `pending_count`, `accepted_count` | int | trigger-maintained, never written by the app (lobby v2) |
 | `created_at` | timestamptz | auto |
-RLS: anyone can SELECT where `is_public=true AND status='open'`; only `creator_id=auth.uid()` can INSERT/UPDATE.
+RLS: anyone can SELECT where `is_public=true AND status IN ('open','full')` (creator sees all own); only `creator_id=auth.uid()` can INSERT/UPDATE.
 
 ### `messages`
 | Column | Type | Notes |
