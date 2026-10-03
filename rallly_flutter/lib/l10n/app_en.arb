@@ -1,0 +1,623 @@
+{
+  "@@locale": "en",
+  "appName": "RallyMatch",
+  "sportTennis": "Tennis",
+  "sportTennisSub": "Singles & doubles",
+  "sportPadel": "Padel",
+  "sportPadelSub": "Racquet sport",
+  "sportBadminton": "Badminton",
+  "sportBadmintonSub": "Indoor & outdoor",
+  "sportSquash": "Squash",
+  "sportSquashSub": "Court sport",
+  "skillBeginner": "Beginner",
+  "skillBeginnerSub": "Under 1 year — learning the basics",
+  "skillIntermediate": "Intermediate",
+  "skillIntermediateSub": "1–4 years — rallies comfortably",
+  "skillAdvanced": "Advanced",
+  "skillAdvancedSub": "Competitive — strong all-round game",
+  "skillExpert": "Expert",
+  "skillExpertSub": "Tournament level — top-tier play",
+  "dayMon": "Mon",
+  "dayTue": "Tue",
+  "dayWed": "Wed",
+  "dayThu": "Thu",
+  "dayFri": "Fri",
+  "daySat": "Sat",
+  "daySun": "Sun",
+  "timeMorning": "Morning",
+  "timeAfternoon": "Afternoon",
+  "timeEvening": "Evening",
+  "courtThemeClay": "Clay",
+  "courtThemeHard": "Hard court",
+  "courtThemeGrass": "Grass",
+  "navFindOpponent": "Find Opponent",
+  "navMessages": "Messages",
+  "navNotifications": "Alerts",
+  "navProfile": "Profile",
+  "createMatchFab": "Create Match",
+  "matchBadgeLabel": "MATCH",
+  "requestShort": "Request",
+  "profileCompleteTitle": "Complete your profile",
+  "profilePercentDone": "{percent}% complete",
+  "@profilePercentDone": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "profileMissing": "Missing: {items}",
+  "@profileMissing": {
+    "placeholders": {
+      "items": {
+        "type": "String"
+      }
+    }
+  },
+  "missingBio": "bio",
+  "missingAvailability": "availability",
+  "missingSport": "sport",
+  "missingLevel": "level",
+  "profileSetSchedule": "Set your weekly schedule",
+  "profileTitle": "My Profile",
+  "courtThemeTitle": "Court Theme",
+  "courtThemeSubtitle": "Choose the app's color theme",
+  "courtThemeClaySub": "Roland-Garros style",
+  "courtThemeHardSub": "US Open style",
+  "courtThemeGrassSub": "Wimbledon style",
+  "photoUploadSoon": "Photo upload coming soon",
+  "profileNtrpLine": "🎾  NTRP {rating} — {level}",
+  "@profileNtrpLine": {
+    "placeholders": {
+      "rating": {
+        "type": "String"
+      },
+      "level": {
+        "type": "String"
+      }
+    }
+  },
+  "profileNtrpUnknown": "🎾  NTRP —",
+  "editProfile": "Edit Profile",
+  "statWins": "WINS",
+  "statLosses": "LOSSES",
+  "statPlayed": "PLAYED",
+  "statRating": "RATING",
+  "uploadScore": "Upload Score",
+  "scoreRequests": "Score Requests",
+  "myMatchesHeader": "MY MATCHES",
+  "tabUpcomingCount": "Upcoming ({count})",
+  "@tabUpcomingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tabPastCount": "Past ({count})",
+  "@tabPastCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tabPendingCount": "Pending ({count})",
+  "@tabPendingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "emptyUpcoming": "No upcoming matches",
+  "emptyPast": "No past matches",
+  "emptyPending": "No pending requests",
+  "sectionMyGame": "MY GAME",
+  "reputation": "Reputation",
+  "reputationSub": "4.9 rating · 4 reviews",
+  "achievements": "Achievements",
+  "achievementsSub": "12 of 18 earned",
+  "myResults": "My Results",
+  "myResultsSub": "Match history and scores",
+  "logResult": "Log Result",
+  "logResultSub": "Log your latest match",
+  "sectionAccount": "ACCOUNT",
+  "editProfileSub": "Update name, location, bio, level",
+  "gamePreferences": "Game Preferences",
+  "gamePreferencesSub": "Level, court type, format",
+  "gamePreferencesSoon": "Game preferences coming soon",
+  "availability": "Availability",
+  "sectionApp": "APP",
+  "notifications": "Notifications",
+  "notificationsSub": "Match requests, reminders",
+  "courtThemeOptions": "Clay / Hard court / Grass",
+  "privacySecurity": "Privacy & Security",
+  "privacySecuritySub": "Profile visibility",
+  "privacySettingsSoon": "Privacy settings coming soon",
+  "sectionAbout": "ABOUT",
+  "termsPrivacy": "Terms & Privacy",
+  "termsPrivacySoon": "Terms & Privacy coming soon",
+  "signOut": "Sign Out",
+  "profileLoadingRetry": "Loading profile, please try again",
+  "profileUpdated": "Profile updated",
+  "vsOpponent": "vs {name}",
+  "@vsOpponent": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "statusUpcomingUpper": "UPCOMING",
+  "statusCompletedUpper": "COMPLETED",
+  "statusPendingUpper": "PENDING",
+  "statusCancelledUpper": "CANCELLED",
+  "statusConfirmed": "Confirmed",
+  "statusCompleted": "Completed",
+  "statusPending": "Pending",
+  "statusCancelled": "Cancelled",
+  "formatDoubles": "Doubles",
+  "formatSingles": "Singles",
+  "requestMatch": "Request Match",
+  "sort": "Sort",
+  "filter": "Filter",
+  "upcomingMatchesHeader": "UPCOMING MATCHES",
+  "seeAll": "See all",
+  "nearbyPlayersHeader": "{count} PLAYERS NEARBY",
+  "@nearbyPlayersHeader": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "map": "Map",
+  "openLobbiesHeader": "OPEN LOBBIES",
+  "createLobby": "Create Lobby",
+  "nearbyPlayersEyebrow": "NEARBY PLAYERS",
+  "playersWaiting": "{count, plural, =1{1 player is waiting for you} other{{count} players are waiting for you}}",
+  "@playersWaiting": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "searchNameOrLocation": "Search by name or location…",
+  "winRatePercent": "{percent}% win rate",
+  "@winRatePercent": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "matchesCount": "{count, plural, =1{1 match} other{{count} matches}}",
+  "@matchesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "skillShortBeginner": "Beg.",
+  "skillShortIntermediate": "Int.",
+  "skillShortAdvanced": "Adv.",
+  "skillShortExpert": "Exp.",
+  "tennisBadge": "🎾 TENNIS",
+  "sortDistance": "Distance",
+  "sortWins": "Wins",
+  "sortSheetSubtitle": "How to order players",
+  "apply": "Apply",
+  "filterTitle": "Filter",
+  "clear": "Clear",
+  "level": "Level",
+  "distance": "Distance",
+  "all": "All",
+  "join": "Join",
+  "lobbyJoinSent": "Join request sent to the {sport} lobby!",
+  "@lobbyJoinSent": {
+    "placeholders": {
+      "sport": {
+        "type": "String"
+      }
+    }
+  },
+  "authErrorRateLimit": "Too many code requests. Please wait a few minutes and try again.",
+  "authErrorGeneric": "Something went wrong. Please try again.",
+  "authErrorInvalidEmail": "Please enter a valid email address.",
+  "authErrorCodeInvalidOrExpired": "The code is invalid or has expired. Please request a new one.",
+  "authErrorInvalidCode": "Invalid code. Please try again.",
+  "authErrorResendFailed": "Couldn't send the code. Please try again.",
+  "authCreateAccount": "Create account",
+  "authWelcomeBack": "Welcome back",
+  "authEmailPromptSignUp": "Enter your email address and we'll send you a one-time code",
+  "authEmailPromptSignIn": "We'll send a sign-in code to your email address",
+  "authEmailLabel": "EMAIL ADDRESS",
+  "authEmailHint": "you@example.com",
+  "authSendCode": "Send code",
+  "authHaveAccount": "Already have an account? ",
+  "authNoAccount": "Don't have an account? ",
+  "authSignIn": "Sign in",
+  "authSignUp": "Sign up",
+  "authCheckEmail": "Check your email",
+  "authCodeSentTo": "We sent an 8-digit code to your email address:\n",
+  "authVerify": "Verify",
+  "authResendCode": "Resend code",
+  "authResendIn": "Resend in {seconds}s",
+  "@authResendIn": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "landingSignInButton": "Sign In",
+  "landingHeadline": "Find your\nperfect opponent.",
+  "landingSubtitle": "Find tennis players at your level, book courts and track your progress.",
+  "landingStatPlayers": "Players",
+  "landingStatMatchRate": "Match rate",
+  "landingStatRating": "Rating",
+  "landingGetStarted": "Get started — completely free",
+  "landingHaveAccount": "I already have an account",
+  "landingTerms": "By continuing you agree to our Terms and Privacy Policy",
+  "signupFinish": "Finish — Let's play 🎾",
+  "signupContinue": "Continue",
+  "signupStep1Title": "Tell us about yourself",
+  "signupStep1Subtitle": "Help players find you",
+  "signupNameLabel": "FULL NAME",
+  "signupNameHint": "e.g. Leyla Garayli",
+  "signupLocationLabel": "NEIGHBORHOOD / CITY",
+  "signupLocationHint": "e.g. Beşiktaş, Istanbul",
+  "signupStep2Title": "Which sports do you play?",
+  "signupStep2Subtitle": "Select all that apply",
+  "signupStep3Title": "What's your level?",
+  "signupStep3Subtitle": "Be honest — it helps find the best matches",
+  "signupStep4Title": "When are you usually available?",
+  "signupStep4Subtitle": "Pick your typical availability",
+  "signupDaysHeader": "DAYS",
+  "signupTimeOfDayHeader": "TIME OF DAY",
+  "profileSaveFailed": "Couldn't save your profile. Please try again.",
+  "editAboutLabel": "ABOUT ME",
+  "editAboutHint": "Your playing style, favorite courts…",
+  "editSportsLabel": "SPORTS",
+  "editLevelLabel": "LEVEL",
+  "editDaysLabel": "AVAILABLE DAYS",
+  "save": "Save",
+  "createGameQuestion": "What would you like to do?",
+  "createGameSubtitle": "Pick an option and get started.",
+  "createGameStartMatch": "Start a Match",
+  "createGameStartMatchSub": "Set up a date with a specific opponent.",
+  "createGamePublishOpen": "Publish an Open Match",
+  "createGamePublishOpenSub": "Create a public slot and wait for an opponent.",
+  "errorNotSignedIn": "You need to be signed in",
+  "errorRecipientNotRegistered": "This player isn't registered, so you can't message them",
+  "errorMatchUpdateDenied": "Couldn't update the match (not permitted)",
+  "errorUnknown": "Something went wrong. Please try again.",
+  "matchRequestTitle": "Match Request",
+  "format": "Format",
+  "dateAndTime": "Date & Time",
+  "court": "Court",
+  "pastTimeNotAllowed": "You can't pick a time in the past",
+  "matchRequestSentTo": "Match request sent to {name}!",
+  "@matchRequestSentTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "requestFailed": "Couldn't send the request: {reason}",
+  "@requestFailed": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "requestSent": "Request Sent ✓",
+  "sendRequest": "Send Request 🎾",
+  "badgeFirstMatch": "First Match",
+  "badgeFirstMatchDesc": "You played your first game",
+  "badgeWinStreak": "Winning Streak",
+  "badgeWinStreakDesc": "3 wins in a row",
+  "badgeFiveStar": "5-Star Player",
+  "badgeFiveStarDesc": "Average rating 4.8+",
+  "badgeSocialButterfly": "Social Butterfly",
+  "badgeSocialButterflyDesc": "Connected with 10 players",
+  "badgeRegularPlayer": "Regular Player",
+  "badgeRegularPlayerDesc": "10+ matches played",
+  "badgeChampion": "Champion",
+  "badgeChampionDesc": "25+ wins",
+  "badgeQuickReply": "Quick Reply",
+  "badgeQuickReplyDesc": "Replied within 1 hour",
+  "badgeExplorer": "Explorer",
+  "badgeExplorerDesc": "Played on 5 different courts",
+  "badgeCommunicator": "Communicator",
+  "badgeCommunicatorDesc": "Sent 50 messages",
+  "badgeSharpshooter": "Sharpshooter",
+  "badgeSharpshooterDesc": "80%+ win rate",
+  "badgeSharer": "Sharer",
+  "badgeSharerDesc": "Shared 5 match results",
+  "badgeElite": "Elite",
+  "badgeEliteDesc": "Reached Advanced level",
+  "badgeTournamentPro": "Tournament Pro",
+  "badgeTournamentProDesc": "Join a tournament",
+  "badgeLegend": "Legend",
+  "badgeLegendDesc": "100 matches played",
+  "badgeGrandSlam": "Grand Slam",
+  "badgeGrandSlamDesc": "Win on 4 different courts",
+  "badgeDoublesKing": "Doubles King",
+  "badgeDoublesKingDesc": "Won 10 doubles matches",
+  "badgeAllRounder": "All-Rounder",
+  "badgeAllRounderDesc": "Played all 4 sports",
+  "badgeRocket": "Rocket",
+  "badgeRocketDesc": "Rating up by 200+",
+  "achievementsEarnedOf": "{earned} of {total}",
+  "@achievementsEarnedOf": {
+    "placeholders": {
+      "earned": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "achievementsEarnedLabel": "Achievements earned",
+  "achievementsEarnedHeader": "EARNED",
+  "achievementsLockedHeader": "LOCKED",
+  "prefMatchRequests": "Match Requests",
+  "prefMatchRequestsSub": "When someone wants to play you",
+  "prefMatchConfirmations": "Match Confirmations",
+  "prefMatchConfirmationsSub": "When a request is accepted",
+  "prefMatchReminders": "Match Reminders",
+  "prefMatchRemindersSub": "Reminder before a scheduled match",
+  "prefMatchCancellations": "Cancellation Alerts",
+  "prefMatchCancellationsSub": "When a match is cancelled",
+  "prefMessages": "Messages",
+  "prefMessagesSub": "New messages from other players",
+  "prefNewReviews": "New Reviews",
+  "prefNewReviewsSub": "When someone reviews you",
+  "prefResultConfirmed": "Result Confirmed",
+  "prefResultConfirmedSub": "When your opponent confirms the result",
+  "prefNearbyPlayers": "Nearby Players",
+  "prefNearbyPlayersSub": "When new players join your area",
+  "prefMarketing": "App Updates & Tips",
+  "prefMarketingSub": "New features and gameplay tips",
+  "prefSaved": "Saved ✓",
+  "prefSectionMatches": "MATCHES",
+  "prefSectionSocial": "SOCIAL",
+  "prefSectionUpdates": "UPDATES",
+  "skillAnyLevel": "Any level",
+  "lobbyCreated": "Open lobby created! Players can now join.",
+  "lobbyCreateFailed": "Couldn't create the lobby: {reason}",
+  "@lobbyCreateFailed": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "openLobbyTitle": "Open Lobby",
+  "openLobbyHeadline": "Create an open slot",
+  "openLobbySubtitle": "Other players can request to join your session",
+  "openLobbySport": "SPORT",
+  "openLobbyInvitedLevel": "INVITED LEVEL",
+  "openLobbyDateTime": "DATE & TIME",
+  "pickDate": "Pick a date",
+  "pickTime": "Pick a time",
+  "openLobbyCourt": "COURT",
+  "openLobbyNotes": "NOTES (OPTIONAL)",
+  "openLobbyNotesHint": "e.g. \"Bring your own balls, relaxed game, beginners welcome\"",
+  "openLobbyPublic": "Public lobby",
+  "openLobbyPublicSub": "Anyone can request to join",
+  "openLobbyCreateButton": "Create Lobby 🎾",
+  "onboardingGotIt": "Got it!",
+  "onboardingFind1": "Find players at your level and send match requests.",
+  "onboardingFind2": "Sort by NTRP, win rate and availability.",
+  "onboardingFind3": "Filter, explore, hit the court.",
+  "onboardingMessages1": "Message your opponent directly before and after the match.",
+  "onboardingMessages2": "Follow all your conversations in one place.",
+  "onboardingMessages3": "Easily share court details and time.",
+  "onboardingNotifications1": "Accept or decline incoming match requests.",
+  "onboardingNotifications2": "See score updates and reminders here.",
+  "onboardingNotifications3": "Stay instantly informed of everything important.",
+  "onboardingProfile1": "View your NTRP level, stats and achievements.",
+  "onboardingProfile2": "Track your match history and schedule here.",
+  "onboardingProfile3": "Edit notification preferences and account settings.",
+  "reviewCommentEmre": "Great rallies, very sporty — can't wait for a rematch!",
+  "reviewCommentSelin": "Excellent player, always on time and very fair. Highly recommended.",
+  "reviewCommentZeynep": "Nice match, closely fought. Very competitive but always friendly.",
+  "reviewCommentBerk": "I really enjoyed the match. Gave great tips too!",
+  "reviewTagPunctual": "Punctual",
+  "reviewTagSporty": "Sporty",
+  "reviewTagGoodComm": "Good communication",
+  "reviewTagFairPlay": "Fair play",
+  "reviewTagCompetitive": "Competitive",
+  "reviewTagFriendly": "Friendly",
+  "reviewTagHelpful": "Helpful",
+  "reputationMine": "My Reputation",
+  "reputationOf": "{name}'s Reputation",
+  "@reputationOf": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "reviewsCount": "{count, plural, =1{1 review} other{{count} reviews}}",
+  "@reviewsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "resultWon": "Won",
+  "resultLost": "Lost",
+  "ratingPoints": "{delta} pts",
+  "@ratingPoints": {
+    "placeholders": {
+      "delta": {
+        "type": "String"
+      }
+    }
+  },
+  "gamesTitle": "Matches",
+  "tabUpcoming": "Upcoming",
+  "tabPast": "Past",
+  "newMatch": "New Match",
+  "emptyUpcomingHint": "Schedule a new match to get started",
+  "message": "Message",
+  "notifFilterAll": "All",
+  "notifFilterMatches": "Matches",
+  "notifFilterOther": "Other",
+  "actionFailed": "Action failed: {reason}",
+  "@actionFailed": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "groupToday": "Today",
+  "groupYesterday": "Yesterday",
+  "groupThisWeek": "This Week",
+  "markAllRead": "Mark all read",
+  "noNotifications": "No notifications",
+  "decline": "Decline",
+  "accept": "Accept",
+  "dispute": "Dispute",
+  "confirm": "Confirm",
+  "minutesAgo": "{minutes} min ago",
+  "@minutesAgo": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "hoursAgo": "{hours}h ago",
+  "@hoursAgo": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "inboxFilterUnread": "Unread",
+  "inboxFilterMatchPartners": "Match Partners",
+  "editConversationsSoon": "Editing conversations coming soon",
+  "searchNameOrMessage": "Search by name or message…",
+  "noResults": "No results found",
+  "noMessagesYet": "No messages yet",
+  "minutesShort": "{minutes}m",
+  "@minutesShort": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "messageSendFailed": "Message couldn't be sent. Tap the message to retry.",
+  "online": "Online",
+  "messageHint": "Message {name}…",
+  "@messageHint": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "back": "Back",
+  "matchPercentTag": "🎾 {percent}% match",
+  "@matchPercentTag": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "profileWins": "Wins",
+  "profileLosses": "Losses",
+  "profilePlayed": "Played",
+  "profileWinPct": "Win %",
+  "seeAllReviews": "4.9 · See all reviews",
+  "sectionAvailability": "AVAILABILITY",
+  "sectionPreferredCourts": "PREFERRED COURTS",
+  "playerSavedSoon": "Player saved — coming soon",
+  "slotFullDay": "Full",
+  "slotMorning": "AM",
+  "slotAfternoon": "PM",
+  "nearbyPlayersTitle": "Nearby Players",
+  "mapMeMarker": "Me",
+  "viewProfile": "View Profile",
+  "logResultFailed": "Couldn't save the result: {reason}",
+  "@logResultFailed": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "logOpponentLabel": "OPPONENT",
+  "logGuestPlayer": "Unregistered Player",
+  "logGuestPhoneHint": "Phone number (required)",
+  "logGuestNameHint": "Name (optional)",
+  "logYou": "You",
+  "logOpponentShort": "Opponent",
+  "logSetN": "SET {n}",
+  "@logSetN": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "logAddSet3": "Add 3rd set",
+  "logWinnerLabel": "WINNER",
+  "logIWon": "I won 🏆",
+  "logOpponentWon": "Opponent won",
+  "logYouWonMatch": "You won this match!",
+  "logNameWon": "{name} won",
+  "@logNameWon": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "change": "Change",
+  "logSaveResult": "Save Result",
+  "courtUnspecified": "Not specified",
+  "scheduleTitle": "Schedule",
+  "noMatchToday": "No matches today",
+  "noMatchTodayHint": "Find a new opponent or plan a session",
+  "findNewMatch": "Find a new match",
+  "playersNearYou": "4 players available near you",
+  "singlesMatchTitle": "Singles Match",
+  "doublesMatchTitle": "Doubles Match",
+  "matchRequestSentToName": "Match request sent to {name}!",
+  "@matchRequestSentToName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "doublesInviteSent": "Doubles invitation sent!",
+  "pickOpponentLabel": "CHOOSE OPPONENT",
+  "partnerLabel": "YOUR PARTNER",
+  "sendMatchRequestButton": "Send Match Request 🎾",
+  "sendInviteButton": "Send Invitation 🎾",
+  "shareText": "My match result on Rallly 🎾",
+  "shareFailed": "Couldn't share. Please try again.",
+  "matchResultTitle": "Match Result",
+  "sharing": "Sharing…",
+  "shareResult": "Share Result 🎾",
+  "done": "Done",
+  "victory": "Victory 🏆",
+  "defeat": "Defeat"
+}

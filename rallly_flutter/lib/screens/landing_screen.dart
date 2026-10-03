@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../theme/app_theme.dart';
 import '../widgets/shared_widgets.dart';
+import '../l10n/l10n.dart';
 
 class LandingScreen extends StatelessWidget {
   final VoidCallback onGetStarted;
@@ -92,9 +93,9 @@ class LandingScreen extends StatelessWidget {
                       const Spacer(),
                       TextButton(
                         onPressed: onSignIn,
-                        child: const Text(
-                          'Giriş Yap',
-                          style: TextStyle(
+                        child: Text(
+                          context.l10n.landingSignInButton,
+                          style: const TextStyle(
                             color: Colors.white70,
                             fontWeight: FontWeight.w600,
                           ),
@@ -110,9 +111,9 @@ class LandingScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text(
-                        'Mükemmel\nrakibini bul.',
-                        style: TextStyle(
+                      Text(
+                        context.l10n.landingHeadline,
+                        style: const TextStyle(
                           fontFamily: 'InstrumentSerif',
                           fontSize: 52,
                           color: Colors.white,
@@ -126,10 +127,9 @@ class LandingScreen extends StatelessWidget {
                             curve: Curves.easeOut,
                           ),
                       const SizedBox(height: 18),
-                      const Text(
-                        'Seviyenizde tenis oyuncuları bulun, '
-                        'kort rezervasyonu yapın ve gelişiminizi takip edin.',
-                        style: TextStyle(
+                      Text(
+                        context.l10n.landingSubtitle,
+                        style: const TextStyle(
                           color: Colors.white70,
                           fontSize: 16,
                           height: 1.6,
@@ -142,15 +142,15 @@ class LandingScreen extends StatelessWidget {
                 const Spacer(),
 
                 // ── Stats row ────────────────────────────────────────────────
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 28),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 28),
                   child: Row(
                     children: [
-                      _StatChip(value: '2.400+', label: 'Oyuncu'),
-                      SizedBox(width: 10),
-                      _StatChip(value: '98%', label: 'Uyum oranı'),
-                      SizedBox(width: 10),
-                      _StatChip(value: '4.9★', label: 'Puan'),
+                      _StatChip(value: '2.400+', label: context.l10n.landingStatPlayers),
+                      const SizedBox(width: 10),
+                      _StatChip(value: '98%', label: context.l10n.landingStatMatchRate),
+                      const SizedBox(width: 10),
+                      _StatChip(value: '4.9★', label: context.l10n.landingStatRating),
                     ],
                   ),
                 ).animate().fadeIn(delay: 450.ms),
@@ -175,21 +175,21 @@ class LandingScreen extends StatelessWidget {
                   child: Column(
                     children: [
                       RallyButton(
-                        label: 'Başla — tamamen ücretsiz',
+                        label: context.l10n.landingGetStarted,
                         onPressed: onGetStarted,
                         icon: Icons.sports_tennis,
                       ),
                       const SizedBox(height: 12),
                       RallyButton(
-                        label: 'Zaten hesabım var',
+                        label: context.l10n.landingHaveAccount,
                         onPressed: onSignIn,
                         outlined: true,
                       ),
                       const SizedBox(height: 16),
-                      const Text(
-                        'Devam ederek Şartlarımızı ve Gizlilik Politikamızı kabul etmiş olursunuz',
+                      Text(
+                        context.l10n.landingTerms,
                         textAlign: TextAlign.center,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 11,
                           color: RallyColors.muted,
                         ),

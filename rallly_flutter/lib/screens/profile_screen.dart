@@ -15,6 +15,8 @@ import 'notifications_preferences_screen.dart';
 import 'log_result_screen.dart';
 import 'my_results_screen.dart';
 import 'player_profile_screen.dart';
+import '../l10n/l10n.dart';
+import '../l10n/option_labels.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -33,20 +35,22 @@ class _ProfileScreenState extends State<ProfileScreen>
   // something the user can't provide.
   static const _optionalFieldCount = 4;
 
-  static List<String> _missingFieldsOf(Player me) => [
-        if (me.about.isEmpty) 'biyografi',
-        if (me.availableDays.isEmpty) 'müsaitlik',
-        if (me.sports.isEmpty) 'spor',
-        if (me.skillLevel == null) 'seviye',
+  static List<String> _missingFieldsOf(Player me, AppLocalizations l) => [
+        if (me.about.isEmpty) l.missingBio,
+        if (me.availableDays.isEmpty) l.missingAvailability,
+        if (me.sports.isEmpty) l.missingSport,
+        if (me.skillLevel == null) l.missingLevel,
       ];
 
   static int _completenessOf(List<String> missing) =>
       (100 * (1 - missing.length / (_optionalFieldCount + 2))).round();
 
-  static String _availabilitySummary(Player? me) {
-    if (me == null || me.availableDays.isEmpty) return 'Haftalık programını ayarla';
-    final days = me.availableDays.join(', ');
-    return me.timePrefs.isEmpty ? days : '$days · ${me.timePrefs.join(', ')}';
+  static String _availabilitySummary(Player? me, AppLocalizations l) {
+    if (me == null || me.availableDays.isEmpty) return l.profileSetSchedule;
+    final days = me.availableDays.map((d) => dayLabel(l, d)).join(', ');
+    return me.timePrefs.isEmpty
+        ? days
+        : '$days · ${me.timePrefs.map((t) => timeLabel(l, t)).join(', ')}';
   }
 
   @override
@@ -72,7 +76,8 @@ class _ProfileScreenState extends State<ProfileScreen>
   Widget _buildScaffold(BuildContext context) {
     final cp = CourtThemeProvider.of(context);
     final me = dataService.getCurrentPlayer();
-    final missing = me == null ? const <String>[] : _missingFieldsOf(me);
+    final l = context.l10n;
+    final missing = me == null ? const <String>[] : _missingFieldsOf(me, l);
     final completeness = me == null ? 0 : _completenessOf(missing);
     final upcoming = dataService.getUpcomingSessions()
         .where((s) => s.status == MatchStatus.confirmed).toList();
@@ -94,7 +99,7 @@ class _ProfileScreenState extends State<ProfileScreen>
             elevation: 0,
             scrolledUnderElevation: 0,
             title: Text(
-              'Profilim',
+              l.profileTitle,
               style: TextStyle(
                 fontFamily: 'InstrumentSerif',
                 fontSize: 22,
@@ -104,7 +109,7 @@ class _ProfileScreenState extends State<ProfileScreen>
             actions: [
               IconButton(
                 icon: Icon(Icons.palette_outlined, color: cp.text),
-                tooltip: 'Kort Teması',
+                tooltip: l.courtThemeTitle,
                 onPressed: () => _showThemePicker(context, cp),
               ),
               const SizedBox(width: 8),
@@ -144,8 +149,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                         bottom: 2, right: 2,
                         child: GestureDetector(
                           onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('Fotoğraf yükleme yakında'),
+                            SnackBar(
+                              content: Text(l.photoUploadSoon),
                               behavior: SnackBarBehavior.floating,
                             ),
                           ),
@@ -208,8 +213,8 @@ class _ProfileScreenState extends State<ProfileScreen>
                     ),
                     child: Text(
                       me != null
-                          ? '🎾  NTRP ${me.ntrpRating.toStringAsFixed(1)} — ${me.skillLabel}'
-                          : '🎾  NTRP —',
+                          ? l.profileNtrpLine(me.ntrpRating.toStringAsFixed(1), skillLevelLabel(l, me.skillLabel))
+                          : l.profileNtrpUnknown,
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
@@ -228,7 +233,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                         borderRadius: BorderRadius.circular(RallyRadius.pill),
                       ),
                       child: Text(
-                        'Profili Düzenle',
+                        l.editProfile,
                         style: RallyType.titleSM.copyWith(color: Colors.white),
                       ),
                     ),
@@ -261,13 +266,13 @@ class _ProfileScreenState extends State<ProfileScreen>
               ),
               child: Row(
                 children: [
-                  _StatBox(value: '18', label: 'GALİBİYET',
+                  _StatBox(value: '18', label: l.statWins,
                     color: cp.accent, cp: cp),
-                  _StatBox(value: '7', label: 'MAĞLUBIYET',
+                  _StatBox(value: '7', label: l.statLosses,
                     color: cp.text, cp: cp),
-                  _StatBox(value: '25', label: 'OYNANDI',
+                  _StatBox(value: '25', label: l.statPlayed,
                     color: cp.text, cp: cp),
-                  _StatBox(value: '4.8★', label: 'PUAN',
+                  _StatBox(value: '4.8★', label: l.statRating,
                     color: cp.accent, cp: cp),
                 ],
               ),
@@ -284,7 +289,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   Expanded(
                     child: _QuickActionBtn(
                       icon: Icons.upload_outlined,
-                      label: 'Skorunu Yükle',
+                      label: l.uploadScore,
                       cp: cp,
                       onTap: () => Navigator.push(
                         context,
@@ -297,7 +302,7 @@ class _ProfileScreenState extends State<ProfileScreen>
                   Expanded(
                     child: _QuickActionBtn(
                       icon: Icons.pending_actions_outlined,
-                      label: 'Skor Talepleri',
+                      label: l.scoreRequests,
                       cp: cp,
                       onTap: () => Navigator.push(
                         context,
@@ -317,7 +322,7 @@ class _ProfileScreenState extends State<ProfileScreen>
               padding: const EdgeInsets.fromLTRB(
                 Spacing.gutter, Spacing.xl, Spacing.gutter, Spacing.sm),
               child: Text(
-                'MAÇLARIM',
+                l.myMatchesHeader,
                 style: RallyType.eyebrow.copyWith(
                   color: cp.muted, letterSpacing: 1.4),
               ),
@@ -348,9 +353,9 @@ class _ProfileScreenState extends State<ProfileScreen>
                   labelStyle: RallyType.titleSM,
                   unselectedLabelStyle: RallyType.bodySM,
                   tabs: [
-                    Tab(text: 'Yaklaşan (${upcoming.length})'),
-                    Tab(text: 'Geçmiş (${past.length})'),
-                    Tab(text: 'Bekleyen (${pending.length})'),
+                    Tab(text: l.tabUpcomingCount(upcoming.length)),
+                    Tab(text: l.tabPastCount(past.length)),
+                    Tab(text: l.tabPendingCount(pending.length)),
                   ],
                 ),
               ),
@@ -370,9 +375,9 @@ class _ProfileScreenState extends State<ProfileScreen>
                   _ => pending,
                 };
                 final emptyLabel = switch (lists[_tabController.index]) {
-                  'upcoming' => 'Yaklaşan maç yok',
-                  'past' => 'Geçmiş maç yok',
-                  _ => 'Bekleyen istek yok',
+                  'upcoming' => l.emptyUpcoming,
+                  'past' => l.emptyPast,
+                  _ => l.emptyPending,
                 };
                 return _SessionList(
                     sessions: sessions, cp: cp, emptyLabel: emptyLabel);
@@ -383,71 +388,71 @@ class _ProfileScreenState extends State<ProfileScreen>
           // ── Settings ───────────────────────────────────────────────────
           SliverList(
             delegate: SliverChildListDelegate([
-              _SettingsSection(title: 'OYUNUM', cp: cp),
+              _SettingsSection(title: l.sectionMyGame, cp: cp),
               _SettingsItem(
                 icon: Icons.star_outline,
-                label: 'İtibar',
-                sub: '4.9 puan · 4 değerlendirme',
+                label: l.reputation,
+                sub: l.reputationSub,
                 cp: cp,
                 onTap: () => Navigator.push(context,
                   MaterialPageRoute(builder: (_) => const ReputationScreen())),
               ),
               _SettingsItem(
                 icon: Icons.emoji_events_outlined,
-                label: 'Başarılar',
-                sub: '18 üzerinden 12 kazanıldı',
+                label: l.achievements,
+                sub: l.achievementsSub,
                 cp: cp,
                 onTap: () => Navigator.push(context,
                   MaterialPageRoute(builder: (_) => const AchievementsScreen())),
               ),
               _SettingsItem(
                 icon: Icons.bar_chart,
-                label: 'Sonuçlarım',
-                sub: 'Maç geçmişi ve skorlar',
+                label: l.myResults,
+                sub: l.myResultsSub,
                 cp: cp,
                 onTap: () => Navigator.push(context,
                   MaterialPageRoute(builder: (_) => const MyResultsScreen())),
               ),
               _SettingsItem(
                 icon: Icons.sports_score,
-                label: 'Sonuç Kaydet',
-                sub: 'Son maçını kaydet',
+                label: l.logResult,
+                sub: l.logResultSub,
                 cp: cp,
                 onTap: () => Navigator.push(context,
                   MaterialPageRoute(builder: (_) => const LogResultScreen())),
               ),
-              _SettingsSection(title: 'HESAP', cp: cp),
+              _SettingsSection(title: l.sectionAccount, cp: cp),
               _SettingsItem(
                 icon: Icons.person_outline,
-                label: 'Profili Düzenle',
-                sub: 'Ad, konum, biyografi, seviye güncelle',
+                label: l.editProfile,
+                sub: l.editProfileSub,
                 cp: cp,
                 onTap: _openEditProfile,
               ),
               _SettingsItem(
                 icon: Icons.sports_tennis_outlined,
-                label: 'Oyun Tercihleri',
-                sub: 'Seviye, kort türü, format',
+                label: l.gamePreferences,
+                sub: l.gamePreferencesSub,
                 cp: cp,
                 onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Oyun tercihleri yakında'),
+                  SnackBar(
+                    content: Text(l.gamePreferencesSoon),
                     behavior: SnackBarBehavior.floating,
                   ),
                 ),
               ),
               _SettingsItem(
                 icon: Icons.calendar_today_outlined,
-                label: 'Müsaitlik',
-                sub: _availabilitySummary(me),
+                label: l.availability,
+                sub: _availabilitySummary(me, l),
                 cp: cp,
                 onTap: _openEditProfile,
               ),
-              _SettingsSection(title: 'UYGULAMA', cp: cp),
+              _SettingsSection(title: l.sectionApp, cp: cp),
               _SettingsItem(
                 icon: Icons.notifications_outlined,
-                label: 'Bildirimler',
-                sub: 'Maç istekleri, hatırlatmalar',
+                label: l.notifications,
+                sub: l.notificationsSub,
                 cp: cp,
                 onTap: () => Navigator.push(context,
                   MaterialPageRoute(
@@ -455,38 +460,38 @@ class _ProfileScreenState extends State<ProfileScreen>
               ),
               _SettingsItem(
                 icon: Icons.palette_outlined,
-                label: 'Kort Teması',
-                sub: 'Toprak / Sert Kort / Çim',
+                label: l.courtThemeTitle,
+                sub: l.courtThemeOptions,
                 cp: cp,
                 onTap: () => _showThemePicker(context, cp),
               ),
               _SettingsItem(
                 icon: Icons.lock_outline,
-                label: 'Gizlilik ve Güvenlik',
-                sub: 'Profil görünürlüğü',
+                label: l.privacySecurity,
+                sub: l.privacySecuritySub,
                 cp: cp,
                 onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Gizlilik ayarları yakında'),
+                  SnackBar(
+                    content: Text(l.privacySettingsSoon),
                     behavior: SnackBarBehavior.floating,
                   ),
                 ),
               ),
-              _SettingsSection(title: 'HAKKINDA', cp: cp),
+              _SettingsSection(title: l.sectionAbout, cp: cp),
               _SettingsItem(
                 icon: Icons.description_outlined,
-                label: 'Şartlar ve Gizlilik',
+                label: l.termsPrivacy,
                 cp: cp,
                 onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Şartlar ve Gizlilik yakında'),
+                  SnackBar(
+                    content: Text(l.termsPrivacySoon),
                     behavior: SnackBarBehavior.floating,
                   ),
                 ),
               ),
               _SettingsItem(
                 icon: Icons.logout,
-                label: 'Çıkış Yap',
+                label: l.signOut,
                 cp: cp,
                 onTap: () async { await supabase.auth.signOut(); },
                 isDestructive: true,
@@ -503,8 +508,8 @@ class _ProfileScreenState extends State<ProfileScreen>
     final me = dataService.getCurrentPlayer();
     if (me == null) {
       // Profile row not loaded yet (or warmCache failed) — retry the fetch.
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Profil yükleniyor, lütfen tekrar deneyin'),
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(context.l10n.profileLoadingRetry),
         behavior: SnackBarBehavior.floating,
       ));
       unawaited(dataService.warmCache());
@@ -513,8 +518,8 @@ class _ProfileScreenState extends State<ProfileScreen>
     final saved = await Navigator.push<bool>(context,
       MaterialPageRoute(builder: (_) => EditProfileScreen(player: me)));
     if (saved == true && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Profil güncellendi'),
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(context.l10n.profileUpdated),
         behavior: SnackBarBehavior.floating,
       ));
     }
@@ -545,10 +550,10 @@ class _ProfileScreenState extends State<ProfileScreen>
               ),
             ),
             const SizedBox(height: 20),
-            Text('Kort Teması',
+            Text(context.l10n.courtThemeTitle,
               style: RallyType.displaySM.copyWith(color: current.text)),
             const SizedBox(height: 4),
-            Text('Uygulamanın renk temasını seç',
+            Text(context.l10n.courtThemeSubtitle,
               style: RallyType.bodySM.copyWith(color: current.text2)),
             const SizedBox(height: 20),
             ...([CourtPalette.clay, CourtPalette.hard, CourtPalette.grass])
@@ -584,15 +589,15 @@ class _ProfileScreenState extends State<ProfileScreen>
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(palette.displayName,
+                            Text(courtThemeLabel(context.l10n, palette.theme),
                               style: RallyType.titleMD.copyWith(
                                 color: palette.text)),
                             Text(
-                              palette.theme == CourtTheme.clay
-                                  ? 'Roland-Garros tarzı'
-                                  : palette.theme == CourtTheme.hard
-                                      ? 'US Open tarzı'
-                                      : 'Wimbledon tarzı',
+                              switch (palette.theme) {
+                                CourtTheme.clay => context.l10n.courtThemeClaySub,
+                                CourtTheme.hard => context.l10n.courtThemeHardSub,
+                                CourtTheme.grass => context.l10n.courtThemeGrassSub,
+                              },
                               style: RallyType.bodySM.copyWith(
                                 color: palette.muted)),
                           ],
@@ -682,12 +687,12 @@ class _SessionCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        DateFormat('HH:mm').format(dt),
+                        DateFormat('HH:mm', context.localeName).format(dt),
                         style: RallyType.displaySM.copyWith(
                           color: cp.text, fontSize: 20),
                       ),
                       Text(
-                        DateFormat('EEE').format(dt).toUpperCase(),
+                        DateFormat('EEE', context.localeName).format(dt).toUpperCase(),
                         style: RallyType.micro.copyWith(
                           color: cp.muted, letterSpacing: 0.4),
                       ),
@@ -702,13 +707,13 @@ class _SessionCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'vs ${session.opponent.name}',
+                        context.l10n.vsOpponent(session.opponent.name),
                         style: RallyType.titleMD.copyWith(color: cp.text),
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        session.court,
+                        courtDisplay(context.l10n, session.court),
                         style: RallyType.bodySM.copyWith(color: cp.muted),
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -722,7 +727,7 @@ class _SessionCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(RallyRadius.pill),
                   ),
                   child: Text(
-                    _statusLabel(session.status),
+                    _statusLabel(context.l10n, session.status),
                     style: RallyType.micro.copyWith(
                       color: cp.accentStrong, letterSpacing: 0.3),
                   ),
@@ -737,12 +742,12 @@ class _SessionCard extends StatelessWidget {
     );
   }
 
-  String _statusLabel(MatchStatus s) {
+  String _statusLabel(AppLocalizations l, MatchStatus s) {
     switch (s) {
-      case MatchStatus.confirmed:  return 'YAKLAŞAN';
-      case MatchStatus.completed:  return 'TAMAMLANDI';
-      case MatchStatus.pending:    return 'BEKLİYOR';
-      case MatchStatus.cancelled:  return 'İPTAL';
+      case MatchStatus.confirmed:  return l.statusUpcomingUpper;
+      case MatchStatus.completed:  return l.statusCompletedUpper;
+      case MatchStatus.pending:    return l.statusPendingUpper;
+      case MatchStatus.cancelled:  return l.statusCancelledUpper;
     }
   }
 }
@@ -764,12 +769,12 @@ class _MatchDetailSheet extends StatelessWidget {
 
   const _MatchDetailSheet({required this.session, required this.cp});
 
-  String _statusLabel(MatchStatus s) {
+  String _statusLabel(AppLocalizations l, MatchStatus s) {
     switch (s) {
-      case MatchStatus.confirmed:  return 'Onaylandı';
-      case MatchStatus.completed:  return 'Tamamlandı';
-      case MatchStatus.pending:    return 'Beklemede';
-      case MatchStatus.cancelled:  return 'İptal Edildi';
+      case MatchStatus.confirmed:  return l.statusConfirmed;
+      case MatchStatus.completed:  return l.statusCompleted;
+      case MatchStatus.pending:    return l.statusPending;
+      case MatchStatus.cancelled:  return l.statusCancelled;
     }
   }
 
@@ -832,10 +837,10 @@ class _MatchDetailSheet extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('vs ${opponent.name}',
+                        Text(context.l10n.vsOpponent(opponent.name),
                           style: RallyType.titleLG.copyWith(color: cp.text)),
                         const SizedBox(height: 2),
-                        Text(_statusLabel(session.status),
+                        Text(_statusLabel(context.l10n, session.status),
                           style: RallyType.bodySM.copyWith(color: cp.accentStrong)),
                       ],
                     ),
@@ -845,11 +850,13 @@ class _MatchDetailSheet extends StatelessWidget {
               ),
             ),
             const SizedBox(height: Spacing.xl),
-            _row(Icons.calendar_today_outlined, DateFormat('EEEE, d MMMM').format(dt)),
-            _row(Icons.access_time, DateFormat('HH:mm').format(dt)),
-            _row(Icons.place_outlined, session.court),
+            _row(Icons.calendar_today_outlined, DateFormat('EEEE, d MMMM', context.localeName).format(dt)),
+            _row(Icons.access_time, DateFormat('HH:mm', context.localeName).format(dt)),
+            _row(Icons.place_outlined, courtDisplay(context.l10n, session.court)),
             _row(Icons.sports_tennis_outlined,
-              session.format == MatchFormat.doubles ? 'Çiftler' : 'Tekler'),
+              session.format == MatchFormat.doubles
+                  ? context.l10n.formatDoubles
+                  : context.l10n.formatSingles),
             if (result != null) ...[
               const SizedBox(height: Spacing.sm),
               _row(Icons.emoji_events_outlined,
@@ -871,8 +878,8 @@ class _MatchDetailSheet extends StatelessWidget {
                     Navigator.push(context, MaterialPageRoute(
                       builder: (_) => LogResultScreen(opponent: opponent)));
                   },
-                  child: const Text('Sonuç Kaydet',
-                    style: TextStyle(fontWeight: FontWeight.w700)),
+                  child: Text(context.l10n.logResult,
+                    style: const TextStyle(fontWeight: FontWeight.w700)),
                 ),
               ),
             ],

@@ -5,6 +5,8 @@ import '../theme/app_theme.dart';
 import '../widgets/shared_widgets.dart';
 import '../main.dart' show supabase;
 import '../utils/initials.dart';
+import '../l10n/l10n.dart';
+import '../l10n/option_labels.dart';
 
 class SignupScreen extends StatefulWidget {
   final VoidCallback onComplete;
@@ -188,7 +190,9 @@ class _SignupScreenState extends State<SignupScreen> {
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
               child: RallyButton(
-                label: _step == 3 ? 'Bitir — Oynayalım 🎾' : 'Devam',
+                label: _step == 3
+                    ? context.l10n.signupFinish
+                    : context.l10n.signupContinue,
                 onPressed: _canProceed ? _next : null,
                 loading: _loading,
               ),
@@ -215,34 +219,34 @@ class _Step1 extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Kendinizden bahsedin',
-            style: TextStyle(fontFamily: 'InstrumentSerif', fontSize: 32, letterSpacing: -1.5, height: 1.1),
+          Text(
+            context.l10n.signupStep1Title,
+            style: const TextStyle(fontFamily: 'InstrumentSerif', fontSize: 32, letterSpacing: -1.5, height: 1.1),
           ).animate().fadeIn().slideY(begin: 0.1, end: 0),
           const SizedBox(height: 8),
-          const Text(
-            'Oyuncuların sizi bulmasına yardımcı olun',
-            style: TextStyle(color: RallyColors.textSecondary, fontSize: 15, height: 1.5),
+          Text(
+            context.l10n.signupStep1Subtitle,
+            style: const TextStyle(color: RallyColors.textSecondary, fontSize: 15, height: 1.5),
           ).animate().fadeIn(delay: 80.ms),
           const SizedBox(height: 32),
           TextFormField(
             controller: nameCtrl,
             onChanged: (_) => onChanged(),
             textCapitalization: TextCapitalization.words,
-            decoration: const InputDecoration(
-              labelText: 'AD SOYAD',
-              hintText: 'örn. Leyla Garayli',
-              prefixIcon: Icon(Icons.person_outline, size: 18),
+            decoration: InputDecoration(
+              labelText: context.l10n.signupNameLabel,
+              hintText: context.l10n.signupNameHint,
+              prefixIcon: const Icon(Icons.person_outline, size: 18),
             ),
           ).animate().fadeIn(delay: 120.ms),
           const SizedBox(height: 16),
           TextFormField(
             controller: locationCtrl,
             onChanged: (_) => onChanged(),
-            decoration: const InputDecoration(
-              labelText: 'MAHALLE / ŞEHİR',
-              hintText: 'örn. Beşiktaş, İstanbul',
-              prefixIcon: Icon(Icons.location_on_outlined, size: 18),
+            decoration: InputDecoration(
+              labelText: context.l10n.signupLocationLabel,
+              hintText: context.l10n.signupLocationHint,
+              prefixIcon: const Icon(Icons.location_on_outlined, size: 18),
             ),
           ).animate().fadeIn(delay: 160.ms),
         ],
@@ -265,14 +269,14 @@ class _Step2 extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Hangi sporları oynuyorsunuz?',
-            style: TextStyle(fontFamily: 'InstrumentSerif', fontSize: 32, letterSpacing: -1.5, height: 1.1),
+          Text(
+            context.l10n.signupStep2Title,
+            style: const TextStyle(fontFamily: 'InstrumentSerif', fontSize: 32, letterSpacing: -1.5, height: 1.1),
           ).animate().fadeIn(),
           const SizedBox(height: 8),
-          const Text(
-            'Uygun olanları seçin',
-            style: TextStyle(color: RallyColors.textSecondary, fontSize: 15),
+          Text(
+            context.l10n.signupStep2Subtitle,
+            style: const TextStyle(color: RallyColors.textSecondary, fontSize: 15),
           ).animate().fadeIn(delay: 80.ms),
           const SizedBox(height: 28),
           GridView.count(
@@ -310,8 +314,8 @@ class _Step2 extends StatelessWidget {
                     children: [
                       Text(s.$1, style: const TextStyle(fontSize: 28)),
                       const Spacer(),
-                      Text(s.$2, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
-                      Text(s.$3, style: const TextStyle(fontSize: 11, color: RallyColors.muted)),
+                      Text(sportLabel(context.l10n, s.$2), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                      Text(sportSubtitle(context.l10n, s.$2), style: const TextStyle(fontSize: 11, color: RallyColors.muted)),
                     ],
                   ),
                 ),
@@ -338,14 +342,14 @@ class _Step3 extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Seviyeniz nedir?',
-            style: TextStyle(fontFamily: 'InstrumentSerif', fontSize: 32, letterSpacing: -1.5, height: 1.1),
+          Text(
+            context.l10n.signupStep3Title,
+            style: const TextStyle(fontFamily: 'InstrumentSerif', fontSize: 32, letterSpacing: -1.5, height: 1.1),
           ).animate().fadeIn(),
           const SizedBox(height: 8),
-          const Text(
-            'Dürüst olun — bu en iyi maçları bulmaya yardımcı olur',
-            style: TextStyle(color: RallyColors.textSecondary, fontSize: 15),
+          Text(
+            context.l10n.signupStep3Subtitle,
+            style: const TextStyle(color: RallyColors.textSecondary, fontSize: 15),
           ).animate().fadeIn(delay: 80.ms),
           const SizedBox(height: 28),
           ...List.generate(skillOptions.length, (i) {
@@ -383,8 +387,8 @@ class _Step3 extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(skill.$2, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
-                            Text(skill.$3, style: const TextStyle(fontSize: 12, color: RallyColors.muted)),
+                            Text(skillLevelLabel(context.l10n, skill.$2), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                            Text(skillSubtitle(context.l10n, skill.$2), style: const TextStyle(fontSize: 12, color: RallyColors.muted)),
                           ],
                         ),
                       ),
@@ -417,19 +421,19 @@ class _Step4 extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Genellikle ne zaman müsaitsiniz?',
-            style: TextStyle(fontFamily: 'InstrumentSerif', fontSize: 32, letterSpacing: -1.5, height: 1.1),
+          Text(
+            context.l10n.signupStep4Title,
+            style: const TextStyle(fontFamily: 'InstrumentSerif', fontSize: 32, letterSpacing: -1.5, height: 1.1),
           ).animate().fadeIn(),
           const SizedBox(height: 8),
-          const Text(
-            'Tipik müsaitliğinizi seçin',
-            style: TextStyle(color: RallyColors.textSecondary, fontSize: 15),
+          Text(
+            context.l10n.signupStep4Subtitle,
+            style: const TextStyle(color: RallyColors.textSecondary, fontSize: 15),
           ).animate().fadeIn(delay: 80.ms),
           const SizedBox(height: 28),
 
           // Days grid
-          const Text('GÜNLER', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: RallyColors.muted, letterSpacing: 0.8)),
+          Text(context.l10n.signupDaysHeader, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: RallyColors.muted, letterSpacing: 0.8)),
           const SizedBox(height: 10),
           Row(
             children: dayOptions.map((d) {
@@ -459,7 +463,7 @@ class _Step4 extends StatelessWidget {
                     child: Column(
                       children: [
                         Text(
-                          d.substring(0, 1),
+                          dayLabel(context.l10n, d).substring(0, 1),
                           style: TextStyle(
                             fontSize: 9,
                             fontWeight: FontWeight.w700,
@@ -468,7 +472,7 @@ class _Step4 extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          d.substring(1),
+                          dayLabel(context.l10n, d).substring(1),
                           style: TextStyle(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
@@ -486,7 +490,7 @@ class _Step4 extends StatelessWidget {
           const SizedBox(height: 24),
 
           // Time preference
-          const Text('GÜNÜN SAATİ', style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: RallyColors.muted, letterSpacing: 0.8)),
+          Text(context.l10n.signupTimeOfDayHeader, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: RallyColors.muted, letterSpacing: 0.8)),
           const SizedBox(height: 10),
           Row(
             children: timeOptions.map((t) {
@@ -518,7 +522,7 @@ class _Step4 extends StatelessWidget {
                         Text(t.$1, style: const TextStyle(fontSize: 22)),
                         const SizedBox(height: 4),
                         Text(
-                          t.$2,
+                          timeLabel(context.l10n, t.$2),
                           style: TextStyle(
                             fontSize: 12,
                             fontWeight: FontWeight.w700,

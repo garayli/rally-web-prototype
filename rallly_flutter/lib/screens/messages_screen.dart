@@ -10,8 +10,22 @@ import '../models/models.dart';
 import '../services/data_service.dart';
 import '../main.dart' show CourtThemeProvider;
 import 'player_profile_screen.dart';
+import '../l10n/l10n.dart';
+import '../l10n/data_error_message.dart';
 
 // ─── Inbox screen ─────────────────────────────────────────────────────────────
+enum _InboxFilter {
+  all,
+  unread,
+  matchPartners;
+
+  String label(AppLocalizations l) => switch (this) {
+        _InboxFilter.all => l.notifFilterAll,
+        _InboxFilter.unread => l.inboxFilterUnread,
+        _InboxFilter.matchPartners => l.inboxFilterMatchPartners,
+      };
+}
+
 class MessagesScreen extends StatefulWidget {
   const MessagesScreen({super.key});
 
@@ -21,7 +35,7 @@ class MessagesScreen extends StatefulWidget {
 
 class _MessagesScreenState extends State<MessagesScreen> {
   String _searchQuery = '';
-  String _filter = 'Tümü'; // Tümü | Okunmamış | Maç Eşleri
+  _InboxFilter _filter = _InboxFilter.all;
   final _searchController = TextEditingController();
 
   @override
@@ -32,11 +46,11 @@ class _MessagesScreenState extends State<MessagesScreen> {
 
   List<Conversation> get _filtered {
     var list = dataService.getConversations();
-    if (_filter == 'Okunmamış') {
+    if (_filter == _InboxFilter.unread) {
       list = list.where((c) =>
         !dataService.isConversationRead(c.id) &&
         c.unreadCount(dataService.currentUserId) > 0).toList();
-    } else if (_filter == 'Maç Eşleri') {
+    } else if (_filter == _InboxFilter.matchPartners) {
       final matchOpponentIds = dataService.getUpcomingSessions()
           .map((s) => s.opponent.id)
           .toSet();
@@ -71,7 +85,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
         elevation: 0,
         scrolledUnderElevation: 0,
         title: Text(
-          'Mesajlar',
+          context.l10n.navMessages,
           style: TextStyle(
             fontFamily: 'InstrumentSerif',
             fontSize: 22,
@@ -82,8 +96,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
           IconButton(
             icon: Icon(Icons.edit_outlined, color: cp.text),
             onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Konuşma düzenleme yakında'),
+              SnackBar(
+                content: Text(context.l10n.editConversationsSoon),
                 behavior: SnackBarBehavior.floating,
               ),
             ),
@@ -119,7 +133,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                       onChanged: (v) => setState(() => _searchQuery = v.trim()),
                       style: RallyType.body.copyWith(color: cp.text),
                       decoration: InputDecoration(
-                        hintText: 'İsim veya mesaj ara…',
+                        hintText: context.l10n.searchNameOrMessage,
                         hintStyle: RallyType.body.copyWith(color: cp.muted2),
                         border: InputBorder.none,
                         enabledBorder: InputBorder.none,
@@ -141,9 +155,9 @@ class _MessagesScreenState extends State<MessagesScreen> {
               scrollDirection: Axis.horizontal,
               padding: const EdgeInsets.symmetric(
                 horizontal: Spacing.gutter),
-              children: ['Tümü', 'Okunmamış', 'Maç Eşleri'].map((f) {
+              children: _InboxFilter.values.map((f) {
                 final active = _filter == f;
-                final unreadCount = f == 'Okunmamış'
+                final unreadCount = f == _InboxFilter.unread
                     ? dataService.getConversations().where((c) =>
                         !dataService.isConversationRead(c.id) &&
                         c.unreadCount(dataService.currentUserId) > 0).length
@@ -168,7 +182,7 @@ class _MessagesScreenState extends State<MessagesScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            f,
+                            f.label(context.l10n),
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
@@ -209,8 +223,8 @@ class _MessagesScreenState extends State<MessagesScreen> {
                 ? Center(
                     child: Text(
                       _searchQuery.isNotEmpty
-                          ? 'Sonuç bulunamadı'
-                          : 'Henüz mesaj yok',
+                          ? context.l10n.noResults
+                          : context.l10n.noMessagesYet,
                       style: RallyType.body.copyWith(color: cp.muted),
                     ),
                   )
@@ -253,16 +267,16 @@ class _InboxTile extends StatelessWidget {
     required this.onTap,
   });
 
-  String _timeLabel(DateTime dt) {
+  String _timeLabel(BuildContext context, DateTime dt) {
     final now = DateTime.now();
     final diff = now.difference(dt);
     if (diff.inHours < 1) {
-      return '${diff.inMinutes.abs()}m';
+      return context.l10n.minutesShort(diff.inMinutes.abs());
     }
     if (now.difference(dt).inHours < 24) {
-      return DateFormat('HH:mm').format(dt);
+      return DateFormat('HH:mm', context.localeName).format(dt);
     }
-    return DateFormat('d MMM').format(dt);
+    return DateFormat('d MMM', context.localeName).format(dt);
   }
 
   @override
@@ -353,7 +367,7 @@ class _InboxTile extends StatelessWidget {
               children: [
                 if (last != null)
                   Text(
-                    _timeLabel(last.timestamp),
+                    _timeLabel(context, last.timestamp),
                     style: RallyType.caption.copyWith(
                       color: unread ? cp.accent : cp.muted,
                       fontWeight: unread
@@ -472,9 +486,9 @@ class _ConversationScreenState extends State<ConversationScreen> {
       if (!mounted) return;
       setState(() => _failedIds.add(msg.id));
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(e is StateError
-            ? e.message
-            : 'Mesaj gönderilemedi. Tekrar denemek için mesaja dokun.'),
+        content: Text(e is DataException
+            ? dataErrorMessage(context.l10n, e)
+            : context.l10n.messageSendFailed),
         backgroundColor: RallyColors.accent2,
         behavior: SnackBarBehavior.floating,
       ));
@@ -536,8 +550,8 @@ class _ConversationScreenState extends State<ConversationScreen> {
                       color: cp.text,
                     )),
                   if (widget.conversation.isOnline)
-                    const Text('Çevrimiçi',
-                      style: TextStyle(
+                    Text(context.l10n.online,
+                      style: const TextStyle(
                         fontSize: 12,
                         color: Color(0xFF2BAA4A),
                         fontWeight: FontWeight.w500,
@@ -549,7 +563,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
         ),
         actions: [
           IconButton(
-            tooltip: 'Maç İste',
+            tooltip: context.l10n.requestMatch,
             icon: Icon(Icons.sports_tennis, color: cp.accent),
             onPressed: () =>
                 showMatchRequestSheet(context, widget.conversation.other),
@@ -654,7 +668,7 @@ class _ConversationScreenState extends State<ConversationScreen> {
                     style: RallyType.body.copyWith(color: cp.text),
                     decoration: InputDecoration(
                       hintText:
-                        '${widget.conversation.other.name.split(' ').first} ile mesajlaş…',
+                        context.l10n.messageHint(widget.conversation.other.name.split(' ').first),
                       hintStyle: RallyType.body.copyWith(color: cp.muted),
                       contentPadding: const EdgeInsets.symmetric(
                         horizontal: 16, vertical: 10),

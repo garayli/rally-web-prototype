@@ -6,6 +6,32 @@ import '../services/data_service.dart';
 import '../theme/app_theme.dart';
 import '../theme/design_tokens.dart';
 import '../main.dart' show CourtThemeProvider;
+import '../l10n/l10n.dart';
+import '../l10n/data_error_message.dart';
+
+enum _Filter {
+  all,
+  matches,
+  other;
+
+  String label(AppLocalizations l) => switch (this) {
+        _Filter.all => l.notifFilterAll,
+        _Filter.matches => l.notifFilterMatches,
+        _Filter.other => l.notifFilterOther,
+      };
+}
+
+enum _Group {
+  today,
+  yesterday,
+  thisWeek;
+
+  String label(AppLocalizations l) => switch (this) {
+        _Group.today => l.groupToday,
+        _Group.yesterday => l.groupYesterday,
+        _Group.thisWeek => l.groupThisWeek,
+      };
+}
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -17,9 +43,7 @@ class NotificationsScreen extends StatefulWidget {
 class _NotificationsScreenState extends State<NotificationsScreen> {
   List<AppNotification> _notifs = [];
   bool _loading = true;
-  String _filter = 'Tümü';
-
-  static const _filters = ['Tümü', 'Sıralama', 'Mesaj'];
+  _Filter _filter = _Filter.all;
 
   @override
   void initState() {
@@ -49,7 +73,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   }
 
   List<AppNotification> get _filtered {
-    if (_filter == 'Sıralama') {
+    if (_filter == _Filter.matches) {
       return _notifs
           .where((n) =>
               n.type == NotifType.matchRequest ||
@@ -61,7 +85,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               n.type == NotifType.cancellation)
           .toList();
     }
-    if (_filter == 'Mesaj') {
+    if (_filter == _Filter.other) {
       return _notifs
           .where((n) =>
               n.type == NotifType.review ||
@@ -81,7 +105,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       debugPrint('MATCH REQUEST RESPONSE ERROR: $e');
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('İşlem başarısız: $e'),
+        content: Text(context.l10n.actionFailed(dataErrorMessage(context.l10n, e))),
         backgroundColor: RallyColors.accent2,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -104,7 +128,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('İşlem başarısız: $e'),
+        content: Text(context.l10n.actionFailed(dataErrorMessage(context.l10n, e))),
         backgroundColor: RallyColors.accent2,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -123,7 +147,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('İşlem başarısız: $e'),
+        content: Text(context.l10n.actionFailed(dataErrorMessage(context.l10n, e))),
         backgroundColor: RallyColors.accent2,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -134,11 +158,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     setState(() => _notifs.removeWhere((x) => x.id == n.id));
   }
 
-  String _groupLabel(AppNotification n) {
+  _Group _groupOf(AppNotification n) {
     final diff = DateTime.now().difference(n.timestamp);
-    if (diff.inHours < 24) return 'Bugün';
-    if (diff.inHours < 48) return 'Dün';
-    return 'Bu Hafta';
+    if (diff.inHours < 24) return _Group.today;
+    if (diff.inHours < 48) return _Group.yesterday;
+    return _Group.thisWeek;
   }
 
   @override
@@ -146,11 +170,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     final cp = CourtThemeProvider.of(context);
     final notifs = _filtered;
 
-    final Map<String, List<AppNotification>> groups = {};
+    final l = context.l10n;
+    final Map<_Group, List<AppNotification>> groups = {};
     for (final n in notifs) {
-      groups.putIfAbsent(_groupLabel(n), () => []).add(n);
+      groups.putIfAbsent(_groupOf(n), () => []).add(n);
     }
-    const groupOrder = ['Bugün', 'Dün', 'Bu Hafta'];
     final unreadCount = _notifs.where((n) => !n.isRead).length;
 
     return Scaffold(
@@ -165,7 +189,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               child: Row(
                 children: [
                   Text(
-                    'Bildirimler',
+                    l.notifications,
                     style: TextStyle(
                       fontFamily: 'InstrumentSerif',
                       fontSize: 24,
@@ -196,7 +220,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     GestureDetector(
                       onTap: _markAllRead,
                       child: Text(
-                        'Tümünü oku',
+                        l.markAllRead,
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -214,10 +238,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: Spacing.gutter),
-                itemCount: _filters.length,
+                itemCount: _Filter.values.length,
                 separatorBuilder: (_, __) => const SizedBox(width: Spacing.sm),
                 itemBuilder: (context, i) {
-                  final f = _filters[i];
+                  final f = _Filter.values[i];
                   final active = _filter == f;
                   return GestureDetector(
                     onTap: () => setState(() => _filter = f),
@@ -234,7 +258,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         ),
                       ),
                       child: Text(
-                        f,
+                        f.label(l),
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -261,7 +285,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                                   size: 48, color: cp.muted),
                               const SizedBox(height: Spacing.md),
                               Text(
-                                'Bildirim yok',
+                                l.noNotifications,
                                 style: TextStyle(
                                   fontSize: 15,
                                   fontWeight: FontWeight.w600,
@@ -277,9 +301,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           child: ListView(
                             padding: const EdgeInsets.only(bottom: 100),
                             children: [
-                              for (final group in groupOrder)
+                              for (final group in _Group.values)
                                 if (groups.containsKey(group)) ...[
-                                  _GroupHeader(title: group, cp: cp),
+                                  _GroupHeader(title: group.label(l), cp: cp),
                                   for (final n in groups[group]!)
                                     _NotifTile(
                                       notif: n,
@@ -486,7 +510,7 @@ class _NotifTile extends StatelessWidget {
                       ),
                       const SizedBox(height: 5),
                       Text(
-                        _timeAgo(notif.timestamp),
+                        _timeAgo(context, notif.timestamp),
                         style: TextStyle(fontSize: 11, color: cp.muted),
                       ),
                     ],
@@ -502,7 +526,7 @@ class _NotifTile extends StatelessWidget {
                 children: [
                   Expanded(
                     child: _ActionBtn(
-                      label: 'Reddet',
+                      label: context.l10n.decline,
                       outlined: true,
                       cp: cp,
                       onTap: onDecline,
@@ -511,7 +535,7 @@ class _NotifTile extends StatelessWidget {
                   const SizedBox(width: Spacing.md),
                   Expanded(
                     child: _ActionBtn(
-                      label: 'Kabul Et',
+                      label: context.l10n.accept,
                       cp: cp,
                       onTap: onAccept,
                     ),
@@ -525,7 +549,7 @@ class _NotifTile extends StatelessWidget {
                 children: [
                   Expanded(
                     child: _ActionBtn(
-                      label: 'İtiraz Et',
+                      label: context.l10n.dispute,
                       outlined: true,
                       cp: cp,
                       onTap: onDispute,
@@ -534,7 +558,7 @@ class _NotifTile extends StatelessWidget {
                   const SizedBox(width: Spacing.md),
                   Expanded(
                     child: _ActionBtn(
-                      label: 'Onayla',
+                      label: context.l10n.confirm,
                       cp: cp,
                       onTap: onConfirm,
                     ),
@@ -548,11 +572,12 @@ class _NotifTile extends StatelessWidget {
     );
   }
 
-  String _timeAgo(DateTime dt) {
+  String _timeAgo(BuildContext context, DateTime dt) {
+    final l = context.l10n;
     final diff = DateTime.now().difference(dt);
-    if (diff.inMinutes < 60) return '${diff.inMinutes} dk önce';
-    if (diff.inHours < 24) return '${diff.inHours} sa önce';
-    return DateFormat('d MMM').format(dt);
+    if (diff.inMinutes < 60) return l.minutesAgo(diff.inMinutes);
+    if (diff.inHours < 24) return l.hoursAgo(diff.inHours);
+    return DateFormat('d MMM', context.localeName).format(dt);
   }
 }
 

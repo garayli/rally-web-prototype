@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import '../config/court_options.dart';
-import '../config/profile_options.dart' show dayOptions;
+import 'package:intl/intl.dart';
 import '../models/models.dart';
 import '../services/data_service.dart';
 import '../theme/app_theme.dart';
 import '../main.dart' show CourtThemeProvider;
 import 'shared_widgets.dart';
+import '../l10n/l10n.dart';
+import '../l10n/data_error_message.dart';
 
 /// Opens the real match-request sheet for [player]. Every "Maç İste" entry
 /// point (Match tab, player profile, conversation, map) must go through this
@@ -65,20 +67,18 @@ class _MatchRequestSheetState extends State<MatchRequestSheet> {
     return DateTime(d.year, d.month, d.day, 10);
   }
 
-  // No Turkish intl locale is initialized, so build the label by hand.
-  static String _formatDateTime(DateTime dt) {
-    String two(int n) => n.toString().padLeft(2, '0');
-    return '${dayOptions[dt.weekday - 1]} ${two(dt.day)}.${two(dt.month)} · '
-        '${two(dt.hour)}:${two(dt.minute)}';
-  }
+  static String _formatDateTime(DateTime dt, String locale) =>
+      DateFormat('EEE dd.MM · HH:mm', locale).format(dt);
 
   Future<void> _pickFormat() async {
-    final picked = await _pickFromList('Format', _formats, _selectedFormat);
+    final picked = await _pickFromList(
+        context.l10n.format, _formats, _selectedFormat, _formatLabel);
     if (picked != null) setState(() => _selectedFormat = picked);
   }
 
   Future<void> _pickCourt() async {
-    final picked = await _pickFromList('Kort', courtOptions, _selectedCourt);
+    final picked = await _pickFromList(
+        context.l10n.court, courtOptions, _selectedCourt, (_, c) => c);
     if (picked != null) setState(() => _selectedCourt = picked);
   }
 
@@ -100,8 +100,8 @@ class _MatchRequestSheetState extends State<MatchRequestSheet> {
         DateTime(date.year, date.month, date.day, time.hour, time.minute);
     if (picked.isBefore(now)) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Geçmiş bir saat seçilemez'),
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(context.l10n.pastTimeNotAllowed),
         behavior: SnackBarBehavior.floating,
       ));
       return;
@@ -109,8 +109,8 @@ class _MatchRequestSheetState extends State<MatchRequestSheet> {
     setState(() => _selectedDateTime = picked);
   }
 
-  Future<String?> _pickFromList(
-      String title, List<String> options, String current) {
+  Future<String?> _pickFromList(String title, List<String> options,
+      String current, String Function(AppLocalizations, String) labelOf) {
     final cp = CourtThemeProvider.of(context);
     return showModalBottomSheet<String>(
       context: context,
@@ -131,7 +131,7 @@ class _MatchRequestSheetState extends State<MatchRequestSheet> {
             ),
             for (final o in options)
               ListTile(
-                title: Text(o, style: TextStyle(color: cp.text)),
+                title: Text(labelOf(context.l10n, o), style: TextStyle(color: cp.text)),
                 trailing: o == current
                     ? Icon(Icons.check, color: cp.accent)
                     : null,
@@ -144,10 +144,14 @@ class _MatchRequestSheetState extends State<MatchRequestSheet> {
     );
   }
 
+  static String _formatLabel(AppLocalizations l, String format) =>
+      format == 'Tekler' ? l.formatSingles : l.formatDoubles;
+
   Future<void> _sendRequest() async {
     if (_sent || _loading) return;
     setState(() => _loading = true);
     final cp = CourtThemeProvider.of(context);
+    final l = context.l10n;
     try {
       await dataService.sendMatchRequest(
         opponentId: widget.player.id,
@@ -167,8 +171,7 @@ class _MatchRequestSheetState extends State<MatchRequestSheet> {
         if (mounted) {
           nav.pop();
           messenger.showSnackBar(SnackBar(
-            content:
-                Text('${widget.player.name} oyuncusuna maç isteği gönderildi!'),
+            content: Text(l.matchRequestSentTo(widget.player.name)),
             backgroundColor: cp.accent,
             behavior: SnackBarBehavior.floating,
             shape: RoundedRectangleBorder(
@@ -177,10 +180,11 @@ class _MatchRequestSheetState extends State<MatchRequestSheet> {
         }
       });
     } catch (e) {
+      debugPrint('MATCH REQUEST ERROR: $e');
       if (!mounted) return;
       setState(() => _loading = false);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('İstek gönderilemedi: $e'),
+        content: Text(l.requestFailed(dataErrorMessage(l, e))),
         backgroundColor: RallyColors.accent2,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -229,7 +233,7 @@ class _MatchRequestSheetState extends State<MatchRequestSheet> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Maç İsteği',
+                  Text(context.l10n.matchRequestTitle,
                       style: Theme.of(context)
                           .textTheme
                           .titleLarge
@@ -244,26 +248,26 @@ class _MatchRequestSheetState extends State<MatchRequestSheet> {
           _SheetRow(
               cp: cp,
               icon: Icons.sports_tennis,
-              label: 'Format',
-              value: _selectedFormat,
+              label: context.l10n.format,
+              value: _formatLabel(context.l10n, _selectedFormat),
               onTap: _sent ? () {} : _pickFormat),
           Divider(height: 1, color: cp.border),
           _SheetRow(
               cp: cp,
               icon: Icons.schedule,
-              label: 'Tarih & Saat',
-              value: _formatDateTime(_selectedDateTime),
+              label: context.l10n.dateAndTime,
+              value: _formatDateTime(_selectedDateTime, context.localeName),
               onTap: _sent ? () {} : _pickDateTime),
           Divider(height: 1, color: cp.border),
           _SheetRow(
               cp: cp,
               icon: Icons.location_on_outlined,
-              label: 'Kort',
+              label: context.l10n.court,
               value: _selectedCourt,
               onTap: _sent ? () {} : _pickCourt),
           const SizedBox(height: 24),
           RallyButton(
-            label: _sent ? 'İstek Gönderildi ✓' : 'İstek Gönder 🎾',
+            label: _sent ? context.l10n.requestSent : context.l10n.sendRequest,
             loading: _loading,
             onPressed: (_sent || _loading) ? null : _sendRequest,
           ),

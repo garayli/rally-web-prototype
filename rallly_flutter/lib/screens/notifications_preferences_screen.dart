@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../services/data_service.dart';
 import '../theme/app_theme.dart';
+import '../l10n/l10n.dart';
 
 class NotificationPreferencesScreen extends StatefulWidget {
   const NotificationPreferencesScreen({super.key});
@@ -26,10 +27,11 @@ class _NotificationPreferencesScreenState extends State<NotificationPreferencesS
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     return Scaffold(
       backgroundColor: RallyColors.bg,
       appBar: AppBar(
-        title: const Text('Bildirimler', style: TextStyle(fontFamily: 'InstrumentSerif', fontSize: 22)),
+        title: Text(l.notifications, style: const TextStyle(fontFamily: 'InstrumentSerif', fontSize: 22)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, size: 18),
           onPressed: () => Navigator.pop(context),
@@ -38,7 +40,7 @@ class _NotificationPreferencesScreenState extends State<NotificationPreferencesS
           TextButton(
             onPressed: _save,
             child: Text(
-              _saved ? 'Kaydedildi ✓' : 'Kaydet',
+              _saved ? context.l10n.prefSaved : context.l10n.save,
               style: TextStyle(
                 color: _saved ? RallyColors.accent : RallyColors.accent,
                 fontWeight: FontWeight.w700,
@@ -51,71 +53,71 @@ class _NotificationPreferencesScreenState extends State<NotificationPreferencesS
       body: ListView(
         padding: const EdgeInsets.fromLTRB(0, 8, 0, 40),
         children: [
-          const _SectionHeader('MAÇLAR'),
+          _SectionHeader(l.prefSectionMatches),
           _PrefTile(
             icon: '🎾',
-            title: 'Maç İstekleri',
-            subtitle: 'Biriyle oynamak istediğinde',
+            title: l.prefMatchRequests,
+            subtitle: l.prefMatchRequestsSub,
             value: _prefs['match_requests']!,
             onChanged: (v) => setState(() => _prefs['match_requests'] = v),
           ).animate().fadeIn(delay: 60.ms),
           _PrefTile(
             icon: '✅',
-            title: 'Maç Onayları',
-            subtitle: 'İstek kabul edildiğinde',
+            title: l.prefMatchConfirmations,
+            subtitle: l.prefMatchConfirmationsSub,
             value: _prefs['match_confirmations']!,
             onChanged: (v) => setState(() => _prefs['match_confirmations'] = v),
           ).animate().fadeIn(delay: 80.ms),
           _PrefTile(
             icon: '⏰',
-            title: 'Maç Hatırlatmaları',
-            subtitle: 'Planlanmış maçtan önce hatırlatma',
+            title: l.prefMatchReminders,
+            subtitle: l.prefMatchRemindersSub,
             value: _prefs['match_reminders']!,
             onChanged: (v) => setState(() => _prefs['match_reminders'] = v),
           ).animate().fadeIn(delay: 100.ms),
           _PrefTile(
             icon: '❌',
-            title: 'İptal Bildirimleri',
-            subtitle: 'Maç iptal edildiğinde',
+            title: l.prefMatchCancellations,
+            subtitle: l.prefMatchCancellationsSub,
             value: _prefs['match_cancellations']!,
             onChanged: (v) => setState(() => _prefs['match_cancellations'] = v),
           ).animate().fadeIn(delay: 120.ms),
 
-          const _SectionHeader('SOSYAL'),
+          _SectionHeader(l.prefSectionSocial),
           _PrefTile(
             icon: '💬',
-            title: 'Mesajlar',
-            subtitle: 'Diğer oyunculardan yeni mesajlar',
+            title: l.prefMessages,
+            subtitle: l.prefMessagesSub,
             value: _prefs['messages']!,
             onChanged: (v) => setState(() => _prefs['messages'] = v),
           ).animate().fadeIn(delay: 160.ms),
           _PrefTile(
             icon: '⭐',
-            title: 'Yeni Değerlendirmeler',
-            subtitle: 'Biri sizi değerlendirdiğinde',
+            title: l.prefNewReviews,
+            subtitle: l.prefNewReviewsSub,
             value: _prefs['new_reviews']!,
             onChanged: (v) => setState(() => _prefs['new_reviews'] = v),
           ).animate().fadeIn(delay: 180.ms),
           _PrefTile(
             icon: '🏆',
-            title: 'Sonuç Onaylandı',
-            subtitle: 'Rakibiniz maç sonucunu onayladığında',
+            title: l.prefResultConfirmed,
+            subtitle: l.prefResultConfirmedSub,
             value: _prefs['result_confirmed']!,
             onChanged: (v) => setState(() => _prefs['result_confirmed'] = v),
           ).animate().fadeIn(delay: 200.ms),
           _PrefTile(
             icon: '👋',
-            title: 'Yakındaki Oyuncular',
-            subtitle: 'Bölgenize yeni oyuncular katıldığında',
+            title: l.prefNearbyPlayers,
+            subtitle: l.prefNearbyPlayersSub,
             value: _prefs['nearby_players']!,
             onChanged: (v) => setState(() => _prefs['nearby_players'] = v),
           ).animate().fadeIn(delay: 220.ms),
 
-          const _SectionHeader('GÜNCELLEMELER'),
+          _SectionHeader(l.prefSectionUpdates),
           _PrefTile(
             icon: '📢',
-            title: 'Uygulama Güncellemeleri & İpuçları',
-            subtitle: 'Yeni özellikler ve oyun ipuçları',
+            title: l.prefMarketing,
+            subtitle: l.prefMarketingSub,
             value: _prefs['marketing']!,
             onChanged: (v) => setState(() => _prefs['marketing'] = v),
           ).animate().fadeIn(delay: 260.ms),

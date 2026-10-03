@@ -6,6 +6,8 @@ import '../theme/app_theme.dart';
 import '../widgets/shared_widgets.dart';
 import '../models/models.dart';
 import '../services/data_service.dart';
+import '../l10n/l10n.dart';
+import '../l10n/option_labels.dart';
 
 class DoublesOrganiseScreen extends StatefulWidget {
   final bool isSingles;
@@ -60,6 +62,7 @@ class _DoublesOrganiseScreenState extends State<DoublesOrganiseScreen> {
   bool get _canSubmit => _opponent != null && _selectedDate != null && _selectedTime != null && _court.isNotEmpty;
 
   void _submit() {
+    final l = context.l10n;
     setState(() => _loading = true);
     Future.delayed(const Duration(milliseconds: 800), () {
       if (!mounted) return;
@@ -67,8 +70,8 @@ class _DoublesOrganiseScreenState extends State<DoublesOrganiseScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(widget.isSingles
-              ? '${_opponent!.name} adlı oyuncuya maç isteği gönderildi!'
-              : 'Çiftler davetiyesi gönderildi!'),
+              ? l.matchRequestSentToName(_opponent!.name)
+              : l.doublesInviteSent),
           backgroundColor: RallyColors.accent,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -85,7 +88,8 @@ class _DoublesOrganiseScreenState extends State<DoublesOrganiseScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final title = widget.isSingles ? 'Tekler Maçı' : 'Çiftler Maçı';
+    final l = context.l10n;
+    final title = widget.isSingles ? l.singlesMatchTitle : l.doublesMatchTitle;
     return Scaffold(
       backgroundColor: RallyColors.bg,
       appBar: AppBar(
@@ -101,7 +105,7 @@ class _DoublesOrganiseScreenState extends State<DoublesOrganiseScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Opponent
-            const _SectionLabel('RAKİP SEÇ'),
+            _SectionLabel(l.pickOpponentLabel),
             ..._playerList(
               players: dataService.getPlayers(),
               selected: _opponent,
@@ -110,7 +114,7 @@ class _DoublesOrganiseScreenState extends State<DoublesOrganiseScreen> {
 
             if (!widget.isSingles) ...[
               const SizedBox(height: 20),
-              const _SectionLabel('TAKIMDAŞIN'),
+              _SectionLabel(l.partnerLabel),
               ..._playerList(
                 players: dataService.getPlayers().where((p) => p != _opponent).toList(),
                 selected: _partner,
@@ -119,7 +123,7 @@ class _DoublesOrganiseScreenState extends State<DoublesOrganiseScreen> {
             ],
 
             const SizedBox(height: 24),
-            const _SectionLabel('TARİH & SAAT'),
+            _SectionLabel(l.openLobbyDateTime),
             const SizedBox(height: 10),
             Row(
               children: [
@@ -127,8 +131,8 @@ class _DoublesOrganiseScreenState extends State<DoublesOrganiseScreen> {
                   child: _PickerTile(
                     icon: Icons.calendar_today_outlined,
                     label: _selectedDate == null
-                        ? 'Tarih seç'
-                        : DateFormat('EEE, MMM d').format(_selectedDate!),
+                        ? l.pickDate
+                        : DateFormat('EEE, MMM d', context.localeName).format(_selectedDate!),
                     onTap: _pickDate,
                   ),
                 ),
@@ -137,7 +141,7 @@ class _DoublesOrganiseScreenState extends State<DoublesOrganiseScreen> {
                   child: _PickerTile(
                     icon: Icons.access_time_outlined,
                     label: _selectedTime == null
-                        ? 'Saat seç'
+                        ? l.pickTime
                         : _selectedTime!.format(context),
                     onTap: _pickTime,
                   ),
@@ -146,7 +150,7 @@ class _DoublesOrganiseScreenState extends State<DoublesOrganiseScreen> {
             ).animate().fadeIn(delay: 120.ms),
 
             const SizedBox(height: 24),
-            const _SectionLabel('KORT'),
+            _SectionLabel(l.openLobbyCourt),
             const SizedBox(height: 10),
             SizedBox(
               height: 40,
@@ -183,7 +187,7 @@ class _DoublesOrganiseScreenState extends State<DoublesOrganiseScreen> {
 
             const SizedBox(height: 32),
             RallyButton(
-              label: widget.isSingles ? 'Maç İsteği Gönder 🎾' : 'Davetiye Gönder 🎾',
+              label: widget.isSingles ? l.sendMatchRequestButton : l.sendInviteButton,
               onPressed: _canSubmit ? _submit : null,
               loading: _loading,
             ).animate().fadeIn(delay: 200.ms),
@@ -228,7 +232,7 @@ class _DoublesOrganiseScreenState extends State<DoublesOrganiseScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(p.name, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
-                    Text('${p.skillLabel} · ${p.location}', style: const TextStyle(fontSize: 12, color: RallyColors.muted)),
+                    Text('${skillLevelLabel(context.l10n, p.skillLabel)} · ${p.location}', style: const TextStyle(fontSize: 12, color: RallyColors.muted)),
                   ],
                 ),
               ),

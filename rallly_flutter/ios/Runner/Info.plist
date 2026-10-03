@@ -5,6 +5,11 @@
 <dict>
     <key>CFBundleDevelopmentRegion</key>
     <string>$(DEVELOPMENT_LANGUAGE)</string>
+    <key>CFBundleLocalizations</key>
+    <array>
+        <string>tr</string>
+        <string>en</string>
+    </array>
     <key>CFBundleDisplayName</key>
     <string>Rallly</string>
     <key>CFBundleExecutable</key>

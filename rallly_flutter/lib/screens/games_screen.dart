@@ -8,6 +8,8 @@ import '../services/data_service.dart';
 import 'create_game_screen.dart';
 import 'log_result_screen.dart';
 import 'player_profile_screen.dart';
+import '../l10n/l10n.dart';
+import '../l10n/option_labels.dart';
 
 class GamesScreen extends StatefulWidget {
   const GamesScreen({super.key});
@@ -34,10 +36,11 @@ class _GamesScreenState extends State<GamesScreen>
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     return Scaffold(
       backgroundColor: RallyColors.bg,
       appBar: AppBar(
-        title: const Text('Maçlar', style: TextStyle(fontFamily: 'InstrumentSerif', fontSize: 22)),
+        title: Text(l.gamesTitle, style: const TextStyle(fontFamily: 'InstrumentSerif', fontSize: 22)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, size: 18),
           onPressed: () => Navigator.pop(context),
@@ -49,7 +52,7 @@ class _GamesScreenState extends State<GamesScreen>
           indicatorColor: RallyColors.accent,
           indicatorSize: TabBarIndicatorSize.label,
           labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
-          tabs: const [Tab(text: 'Yaklaşan'), Tab(text: 'Geçmiş')],
+          tabs: [Tab(text: l.tabUpcoming), Tab(text: l.tabPast)],
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
@@ -59,7 +62,7 @@ class _GamesScreenState extends State<GamesScreen>
         ),
         backgroundColor: RallyColors.accent,
         icon: const Icon(Icons.add, color: Colors.white),
-        label: const Text('Yeni Maç', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+        label: Text(l.newMatch, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
       ),
       body: TabBarView(
         controller: _tabCtrl,
@@ -81,10 +84,10 @@ class _UpcomingTab extends StatelessWidget {
       builder: (context, _, __) {
         final sessions = dataService.getUpcomingSessions();
         if (sessions.isEmpty) {
-          return const _EmptyGames(
+          return _EmptyGames(
             icon: '📅',
-            title: 'Yaklaşan maç yok',
-            subtitle: 'Başlamak için yeni bir maç planla',
+            title: context.l10n.emptyUpcoming,
+            subtitle: context.l10n.emptyUpcomingHint,
           );
         }
         return ListView.builder(
@@ -137,20 +140,20 @@ class _UpcomingCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'vs ${session.opponent.name}',
+                        context.l10n.vsOpponent(session.opponent.name),
                         style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
                       ),
                       const SizedBox(height: 3),
                       Text(
-                        '${DateFormat('EEE, MMM d').format(session.dateTime)} · ${DateFormat('h:mm a').format(session.dateTime)}',
+                        '${DateFormat('EEE, MMM d', context.localeName).format(session.dateTime)} · ${DateFormat.jm(context.localeName).format(session.dateTime)}',
                         style: const TextStyle(fontSize: 12, color: RallyColors.muted),
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
                       ),
                       Text(
-                        session.court,
+                        courtDisplay(context.l10n, session.court),
                         style: const TextStyle(fontSize: 12, color: RallyColors.muted),
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1,
@@ -165,7 +168,7 @@ class _UpcomingCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(100),
                   ),
                   child: Text(
-                    isConfirmed ? 'Onaylandı' : 'Beklemede',
+                    isConfirmed ? context.l10n.statusConfirmed : context.l10n.statusPending,
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
@@ -193,8 +196,8 @@ class _UpcomingCard extends StatelessWidget {
                           color: RallyColors.accent,
                           borderRadius: BorderRadius.circular(100),
                         ),
-                        child: const Center(
-                          child: Text('Sonuç Kaydet', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13)),
+                        child: Center(
+                          child: Text(context.l10n.logResult, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13)),
                         ),
                       ),
                     ),
@@ -207,8 +210,8 @@ class _UpcomingCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(100),
                         border: Border.all(color: RallyColors.border2, width: 1.5),
                       ),
-                      child: const Center(
-                        child: Text('Mesaj', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
+                      child: Center(
+                        child: Text(context.l10n.message, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13)),
                       ),
                     ),
                   ),
@@ -231,21 +234,21 @@ class _PastTab extends StatelessWidget {
         'opponent': players[0],
         'date': DateTime.now().subtract(const Duration(days: 5)),
         'court': 'Beşiktaş JK Tenis Kortları',
-        'result': 'Kazandı',
+        'won': true,
         'score': '6-4, 7-5',
       },
       {
         'opponent': players[2],
         'date': DateTime.now().subtract(const Duration(days: 12)),
         'court': 'Galatasaray Tenis Kulübü',
-        'result': 'Kaybetti',
+        'won': false,
         'score': '4-6, 5-7',
       },
       {
         'opponent': players[3],
         'date': DateTime.now().subtract(const Duration(days: 20)),
         'court': 'Acıbadem Tenis Kulübü',
-        'result': 'Kazandı',
+        'won': true,
         'score': '6-2, 6-3',
       },
     ];
@@ -258,7 +261,7 @@ class _PastTab extends StatelessWidget {
       itemCount: _pastGames.length,
       itemBuilder: (context, i) {
         final g = _pastGames[i];
-        final won = g['result'] == 'Kazandı';
+        final won = g['won'] as bool;
         final player = g['opponent'] as Player;
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
@@ -287,8 +290,8 @@ class _PastTab extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('vs ${player.name}', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15), overflow: TextOverflow.ellipsis, maxLines: 1),
-                    Text(DateFormat('EEE, MMM d').format(g['date'] as DateTime), style: const TextStyle(fontSize: 12, color: RallyColors.muted), overflow: TextOverflow.ellipsis, maxLines: 1),
+                    Text(context.l10n.vsOpponent(player.name), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15), overflow: TextOverflow.ellipsis, maxLines: 1),
+                    Text(DateFormat('EEE, MMM d', context.localeName).format(g['date'] as DateTime), style: const TextStyle(fontSize: 12, color: RallyColors.muted), overflow: TextOverflow.ellipsis, maxLines: 1),
                     Text(g['court'] as String, style: const TextStyle(fontSize: 12, color: RallyColors.muted), overflow: TextOverflow.ellipsis, maxLines: 1),
                   ],
                 ),
@@ -303,7 +306,7 @@ class _PastTab extends StatelessWidget {
                       borderRadius: BorderRadius.circular(100),
                     ),
                     child: Text(
-                      g['result'] as String,
+                      won ? context.l10n.resultWon : context.l10n.resultLost,
                       style: TextStyle(
                         fontSize: 11, fontWeight: FontWeight.w700,
                         color: won ? RallyColors.accent : RallyColors.accent2,

@@ -5,6 +5,9 @@ import '../config/court_options.dart';
 import '../theme/app_theme.dart';
 import '../widgets/shared_widgets.dart';
 import '../main.dart' show supabase;
+import '../l10n/l10n.dart';
+import '../l10n/option_labels.dart';
+import '../l10n/data_error_message.dart';
 
 class OpenLobbyScreen extends StatefulWidget {
   const OpenLobbyScreen({super.key});
@@ -76,16 +79,17 @@ class _OpenLobbyScreenState extends State<OpenLobbyScreen> {
       if (!mounted) return;
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: const Text('Açık lobi oluşturuldu! Oyuncular artık katılabilir.'),
+        content: Text(context.l10n.lobbyCreated),
         backgroundColor: RallyColors.accent,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ));
     } catch (e) {
+      debugPrint('LOBBY CREATE ERROR: $e');
       if (!mounted) return;
       setState(() => _loading = false);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Lobi oluşturulamadı: $e'),
+        content: Text(context.l10n.lobbyCreateFailed(dataErrorMessage(context.l10n, e))),
         backgroundColor: RallyColors.accent2,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -101,10 +105,11 @@ class _OpenLobbyScreenState extends State<OpenLobbyScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     return Scaffold(
       backgroundColor: RallyColors.bg,
       appBar: AppBar(
-        title: const Text('Açık Lobi', style: TextStyle(fontFamily: 'InstrumentSerif', fontSize: 22)),
+        title: Text(l.openLobbyTitle, style: const TextStyle(fontFamily: 'InstrumentSerif', fontSize: 22)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, size: 18),
           onPressed: () => Navigator.pop(context),
@@ -115,44 +120,46 @@ class _OpenLobbyScreenState extends State<OpenLobbyScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'Açık slot oluştur',
-              style: TextStyle(fontFamily: 'InstrumentSerif', fontSize: 28, letterSpacing: -1, height: 1.1),
+            Text(
+              l.openLobbyHeadline,
+              style: const TextStyle(fontFamily: 'InstrumentSerif', fontSize: 28, letterSpacing: -1, height: 1.1),
             ).animate().fadeIn(),
             const SizedBox(height: 6),
-            const Text(
-              'Diğer oyuncular oturumuna katılmak için istekte bulunabilir',
-              style: TextStyle(color: RallyColors.textSecondary, fontSize: 14, height: 1.5),
+            Text(
+              l.openLobbySubtitle,
+              style: const TextStyle(color: RallyColors.textSecondary, fontSize: 14, height: 1.5),
             ).animate().fadeIn(delay: 80.ms),
             const SizedBox(height: 28),
 
             // Sport
-            const _Label('SPOR'),
+            _Label(l.openLobbySport),
             const SizedBox(height: 8),
             _ChipRow(
               items: _sports,
+              labelOf: (v) => sportLabel(l, v),
               selected: _sport,
               onSelect: (v) => setState(() => _sport = v),
             ).animate().fadeIn(delay: 100.ms),
 
             const SizedBox(height: 20),
-            const _Label('DAVET EDİLEN SEVİYE'),
+            _Label(l.openLobbyInvitedLevel),
             const SizedBox(height: 8),
             _ChipRow(
               items: _skillLevels,
+              labelOf: (v) => skillLevelLabel(l, v),
               selected: _skillLevel,
               onSelect: (v) => setState(() => _skillLevel = v),
             ).animate().fadeIn(delay: 120.ms),
 
             const SizedBox(height: 20),
-            const _Label('TARİH & SAAT'),
+            _Label(l.openLobbyDateTime),
             const SizedBox(height: 8),
             Row(
               children: [
                 Expanded(
                   child: _PickerBox(
                     icon: Icons.calendar_today_outlined,
-                    label: _date == null ? 'Tarih seç' : DateFormat('EEE, MMM d').format(_date!),
+                    label: _date == null ? l.pickDate : DateFormat('EEE, MMM d', context.localeName).format(_date!),
                     onTap: _pickDate,
                   ),
                 ),
@@ -160,7 +167,7 @@ class _OpenLobbyScreenState extends State<OpenLobbyScreen> {
                 Expanded(
                   child: _PickerBox(
                     icon: Icons.access_time_outlined,
-                    label: _time == null ? 'Saat seç' : _time!.format(context),
+                    label: _time == null ? l.pickTime : _time!.format(context),
                     onTap: _pickTime,
                   ),
                 ),
@@ -168,7 +175,7 @@ class _OpenLobbyScreenState extends State<OpenLobbyScreen> {
             ).animate().fadeIn(delay: 140.ms),
 
             const SizedBox(height: 20),
-            const _Label('KORT'),
+            _Label(l.openLobbyCourt),
             const SizedBox(height: 8),
             SizedBox(
               height: 40,
@@ -197,13 +204,13 @@ class _OpenLobbyScreenState extends State<OpenLobbyScreen> {
             ).animate().fadeIn(delay: 160.ms),
 
             const SizedBox(height: 20),
-            const _Label('NOTLAR (OPSİYONEL)'),
+            _Label(l.openLobbyNotes),
             const SizedBox(height: 8),
             TextFormField(
               controller: _notesCtrl,
               maxLines: 3,
-              decoration: const InputDecoration(
-                hintText: 'ör. "Kendi topunuzu getirin, rahat bir maç, başlangıç seviyesi hoş geldiniz"',
+              decoration: InputDecoration(
+                hintText: l.openLobbyNotesHint,
               ),
             ).animate().fadeIn(delay: 180.ms),
 
@@ -225,12 +232,12 @@ class _OpenLobbyScreenState extends State<OpenLobbyScreen> {
                     child: const Center(child: Text('🔓', style: TextStyle(fontSize: 18))),
                   ),
                   const SizedBox(width: 12),
-                  const Expanded(
+                  Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Herkese açık lobi', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
-                        Text('Herkes katılmak için istekte bulunabilir', style: TextStyle(fontSize: 12, color: RallyColors.muted)),
+                        Text(l.openLobbyPublic, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
+                        Text(l.openLobbyPublicSub, style: const TextStyle(fontSize: 12, color: RallyColors.muted)),
                       ],
                     ),
                   ),
@@ -245,7 +252,7 @@ class _OpenLobbyScreenState extends State<OpenLobbyScreen> {
 
             const SizedBox(height: 28),
             RallyButton(
-              label: 'Lobi Oluştur 🎾',
+              label: l.openLobbyCreateButton,
               onPressed: _canSubmit ? _submit : null,
               loading: _loading,
             ).animate().fadeIn(delay: 220.ms),
@@ -269,10 +276,11 @@ class _Label extends StatelessWidget {
 
 class _ChipRow extends StatelessWidget {
   final List<String> items;
+  final String Function(String) labelOf;
   final String selected;
   final void Function(String) onSelect;
 
-  const _ChipRow({required this.items, required this.selected, required this.onSelect});
+  const _ChipRow({required this.items, required this.labelOf, required this.selected, required this.onSelect});
 
   @override
   Widget build(BuildContext context) {
@@ -295,7 +303,7 @@ class _ChipRow extends StatelessWidget {
                 borderRadius: BorderRadius.circular(100),
                 border: Border.all(color: sel ? RallyColors.accent : RallyColors.border2, width: 1.5),
               ),
-              child: Text(item, style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: sel ? Colors.white : RallyColors.textPrimary)),
+              child: Text(labelOf(item), style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: sel ? Colors.white : RallyColors.textPrimary)),
             ),
           );
         },

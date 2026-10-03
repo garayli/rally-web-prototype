@@ -1,0 +1,3 @@
+"NSCameraUsageDescription" = "Rallly, profil fotoğrafını güncellemek için kameranı kullanır.";
+"NSPhotoLibraryUsageDescription" = "Rallly, profil fotoğrafı seçmek için fotoğraf kitaplığına erişir.";
+"NSLocationWhenInUseUsageDescription" = "Rallly, yakındaki tenis oyuncularını ve kortları bulmak için konumunu kullanır.";

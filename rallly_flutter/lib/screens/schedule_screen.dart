@@ -8,6 +8,8 @@ import '../services/data_service.dart';
 import 'games_screen.dart';
 import 'create_game_screen.dart';
 import 'match_screen.dart';
+import '../l10n/l10n.dart';
+import '../l10n/option_labels.dart';
 
 class ScheduleScreen extends StatefulWidget {
   const ScheduleScreen({super.key});
@@ -52,6 +54,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   }
 
   Widget _buildScaffold(BuildContext context) {
+    final l = context.l10n;
     return Scaffold(
       backgroundColor: RallyColors.bg,
       body: CustomScrollView(
@@ -60,8 +63,8 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
           SliverAppBar(
             floating: true,
             snap: true,
-            title: const Text('Takvim',
-                style: TextStyle(
+            title: Text(l.scheduleTitle,
+                style: const TextStyle(
                     fontFamily: 'InstrumentSerif', fontSize: 22)),
             actions: [
               TextButton.icon(
@@ -70,7 +73,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                   MaterialPageRoute(builder: (_) => const GamesScreen()),
                 ),
                 icon: const Icon(Icons.sports_tennis, size: 16),
-                label: const Text('Maçlar', style: TextStyle(fontWeight: FontWeight.w700)),
+                label: Text(l.gamesTitle, style: const TextStyle(fontWeight: FontWeight.w700)),
                 style: TextButton.styleFrom(foregroundColor: RallyColors.accent),
               ),
               IconButton(
@@ -93,7 +96,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             child: Padding(
               padding: const EdgeInsets.fromLTRB(24, 18, 24, 8),
               child: Text(
-                DateFormat('MMMM yyyy').format(_selectedDay),
+                DateFormat('MMMM yyyy', context.localeName).format(_selectedDay),
                 style: const TextStyle(
                   fontFamily: 'InstrumentSerif',
                   fontSize: 18,
@@ -145,7 +148,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            DateFormat('EEE').format(day).toUpperCase(),
+                            DateFormat('EEE', context.localeName).format(day).toUpperCase(),
                             style: TextStyle(
                               fontSize: 9,
                               fontWeight: FontWeight.w700,
@@ -200,18 +203,18 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                   children: [
                     const Text('🎾', style: TextStyle(fontSize: 44)),
                     const SizedBox(height: 12),
-                    const Text(
-                      'Bu gün maç yok',
-                      style: TextStyle(
+                    Text(
+                      l.noMatchToday,
+                      style: const TextStyle(
                         fontFamily: 'InstrumentSerif',
                         fontSize: 20,
                       ),
                     ),
                     const SizedBox(height: 6),
-                    const Text(
-                      'Yeni rakip bul veya bir seans planla',
+                    Text(
+                      l.noMatchTodayHint,
                       textAlign: TextAlign.center,
-                      style: TextStyle(
+                      style: const TextStyle(
                           color: RallyColors.muted, fontSize: 14),
                     ),
                   ],
@@ -265,21 +268,21 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
                       ),
                     ),
                     const SizedBox(width: 14),
-                    const Expanded(
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Yeni maç bul',
-                            style: TextStyle(
+                            l.findNewMatch,
+                            style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.w700,
                               fontSize: 14,
                             ),
                           ),
                           Text(
-                            'Yakınınızda 4 oyuncu mevcut',
-                            style: TextStyle(
+                            l.playersNearYou,
+                            style: const TextStyle(
                               color: Colors.white70,
                               fontSize: 12,
                             ),
@@ -311,6 +314,9 @@ class _SessionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isConfirmed = session.status == MatchStatus.confirmed;
+    final locale = context.localeName;
+    // 24-hour locales (e.g. Turkish) show "15:00"; others "3:00" + "PM".
+    final is24h = !(DateFormat.jm(locale).pattern ?? '').contains('a');
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 5),
       padding: const EdgeInsets.all(16),
@@ -335,7 +341,8 @@ class _SessionCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  DateFormat('h:mm').format(session.dateTime),
+                  (is24h ? DateFormat.Hm(locale) : DateFormat('h:mm', locale))
+                      .format(session.dateTime),
                   style: const TextStyle(
                     fontFamily: 'InstrumentSerif',
                     fontSize: 20,
@@ -343,14 +350,15 @@ class _SessionCard extends StatelessWidget {
                     height: 1,
                   ),
                 ),
-                Text(
-                  DateFormat('a').format(session.dateTime),
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: RallyColors.muted,
-                    fontWeight: FontWeight.w500,
+                if (!is24h)
+                  Text(
+                    DateFormat('a', locale).format(session.dateTime),
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: RallyColors.muted,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
               ],
             ),
           ),
@@ -366,14 +374,14 @@ class _SessionCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'vs ${session.opponent.name}',
+                  context.l10n.vsOpponent(session.opponent.name),
                   style: const TextStyle(
                       fontWeight: FontWeight.w600, fontSize: 14),
                   overflow: TextOverflow.ellipsis,
                   maxLines: 1,
                 ),
                 Text(
-                  session.court,
+                  courtDisplay(context.l10n, session.court),
                   style: const TextStyle(
                       fontSize: 12, color: RallyColors.muted),
                   overflow: TextOverflow.ellipsis,
@@ -392,7 +400,9 @@ class _SessionCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(100),
             ),
             child: Text(
-              isConfirmed ? 'Onaylandı' : 'Beklemede',
+              isConfirmed
+                  ? context.l10n.statusConfirmed
+                  : context.l10n.statusPending,
               style: TextStyle(
                 fontSize: 11,
                 fontWeight: FontWeight.w700,

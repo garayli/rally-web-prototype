@@ -5,6 +5,7 @@ import '../theme/design_tokens.dart';
 import '../main.dart' show CourtThemeProvider;
 import 'doubles_organise_screen.dart';
 import 'open_lobby_screen.dart';
+import '../l10n/l10n.dart';
 
 class CreateGameScreen extends StatelessWidget {
   const CreateGameScreen({super.key});
@@ -25,7 +26,7 @@ class CreateGameScreen extends StatelessWidget {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Maç Oluştur',
+          context.l10n.createMatchFab,
           style: TextStyle(
             fontFamily: 'InstrumentSerif',
             fontSize: 22,
@@ -44,7 +45,7 @@ class CreateGameScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Ne yapmak istersin?',
+              context.l10n.createGameQuestion,
               style: TextStyle(
                 fontFamily: 'InstrumentSerif',
                 fontSize: 28,
@@ -54,15 +55,15 @@ class CreateGameScreen extends StatelessWidget {
             ).animate().fadeIn(),
             const SizedBox(height: Spacing.sm),
             Text(
-              'Bir seçenek seç ve hemen başla.',
+              context.l10n.createGameSubtitle,
               style: TextStyle(fontSize: 14, color: cp.text2),
             ).animate().fadeIn(delay: 60.ms),
             const SizedBox(height: Spacing.xl),
 
             _GameOptionCard(
               icon: Icons.sports_tennis,
-              title: 'Maç Başlat',
-              subtitle: 'Belirli bir rakiple randevu oluştur.',
+              title: context.l10n.createGameStartMatch,
+              subtitle: context.l10n.createGameStartMatchSub,
               accentColor: cp.accent,
               onTap: () => Navigator.push(
                 context,
@@ -76,8 +77,8 @@ class CreateGameScreen extends StatelessWidget {
 
             _GameOptionCard(
               icon: Icons.public_outlined,
-              title: 'Açık Maç Yayınla',
-              subtitle: 'Herkese açık bir slot oluştur, rakibini bekle.',
+              title: context.l10n.createGamePublishOpen,
+              subtitle: context.l10n.createGamePublishOpenSub,
               accentColor: const Color(0xFFC8431A),
               onTap: () => Navigator.push(
                 context,

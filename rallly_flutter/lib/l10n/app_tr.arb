@@ -1,0 +1,623 @@
+{
+  "@@locale": "tr",
+  "appName": "RallyMatch",
+  "sportTennis": "Tenis",
+  "sportTennisSub": "Tekler & çiftler",
+  "sportPadel": "Padel",
+  "sportPadelSub": "Raket sporu",
+  "sportBadminton": "Badminton",
+  "sportBadmintonSub": "İç mekan & açık alan",
+  "sportSquash": "Squash",
+  "sportSquashSub": "Kort sporu",
+  "skillBeginner": "Başlangıç",
+  "skillBeginnerSub": "1 yıldan az — temelleri öğreniyor",
+  "skillIntermediate": "Orta Seviye",
+  "skillIntermediateSub": "1–4 yıl — rahatça ralli yapıyor",
+  "skillAdvanced": "İleri Seviye",
+  "skillAdvancedSub": "Rekabetçi — güçlü genel oyun",
+  "skillExpert": "Uzman",
+  "skillExpertSub": "Turnuva seviyesi — en iyi oyun",
+  "dayMon": "Pzt",
+  "dayTue": "Sal",
+  "dayWed": "Çar",
+  "dayThu": "Per",
+  "dayFri": "Cum",
+  "daySat": "Cmt",
+  "daySun": "Paz",
+  "timeMorning": "Sabah",
+  "timeAfternoon": "Öğleden Sonra",
+  "timeEvening": "Akşam",
+  "courtThemeClay": "Toprak",
+  "courtThemeHard": "Sert Kort",
+  "courtThemeGrass": "Çim",
+  "navFindOpponent": "Rakip Bul",
+  "navMessages": "Mesajlar",
+  "navNotifications": "Bildirim",
+  "navProfile": "Profil",
+  "createMatchFab": "Maç Oluştur",
+  "matchBadgeLabel": "EŞLEŞME",
+  "requestShort": "İste",
+  "profileCompleteTitle": "Profilini tamamla",
+  "profilePercentDone": "%{percent} tamamlandı",
+  "@profilePercentDone": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "profileMissing": "Eksik: {items}",
+  "@profileMissing": {
+    "placeholders": {
+      "items": {
+        "type": "String"
+      }
+    }
+  },
+  "missingBio": "biyografi",
+  "missingAvailability": "müsaitlik",
+  "missingSport": "spor",
+  "missingLevel": "seviye",
+  "profileSetSchedule": "Haftalık programını ayarla",
+  "profileTitle": "Profilim",
+  "courtThemeTitle": "Kort Teması",
+  "courtThemeSubtitle": "Uygulamanın renk temasını seç",
+  "courtThemeClaySub": "Roland-Garros tarzı",
+  "courtThemeHardSub": "US Open tarzı",
+  "courtThemeGrassSub": "Wimbledon tarzı",
+  "photoUploadSoon": "Fotoğraf yükleme yakında",
+  "profileNtrpLine": "🎾  NTRP {rating} — {level}",
+  "@profileNtrpLine": {
+    "placeholders": {
+      "rating": {
+        "type": "String"
+      },
+      "level": {
+        "type": "String"
+      }
+    }
+  },
+  "profileNtrpUnknown": "🎾  NTRP —",
+  "editProfile": "Profili Düzenle",
+  "statWins": "GALİBİYET",
+  "statLosses": "MAĞLUBIYET",
+  "statPlayed": "OYNANDI",
+  "statRating": "PUAN",
+  "uploadScore": "Skorunu Yükle",
+  "scoreRequests": "Skor Talepleri",
+  "myMatchesHeader": "MAÇLARIM",
+  "tabUpcomingCount": "Yaklaşan ({count})",
+  "@tabUpcomingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tabPastCount": "Geçmiş ({count})",
+  "@tabPastCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "tabPendingCount": "Bekleyen ({count})",
+  "@tabPendingCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "emptyUpcoming": "Yaklaşan maç yok",
+  "emptyPast": "Geçmiş maç yok",
+  "emptyPending": "Bekleyen istek yok",
+  "sectionMyGame": "OYUNUM",
+  "reputation": "İtibar",
+  "reputationSub": "4.9 puan · 4 değerlendirme",
+  "achievements": "Başarılar",
+  "achievementsSub": "18 üzerinden 12 kazanıldı",
+  "myResults": "Sonuçlarım",
+  "myResultsSub": "Maç geçmişi ve skorlar",
+  "logResult": "Sonuç Kaydet",
+  "logResultSub": "Son maçını kaydet",
+  "sectionAccount": "HESAP",
+  "editProfileSub": "Ad, konum, biyografi, seviye güncelle",
+  "gamePreferences": "Oyun Tercihleri",
+  "gamePreferencesSub": "Seviye, kort türü, format",
+  "gamePreferencesSoon": "Oyun tercihleri yakında",
+  "availability": "Müsaitlik",
+  "sectionApp": "UYGULAMA",
+  "notifications": "Bildirimler",
+  "notificationsSub": "Maç istekleri, hatırlatmalar",
+  "courtThemeOptions": "Toprak / Sert Kort / Çim",
+  "privacySecurity": "Gizlilik ve Güvenlik",
+  "privacySecuritySub": "Profil görünürlüğü",
+  "privacySettingsSoon": "Gizlilik ayarları yakında",
+  "sectionAbout": "HAKKINDA",
+  "termsPrivacy": "Şartlar ve Gizlilik",
+  "termsPrivacySoon": "Şartlar ve Gizlilik yakında",
+  "signOut": "Çıkış Yap",
+  "profileLoadingRetry": "Profil yükleniyor, lütfen tekrar deneyin",
+  "profileUpdated": "Profil güncellendi",
+  "vsOpponent": "vs {name}",
+  "@vsOpponent": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "statusUpcomingUpper": "YAKLAŞAN",
+  "statusCompletedUpper": "TAMAMLANDI",
+  "statusPendingUpper": "BEKLİYOR",
+  "statusCancelledUpper": "İPTAL",
+  "statusConfirmed": "Onaylandı",
+  "statusCompleted": "Tamamlandı",
+  "statusPending": "Beklemede",
+  "statusCancelled": "İptal Edildi",
+  "formatDoubles": "Çiftler",
+  "formatSingles": "Tekler",
+  "requestMatch": "Maç İste",
+  "sort": "Sıralama",
+  "filter": "Filtre",
+  "upcomingMatchesHeader": "YAKLAŞAN MAÇLAR",
+  "seeAll": "Tümünü gör",
+  "nearbyPlayersHeader": "{count} YAKINDA OYUNCU",
+  "@nearbyPlayersHeader": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "map": "Harita",
+  "openLobbiesHeader": "AÇIK LOBİLER",
+  "createLobby": "Lobi Oluştur",
+  "nearbyPlayersEyebrow": "YAKINDAKI OYUNCULAR",
+  "playersWaiting": "{count, plural, other{{count} oyuncu sizi bekliyor}}",
+  "@playersWaiting": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "searchNameOrLocation": "İsim veya konum ara…",
+  "winRatePercent": "{percent}% galibiyet",
+  "@winRatePercent": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "matchesCount": "{count, plural, other{{count} maç}}",
+  "@matchesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "skillShortBeginner": "Başl.",
+  "skillShortIntermediate": "Orta",
+  "skillShortAdvanced": "İleri",
+  "skillShortExpert": "Uzm.",
+  "tennisBadge": "🎾 TENİS",
+  "sortDistance": "Mesafe",
+  "sortWins": "Galibiyet",
+  "sortSheetSubtitle": "Oyuncuları sıralama kriteri",
+  "apply": "Uygula",
+  "filterTitle": "Filtrele",
+  "clear": "Temizle",
+  "level": "Seviye",
+  "distance": "Mesafe",
+  "all": "Tümü",
+  "join": "Katıl",
+  "lobbyJoinSent": "{sport} lobisine katılma isteği gönderildi!",
+  "@lobbyJoinSent": {
+    "placeholders": {
+      "sport": {
+        "type": "String"
+      }
+    }
+  },
+  "authErrorRateLimit": "Çok fazla kod isteği gönderildi. Lütfen birkaç dakika bekleyip tekrar deneyin.",
+  "authErrorGeneric": "Bir şeyler yanlış gitti. Lütfen tekrar deneyin.",
+  "authErrorInvalidEmail": "Lütfen geçerli bir e-posta adresi girin.",
+  "authErrorCodeInvalidOrExpired": "Kod geçersiz veya süresi dolmuş. Lütfen yeni kod isteyin.",
+  "authErrorInvalidCode": "Geçersiz kod. Lütfen tekrar deneyin.",
+  "authErrorResendFailed": "Kod gönderilemedi. Lütfen tekrar deneyin.",
+  "authCreateAccount": "Hesap oluştur",
+  "authWelcomeBack": "Tekrar hoş geldiniz",
+  "authEmailPromptSignUp": "E-posta adresinizi girin, size tek kullanımlık kod göndereceğiz",
+  "authEmailPromptSignIn": "E-posta adresinize giriş kodu göndereceğiz",
+  "authEmailLabel": "E-POSTA ADRESİ",
+  "authEmailHint": "siz@ornek.com",
+  "authSendCode": "Kodu gönder",
+  "authHaveAccount": "Zaten hesabın var mı? ",
+  "authNoAccount": "Hesabın yok mu? ",
+  "authSignIn": "Giriş yap",
+  "authSignUp": "Kayıt ol",
+  "authCheckEmail": "E-postanı kontrol et",
+  "authCodeSentTo": "E-posta adresinize 8 haneli kod gönderdik:\n",
+  "authVerify": "Doğrula",
+  "authResendCode": "Kodu tekrar gönder",
+  "authResendIn": "{seconds} saniye sonra tekrar gönder",
+  "@authResendIn": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "landingSignInButton": "Giriş Yap",
+  "landingHeadline": "Mükemmel\nrakibini bul.",
+  "landingSubtitle": "Seviyenizde tenis oyuncuları bulun, kort rezervasyonu yapın ve gelişiminizi takip edin.",
+  "landingStatPlayers": "Oyuncu",
+  "landingStatMatchRate": "Uyum oranı",
+  "landingStatRating": "Puan",
+  "landingGetStarted": "Başla — tamamen ücretsiz",
+  "landingHaveAccount": "Zaten hesabım var",
+  "landingTerms": "Devam ederek Şartlarımızı ve Gizlilik Politikamızı kabul etmiş olursunuz",
+  "signupFinish": "Bitir — Oynayalım 🎾",
+  "signupContinue": "Devam",
+  "signupStep1Title": "Kendinizden bahsedin",
+  "signupStep1Subtitle": "Oyuncuların sizi bulmasına yardımcı olun",
+  "signupNameLabel": "AD SOYAD",
+  "signupNameHint": "örn. Leyla Garayli",
+  "signupLocationLabel": "MAHALLE / ŞEHİR",
+  "signupLocationHint": "örn. Beşiktaş, İstanbul",
+  "signupStep2Title": "Hangi sporları oynuyorsunuz?",
+  "signupStep2Subtitle": "Uygun olanları seçin",
+  "signupStep3Title": "Seviyeniz nedir?",
+  "signupStep3Subtitle": "Dürüst olun — bu en iyi maçları bulmaya yardımcı olur",
+  "signupStep4Title": "Genellikle ne zaman müsaitsiniz?",
+  "signupStep4Subtitle": "Tipik müsaitliğinizi seçin",
+  "signupDaysHeader": "GÜNLER",
+  "signupTimeOfDayHeader": "GÜNÜN SAATİ",
+  "profileSaveFailed": "Profil kaydedilemedi. Lütfen tekrar deneyin.",
+  "editAboutLabel": "HAKKIMDA",
+  "editAboutHint": "Oyun tarzın, sevdiğin kortlar…",
+  "editSportsLabel": "SPORLAR",
+  "editLevelLabel": "SEVİYE",
+  "editDaysLabel": "MÜSAİT GÜNLER",
+  "save": "Kaydet",
+  "createGameQuestion": "Ne yapmak istersin?",
+  "createGameSubtitle": "Bir seçenek seç ve hemen başla.",
+  "createGameStartMatch": "Maç Başlat",
+  "createGameStartMatchSub": "Belirli bir rakiple randevu oluştur.",
+  "createGamePublishOpen": "Açık Maç Yayınla",
+  "createGamePublishOpenSub": "Herkese açık bir slot oluştur, rakibini bekle.",
+  "errorNotSignedIn": "Oturum açmanız gerekiyor",
+  "errorRecipientNotRegistered": "Bu oyuncu kayıtlı değil, mesaj gönderilemez",
+  "errorMatchUpdateDenied": "Maç durumu güncellenemedi (yetki yok)",
+  "errorUnknown": "Bir şeyler yanlış gitti. Lütfen tekrar deneyin.",
+  "matchRequestTitle": "Maç İsteği",
+  "format": "Format",
+  "dateAndTime": "Tarih & Saat",
+  "court": "Kort",
+  "pastTimeNotAllowed": "Geçmiş bir saat seçilemez",
+  "matchRequestSentTo": "{name} oyuncusuna maç isteği gönderildi!",
+  "@matchRequestSentTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "requestFailed": "İstek gönderilemedi: {reason}",
+  "@requestFailed": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "requestSent": "İstek Gönderildi ✓",
+  "sendRequest": "İstek Gönder 🎾",
+  "badgeFirstMatch": "İlk Maç",
+  "badgeFirstMatchDesc": "İlk oyununu oynadın",
+  "badgeWinStreak": "Seri Galibiyet",
+  "badgeWinStreakDesc": "Arka arkaya 3 galibiyet",
+  "badgeFiveStar": "5 Yıldızlı Oyuncu",
+  "badgeFiveStarDesc": "Ortalama puan 4.8+",
+  "badgeSocialButterfly": "Sosyal Kelebek",
+  "badgeSocialButterflyDesc": "10 oyuncuyla bağlantı kuruldu",
+  "badgeRegularPlayer": "Düzenli Oyuncu",
+  "badgeRegularPlayerDesc": "10+ maç oynandı",
+  "badgeChampion": "Şampiyon",
+  "badgeChampionDesc": "25+ galibiyet",
+  "badgeQuickReply": "Hızlı Yanıt",
+  "badgeQuickReplyDesc": "1 saat içinde cevap verdi",
+  "badgeExplorer": "Kaşif",
+  "badgeExplorerDesc": "5 farklı kortta oynandı",
+  "badgeCommunicator": "İletişimci",
+  "badgeCommunicatorDesc": "50 mesaj gönderildi",
+  "badgeSharpshooter": "Keskin Nişancı",
+  "badgeSharpshooterDesc": "80%+ kazanma oranı",
+  "badgeSharer": "Paylaş",
+  "badgeSharerDesc": "5 maç sonucu paylaşıldı",
+  "badgeElite": "Elit",
+  "badgeEliteDesc": "İleri Seviyeye ulaşıldı",
+  "badgeTournamentPro": "Turnuva Profesyoneli",
+  "badgeTournamentProDesc": "Bir turnuvaya katıl",
+  "badgeLegend": "Efsane",
+  "badgeLegendDesc": "100 maç oynandı",
+  "badgeGrandSlam": "Grand Slam",
+  "badgeGrandSlamDesc": "4 farklı kortta galibiyet",
+  "badgeDoublesKing": "Çiftler Kralı",
+  "badgeDoublesKingDesc": "10 çiftler maçı kazanıldı",
+  "badgeAllRounder": "Çok Yönlü",
+  "badgeAllRounderDesc": "4 sporun tümü oynanıldı",
+  "badgeRocket": "Roket",
+  "badgeRocketDesc": "Puan 200+ arttırıldı",
+  "achievementsEarnedOf": "{earned} / {total}",
+  "@achievementsEarnedOf": {
+    "placeholders": {
+      "earned": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "achievementsEarnedLabel": "Başarı kazanıldı",
+  "achievementsEarnedHeader": "KAZANILDI",
+  "achievementsLockedHeader": "KİLİTLİ",
+  "prefMatchRequests": "Maç İstekleri",
+  "prefMatchRequestsSub": "Biriyle oynamak istediğinde",
+  "prefMatchConfirmations": "Maç Onayları",
+  "prefMatchConfirmationsSub": "İstek kabul edildiğinde",
+  "prefMatchReminders": "Maç Hatırlatmaları",
+  "prefMatchRemindersSub": "Planlanmış maçtan önce hatırlatma",
+  "prefMatchCancellations": "İptal Bildirimleri",
+  "prefMatchCancellationsSub": "Maç iptal edildiğinde",
+  "prefMessages": "Mesajlar",
+  "prefMessagesSub": "Diğer oyunculardan yeni mesajlar",
+  "prefNewReviews": "Yeni Değerlendirmeler",
+  "prefNewReviewsSub": "Biri sizi değerlendirdiğinde",
+  "prefResultConfirmed": "Sonuç Onaylandı",
+  "prefResultConfirmedSub": "Rakibiniz maç sonucunu onayladığında",
+  "prefNearbyPlayers": "Yakındaki Oyuncular",
+  "prefNearbyPlayersSub": "Bölgenize yeni oyuncular katıldığında",
+  "prefMarketing": "Uygulama Güncellemeleri & İpuçları",
+  "prefMarketingSub": "Yeni özellikler ve oyun ipuçları",
+  "prefSaved": "Kaydedildi ✓",
+  "prefSectionMatches": "MAÇLAR",
+  "prefSectionSocial": "SOSYAL",
+  "prefSectionUpdates": "GÜNCELLEMELER",
+  "skillAnyLevel": "Her seviye",
+  "lobbyCreated": "Açık lobi oluşturuldu! Oyuncular artık katılabilir.",
+  "lobbyCreateFailed": "Lobi oluşturulamadı: {reason}",
+  "@lobbyCreateFailed": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "openLobbyTitle": "Açık Lobi",
+  "openLobbyHeadline": "Açık slot oluştur",
+  "openLobbySubtitle": "Diğer oyuncular oturumuna katılmak için istekte bulunabilir",
+  "openLobbySport": "SPOR",
+  "openLobbyInvitedLevel": "DAVET EDİLEN SEVİYE",
+  "openLobbyDateTime": "TARİH & SAAT",
+  "pickDate": "Tarih seç",
+  "pickTime": "Saat seç",
+  "openLobbyCourt": "KORT",
+  "openLobbyNotes": "NOTLAR (OPSİYONEL)",
+  "openLobbyNotesHint": "ör. \"Kendi topunuzu getirin, rahat bir maç, başlangıç seviyesi hoş geldiniz\"",
+  "openLobbyPublic": "Herkese açık lobi",
+  "openLobbyPublicSub": "Herkes katılmak için istekte bulunabilir",
+  "openLobbyCreateButton": "Lobi Oluştur 🎾",
+  "onboardingGotIt": "Anladım!",
+  "onboardingFind1": "Seviyene uygun oyuncuları bul ve maç isteği gönder.",
+  "onboardingFind2": "NTRP, galibiyet oranı ve müsaitliğe göre sırala.",
+  "onboardingFind3": "Filtrele, keşfet, sahaya çık.",
+  "onboardingMessages1": "Maç öncesi ve sonrası rakibinle doğrudan mesajlaş.",
+  "onboardingMessages2": "Tüm konuşmalarını tek ekranda takip et.",
+  "onboardingMessages3": "Kort detaylarını ve saati kolayca paylaş.",
+  "onboardingNotifications1": "Gelen maç isteklerini kabul et veya reddet.",
+  "onboardingNotifications2": "Skor güncellemelerini ve hatırlatıcıları buradan gör.",
+  "onboardingNotifications3": "Tüm önemli gelişmelerden anında haberdar ol.",
+  "onboardingProfile1": "NTRP seviyeni, istatistiklerini ve başarılarını görüntüle.",
+  "onboardingProfile2": "Maç geçmişini ve takvimini buradan takip et.",
+  "onboardingProfile3": "Bildirim tercihlerini ve hesap ayarlarını düzenle.",
+  "reviewCommentEmre": "Harika ralliler, çok sportif — rövanş için sabırsızlanıyorum!",
+  "reviewCommentSelin": "Mükemmel oyuncu, her zaman zamanında ve çok adil. Kesinlikle tavsiye ederim.",
+  "reviewCommentZeynep": "Güzel maç, çekişmeli oyun. Çok rekabetçi ama her zaman dostane.",
+  "reviewCommentBerk": "Maçtan gerçekten zevk aldım. Harika tavsiyeler de verdi!",
+  "reviewTagPunctual": "Dakik",
+  "reviewTagSporty": "Sportif",
+  "reviewTagGoodComm": "İyi iletişim",
+  "reviewTagFairPlay": "Adil oyun",
+  "reviewTagCompetitive": "Rekabetçi",
+  "reviewTagFriendly": "Dostane",
+  "reviewTagHelpful": "Yardımsever",
+  "reputationMine": "İtibarım",
+  "reputationOf": "{name} İtibarı",
+  "@reputationOf": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "reviewsCount": "{count, plural, other{{count} değerlendirme}}",
+  "@reviewsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "resultWon": "Kazandı",
+  "resultLost": "Kaybetti",
+  "ratingPoints": "{delta} puan",
+  "@ratingPoints": {
+    "placeholders": {
+      "delta": {
+        "type": "String"
+      }
+    }
+  },
+  "gamesTitle": "Maçlar",
+  "tabUpcoming": "Yaklaşan",
+  "tabPast": "Geçmiş",
+  "newMatch": "Yeni Maç",
+  "emptyUpcomingHint": "Başlamak için yeni bir maç planla",
+  "message": "Mesaj",
+  "notifFilterAll": "Tümü",
+  "notifFilterMatches": "Maçlar",
+  "notifFilterOther": "Diğer",
+  "actionFailed": "İşlem başarısız: {reason}",
+  "@actionFailed": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "groupToday": "Bugün",
+  "groupYesterday": "Dün",
+  "groupThisWeek": "Bu Hafta",
+  "markAllRead": "Tümünü oku",
+  "noNotifications": "Bildirim yok",
+  "decline": "Reddet",
+  "accept": "Kabul Et",
+  "dispute": "İtiraz Et",
+  "confirm": "Onayla",
+  "minutesAgo": "{minutes} dk önce",
+  "@minutesAgo": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "hoursAgo": "{hours} sa önce",
+  "@hoursAgo": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "inboxFilterUnread": "Okunmamış",
+  "inboxFilterMatchPartners": "Maç Eşleri",
+  "editConversationsSoon": "Konuşma düzenleme yakında",
+  "searchNameOrMessage": "İsim veya mesaj ara…",
+  "noResults": "Sonuç bulunamadı",
+  "noMessagesYet": "Henüz mesaj yok",
+  "minutesShort": "{minutes}m",
+  "@minutesShort": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "messageSendFailed": "Mesaj gönderilemedi. Tekrar denemek için mesaja dokun.",
+  "online": "Çevrimiçi",
+  "messageHint": "{name} ile mesajlaş…",
+  "@messageHint": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "back": "Geri",
+  "matchPercentTag": "🎾 %{percent} eşleşme",
+  "@matchPercentTag": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "profileWins": "Galibiyet",
+  "profileLosses": "Mağlubiyet",
+  "profilePlayed": "Oynandı",
+  "profileWinPct": "Kazanma %",
+  "seeAllReviews": "4.9 · Tüm değerlendirmeleri gör",
+  "sectionAvailability": "MÜSAİTLİK",
+  "sectionPreferredCourts": "TERCİH EDİLEN KORTLAR",
+  "playerSavedSoon": "Oyuncu kaydedildi — yakında",
+  "slotFullDay": "Tam",
+  "slotMorning": "ÖÖ",
+  "slotAfternoon": "ÖS",
+  "nearbyPlayersTitle": "Yakındaki Oyuncular",
+  "mapMeMarker": "Ben",
+  "viewProfile": "Profili Gör",
+  "logResultFailed": "Sonuç kaydedilemedi: {reason}",
+  "@logResultFailed": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "logOpponentLabel": "RAKİP",
+  "logGuestPlayer": "Kayıtsız Oyuncu",
+  "logGuestPhoneHint": "Telefon numarası (zorunlu)",
+  "logGuestNameHint": "İsim (opsiyonel)",
+  "logYou": "Sen",
+  "logOpponentShort": "Rakip",
+  "logSetN": "SET {n}",
+  "@logSetN": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "logAddSet3": "3. seti ekle",
+  "logWinnerLabel": "KAZANAN",
+  "logIWon": "Ben kazandım 🏆",
+  "logOpponentWon": "Rakip kazandı",
+  "logYouWonMatch": "Bu maçı kazandınız!",
+  "logNameWon": "{name} kazandı",
+  "@logNameWon": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "change": "Değiştir",
+  "logSaveResult": "Sonucu Kaydet",
+  "courtUnspecified": "Belirtilmedi",
+  "scheduleTitle": "Takvim",
+  "noMatchToday": "Bu gün maç yok",
+  "noMatchTodayHint": "Yeni rakip bul veya bir seans planla",
+  "findNewMatch": "Yeni maç bul",
+  "playersNearYou": "Yakınınızda 4 oyuncu mevcut",
+  "singlesMatchTitle": "Tekler Maçı",
+  "doublesMatchTitle": "Çiftler Maçı",
+  "matchRequestSentToName": "{name} adlı oyuncuya maç isteği gönderildi!",
+  "@matchRequestSentToName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "doublesInviteSent": "Çiftler davetiyesi gönderildi!",
+  "pickOpponentLabel": "RAKİP SEÇ",
+  "partnerLabel": "TAKIMDAŞIN",
+  "sendMatchRequestButton": "Maç İsteği Gönder 🎾",
+  "sendInviteButton": "Davetiye Gönder 🎾",
+  "shareText": "Rallly'de maç sonucum 🎾",
+  "shareFailed": "Paylaşılamadı. Tekrar deneyin.",
+  "matchResultTitle": "Maç Sonucu",
+  "sharing": "Paylaşılıyor…",
+  "shareResult": "Sonucu Paylaş 🎾",
+  "done": "Tamam",
+  "victory": "Zafer 🏆",
+  "defeat": "Yenilgi"
+}

@@ -6,6 +6,8 @@ import '../widgets/shared_widgets.dart';
 import '../models/models.dart';
 import '../services/data_service.dart';
 import '../main.dart' show CourtThemeProvider;
+import '../l10n/l10n.dart';
+import '../l10n/option_labels.dart';
 
 /// Lets the signed-in user change everything they entered in the signup
 /// wizard (plus a bio). Pops `true` after a successful save.
@@ -50,8 +52,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       debugPrint('PROFILE UPDATE ERROR: $e');
       if (!mounted) return;
       setState(() => _saving = false);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Profil kaydedilemedi. Lütfen tekrar deneyin.'),
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(context.l10n.profileSaveFailed),
         backgroundColor: RallyColors.accent2,
         behavior: SnackBarBehavior.floating,
       ));
@@ -72,6 +74,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   @override
   Widget build(BuildContext context) {
     final cp = CourtThemeProvider.of(context);
+    final l = context.l10n;
     return Scaffold(
       backgroundColor: cp.bg,
       appBar: AppBar(
@@ -81,14 +84,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           icon: Icon(Icons.arrow_back_ios_new, size: 18, color: cp.text),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Text('Profili Düzenle',
+        title: Text(l.editProfile,
           style: TextStyle(fontFamily: 'InstrumentSerif', fontSize: 22, color: cp.text)),
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(
           Spacing.gutter, Spacing.sm, Spacing.gutter, Spacing.xxl),
         children: [
-          _Label('AD SOYAD', cp),
+          _Label(l.signupNameLabel, cp),
           TextField(
             controller: _nameCtrl,
             onChanged: (_) => setState(() {}),
@@ -96,47 +99,46 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             decoration: const InputDecoration(
               prefixIcon: Icon(Icons.person_outline, size: 18)),
           ),
-          _Label('MAHALLE / ŞEHİR', cp),
+          _Label(l.signupLocationLabel, cp),
           TextField(
             controller: _locationCtrl,
             onChanged: (_) => setState(() {}),
-            decoration: const InputDecoration(
-              hintText: 'örn. Beşiktaş, İstanbul',
-              prefixIcon: Icon(Icons.location_on_outlined, size: 18)),
+            decoration: InputDecoration(
+              hintText: l.signupLocationHint,
+              prefixIcon: const Icon(Icons.location_on_outlined, size: 18)),
           ),
-          _Label('HAKKIMDA', cp),
+          _Label(l.editAboutLabel, cp),
           TextField(
             controller: _aboutCtrl,
             maxLines: 3,
             maxLength: 200,
-            decoration: const InputDecoration(
-              hintText: 'Oyun tarzın, sevdiğin kortlar…'),
+            decoration: InputDecoration(hintText: l.editAboutHint),
           ),
-          _Label('SPORLAR', cp),
+          _Label(l.editSportsLabel, cp),
           _PillWrap(
             cp: cp,
-            options: [for (final s in sportOptions) (s.$2, '${s.$1}  ${s.$2}')],
+            options: [for (final s in sportOptions) (s.$2, '${s.$1}  ${sportLabel(l, s.$2)}')],
             isSelected: _sports.contains,
             onTap: (v) => _toggle(_sports, v),
           ),
-          _Label('SEVİYE', cp),
+          _Label(l.editLevelLabel, cp),
           _PillWrap(
             cp: cp,
-            options: [for (final s in skillOptions) (s.$2, '${s.$1}  ${s.$2}')],
+            options: [for (final s in skillOptions) (s.$2, '${s.$1}  ${skillLevelLabel(l, s.$2)}')],
             isSelected: (v) => _skillLevel == v,
             onTap: (v) => setState(() => _skillLevel = v),
           ),
-          _Label('MÜSAİT GÜNLER', cp),
+          _Label(l.editDaysLabel, cp),
           _PillWrap(
             cp: cp,
-            options: [for (final d in dayOptions) (d, d)],
+            options: [for (final d in dayOptions) (d, dayLabel(l, d))],
             isSelected: _days.contains,
             onTap: (v) => _toggle(_days, v),
           ),
-          _Label('GÜNÜN SAATİ', cp),
+          _Label(l.signupTimeOfDayHeader, cp),
           _PillWrap(
             cp: cp,
-            options: [for (final t in timeOptions) (t.$2, '${t.$1}  ${t.$2}')],
+            options: [for (final t in timeOptions) (t.$2, '${t.$1}  ${timeLabel(l, t.$2)}')],
             isSelected: _times.contains,
             onTap: (v) => _toggle(_times, v),
           ),
@@ -147,7 +149,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           padding: const EdgeInsets.fromLTRB(
             Spacing.gutter, Spacing.sm, Spacing.gutter, Spacing.lg),
           child: RallyButton(
-            label: 'Kaydet',
+            label: l.save,
             onPressed: _canSave ? _save : null,
             loading: _saving,
           ),
