@@ -13,6 +13,7 @@ import 'messages_screen.dart';
 import 'notifications_screen.dart';
 import 'profile_screen.dart';
 import 'create_game_screen.dart';
+import '../l10n/l10n.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -126,7 +127,7 @@ class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
           ),
           if (_prefsLoaded && !_seen[_currentIndex])
             OnboardingOverlay(
-              content: kTabOnboardingContent[_currentIndex],
+              content: tabOnboardingContent(context.l10n)[_currentIndex],
               onDismiss: () => _dismissOverlay(_currentIndex),
             ),
         ],
@@ -142,9 +143,9 @@ class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
               backgroundColor: cp.accent,
               foregroundColor: Colors.white,
               icon: const Icon(Icons.add, size: 20),
-              label: const Text(
-                'Maç Oluştur',
-                style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
+              label: Text(
+                context.l10n.createMatchFab,
+                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
               ),
               elevation: 6,
               shape: const StadiumBorder(),
@@ -174,7 +175,7 @@ class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
                   _NavItem(
                     icon: Icons.sports_tennis_outlined,
                     activeIcon: Icons.sports_tennis,
-                    label: 'Rakip Bul',
+                    label: context.l10n.navFindOpponent,
                     active: _currentIndex == 0,
                     cp: cp,
                     onTap: () => setState(() => _currentIndex = 0),
@@ -182,7 +183,7 @@ class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
                   _NavItem(
                     icon: Icons.chat_bubble_outline,
                     activeIcon: Icons.chat_bubble,
-                    label: 'Mesajlar',
+                    label: context.l10n.navMessages,
                     active: _currentIndex == 1,
                     cp: cp,
                     onTap: () => setState(() => _currentIndex = 1),
@@ -190,7 +191,7 @@ class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
                   _NavItem(
                     icon: Icons.notifications_outlined,
                     activeIcon: Icons.notifications,
-                    label: 'Bildirim',
+                    label: context.l10n.navNotifications,
                     active: _currentIndex == 2,
                     badge: unreadCount,
                     cp: cp,
@@ -199,7 +200,7 @@ class _MainShellState extends State<MainShell> with WidgetsBindingObserver {
                   _NavItem(
                     icon: Icons.person_outline,
                     activeIcon: Icons.person,
-                    label: 'Profil',
+                    label: context.l10n.navProfile,
                     active: _currentIndex == 3,
                     cp: cp,
                     onTap: () => setState(() => _currentIndex = 3),

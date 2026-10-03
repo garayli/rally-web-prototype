@@ -1,42 +1,44 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../theme/app_theme.dart';
+import '../l10n/l10n.dart';
 
 class AchievementsScreen extends StatelessWidget {
   const AchievementsScreen({super.key});
 
-  static const _badges = [
-    _Badge(icon: '🎾', title: 'İlk Maç', desc: 'İlk oyununu oynadın', earned: true, color: Color(0xFF5A8A00)),
-    _Badge(icon: '🔥', title: 'Seri Galibiyet', desc: 'Arka arkaya 3 galibiyet', earned: true, color: Color(0xFFC8431A)),
-    _Badge(icon: '⭐', title: '5 Yıldızlı Oyuncu', desc: 'Ortalama puan 4.8+', earned: true, color: Color(0xFFFFD700)),
-    _Badge(icon: '🤝', title: 'Sosyal Kelebek', desc: '10 oyuncuyla bağlantı kuruldu', earned: true, color: Color(0xFF7B4FA6)),
-    _Badge(icon: '📅', title: 'Düzenli Oyuncu', desc: '10+ maç oynandı', earned: true, color: Color(0xFF1A7ABF)),
-    _Badge(icon: '🏆', title: 'Şampiyon', desc: '25+ galibiyet', earned: true, color: Color(0xFF8DB600)),
-    _Badge(icon: '⚡', title: 'Hızlı Yanıt', desc: '1 saat içinde cevap verdi', earned: true, color: Color(0xFFC8431A)),
-    _Badge(icon: '🌍', title: 'Kaşif', desc: '5 farklı kortta oynandı', earned: true, color: Color(0xFF5A8A00)),
-    _Badge(icon: '💬', title: 'İletişimci', desc: '50 mesaj gönderildi', earned: true, color: Color(0xFF7B4FA6)),
-    _Badge(icon: '🎯', title: 'Keskin Nişancı', desc: '80%+ kazanma oranı', earned: true, color: Color(0xFF1A7ABF)),
-    _Badge(icon: '📸', title: 'Paylaş', desc: '5 maç sonucu paylaşıldı', earned: true, color: Color(0xFFFFD700)),
-    _Badge(icon: '🌟', title: 'Elit', desc: 'İleri Seviyeye ulaşıldı', earned: true, color: Color(0xFFFFD700)),
-    _Badge(icon: '🏅', title: 'Turnuva Profesyoneli', desc: 'Bir turnuvaya katıl', earned: false, color: Color(0xFF9CA3AF)),
-    _Badge(icon: '👑', title: 'Efsane', desc: '100 maç oynandı', earned: false, color: Color(0xFF9CA3AF)),
-    _Badge(icon: '🎪', title: 'Grand Slam', desc: '4 farklı kortta galibiyet', earned: false, color: Color(0xFF9CA3AF)),
-    _Badge(icon: '🤺', title: 'Çiftler Kralı', desc: '10 çiftler maçı kazanıldı', earned: false, color: Color(0xFF9CA3AF)),
-    _Badge(icon: '🌈', title: 'Çok Yönlü', desc: '4 sporun tümü oynanıldı', earned: false, color: Color(0xFF9CA3AF)),
-    _Badge(icon: '🚀', title: 'Roket', desc: 'Puan 200+ arttırıldı', earned: false, color: Color(0xFF9CA3AF)),
+  static List<_Badge> _badges(AppLocalizations l) => [
+    _Badge(icon: '🎾', title: l.badgeFirstMatch, desc: l.badgeFirstMatchDesc, earned: true, color: const Color(0xFF5A8A00)),
+    _Badge(icon: '🔥', title: l.badgeWinStreak, desc: l.badgeWinStreakDesc, earned: true, color: const Color(0xFFC8431A)),
+    _Badge(icon: '⭐', title: l.badgeFiveStar, desc: l.badgeFiveStarDesc, earned: true, color: const Color(0xFFFFD700)),
+    _Badge(icon: '🤝', title: l.badgeSocialButterfly, desc: l.badgeSocialButterflyDesc, earned: true, color: const Color(0xFF7B4FA6)),
+    _Badge(icon: '📅', title: l.badgeRegularPlayer, desc: l.badgeRegularPlayerDesc, earned: true, color: const Color(0xFF1A7ABF)),
+    _Badge(icon: '🏆', title: l.badgeChampion, desc: l.badgeChampionDesc, earned: true, color: const Color(0xFF8DB600)),
+    _Badge(icon: '⚡', title: l.badgeQuickReply, desc: l.badgeQuickReplyDesc, earned: true, color: const Color(0xFFC8431A)),
+    _Badge(icon: '🌍', title: l.badgeExplorer, desc: l.badgeExplorerDesc, earned: true, color: const Color(0xFF5A8A00)),
+    _Badge(icon: '💬', title: l.badgeCommunicator, desc: l.badgeCommunicatorDesc, earned: true, color: const Color(0xFF7B4FA6)),
+    _Badge(icon: '🎯', title: l.badgeSharpshooter, desc: l.badgeSharpshooterDesc, earned: true, color: const Color(0xFF1A7ABF)),
+    _Badge(icon: '📸', title: l.badgeSharer, desc: l.badgeSharerDesc, earned: true, color: const Color(0xFFFFD700)),
+    _Badge(icon: '🌟', title: l.badgeElite, desc: l.badgeEliteDesc, earned: true, color: const Color(0xFFFFD700)),
+    _Badge(icon: '🏅', title: l.badgeTournamentPro, desc: l.badgeTournamentProDesc, earned: false, color: const Color(0xFF9CA3AF)),
+    _Badge(icon: '👑', title: l.badgeLegend, desc: l.badgeLegendDesc, earned: false, color: const Color(0xFF9CA3AF)),
+    _Badge(icon: '🎪', title: l.badgeGrandSlam, desc: l.badgeGrandSlamDesc, earned: false, color: const Color(0xFF9CA3AF)),
+    _Badge(icon: '🤺', title: l.badgeDoublesKing, desc: l.badgeDoublesKingDesc, earned: false, color: const Color(0xFF9CA3AF)),
+    _Badge(icon: '🌈', title: l.badgeAllRounder, desc: l.badgeAllRounderDesc, earned: false, color: const Color(0xFF9CA3AF)),
+    _Badge(icon: '🚀', title: l.badgeRocket, desc: l.badgeRocketDesc, earned: false, color: const Color(0xFF9CA3AF)),
   ];
-
-  int get _earnedCount => _badges.where((b) => b.earned).length;
 
   @override
   Widget build(BuildContext context) {
-    final earned = _badges.where((b) => b.earned).toList();
-    final locked = _badges.where((b) => !b.earned).toList();
+    final l = context.l10n;
+    final badges = _badges(l);
+    final earned = badges.where((b) => b.earned).toList();
+    final locked = badges.where((b) => !b.earned).toList();
+    final earnedCount = earned.length;
 
     return Scaffold(
       backgroundColor: RallyColors.bg,
       appBar: AppBar(
-        title: const Text('Başarılar', style: TextStyle(fontFamily: 'InstrumentSerif', fontSize: 22)),
+        title: Text(l.achievements, style: const TextStyle(fontFamily: 'InstrumentSerif', fontSize: 22)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, size: 18),
           onPressed: () => Navigator.pop(context),
@@ -66,10 +68,10 @@ class AchievementsScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '$_earnedCount of ${_badges.length}',
+                        l.achievementsEarnedOf(earnedCount, badges.length),
                         style: const TextStyle(fontFamily: 'InstrumentSerif', fontSize: 32, color: Colors.white, letterSpacing: -1, height: 1),
                       ),
-                      const Text('Başarı kazanıldı', style: TextStyle(color: Colors.white70, fontSize: 14)),
+                      Text(l.achievementsEarnedLabel, style: const TextStyle(color: Colors.white70, fontSize: 14)),
                     ],
                   ),
                   const Spacer(),
@@ -80,14 +82,14 @@ class AchievementsScreen extends StatelessWidget {
                         width: 56,
                         height: 56,
                         child: CircularProgressIndicator(
-                          value: _earnedCount / _badges.length,
+                          value: earnedCount / badges.length,
                           backgroundColor: Colors.white.withValues(alpha: 0.2),
                           valueColor: const AlwaysStoppedAnimation(Colors.white),
                           strokeWidth: 5,
                         ),
                       ),
                       Text(
-                        '${(_earnedCount / _badges.length * 100).round()}%',
+                        '${(earnedCount / badges.length * 100).round()}%',
                         style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 13),
                       ),
                     ],
@@ -98,12 +100,12 @@ class AchievementsScreen extends StatelessWidget {
           ),
 
           // ── Earned ─────────────────────────────────────────────────────────
-          const SliverToBoxAdapter(
+          SliverToBoxAdapter(
             child: Padding(
-              padding: EdgeInsets.fromLTRB(20, 4, 20, 12),
+              padding: const EdgeInsets.fromLTRB(20, 4, 20, 12),
               child: Text(
-                'KAZANILDI',
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: RallyColors.muted, letterSpacing: 0.8),
+                l.achievementsEarnedHeader,
+                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: RallyColors.muted, letterSpacing: 0.8),
               ),
             ),
           ),
@@ -124,12 +126,12 @@ class AchievementsScreen extends StatelessWidget {
           ),
 
           // ── Locked ─────────────────────────────────────────────────────────
-          const SliverToBoxAdapter(
+          SliverToBoxAdapter(
             child: Padding(
-              padding: EdgeInsets.fromLTRB(20, 24, 20, 12),
+              padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
               child: Text(
-                'KİLİTLİ',
-                style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: RallyColors.muted, letterSpacing: 0.8),
+                l.achievementsLockedHeader,
+                style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: RallyColors.muted, letterSpacing: 0.8),
               ),
             ),
           ),

@@ -332,12 +332,4 @@ class CourtPalette {
     skillBg:      Color(0xFFE2EBD0),
     skillFg:      Color(0xFF0F3D22),
   );
-
-  String get displayName {
-    switch (theme) {
-      case CourtTheme.clay:  return 'Toprak';
-      case CourtTheme.hard:  return 'Sert Kort';
-      case CourtTheme.grass: return 'Çim';
-    }
-  }
 }

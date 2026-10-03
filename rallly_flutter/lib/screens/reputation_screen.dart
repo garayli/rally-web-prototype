@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
+import '../l10n/l10n.dart';
 import '../theme/app_theme.dart';
 import '../widgets/shared_widgets.dart';
 import '../models/models.dart';
@@ -10,16 +11,16 @@ class ReputationScreen extends StatelessWidget {
 
   const ReputationScreen({super.key, this.player});
 
-  static final _reviews = [
+  static List<_Review> _reviews(AppLocalizations l) => [
     _Review(
       reviewerInitials: 'EK',
       reviewerName: 'Emre Kaya',
       gradientStart: '#e85d3a',
       gradientEnd: '#f4956d',
       rating: 5,
-      comment: 'Harika ralliler, çok sportif — rövanş için sabırsızlanıyorum!',
+      comment: l.reviewCommentEmre,
       date: DateTime.now().subtract(const Duration(days: 3)),
-      tags: ['Dakik', 'Sportif', 'İyi iletişim'],
+      tags: [l.reviewTagPunctual, l.reviewTagSporty, l.reviewTagGoodComm],
     ),
     _Review(
       reviewerInitials: 'SD',
@@ -27,9 +28,9 @@ class ReputationScreen extends StatelessWidget {
       gradientStart: '#7b4fa6',
       gradientEnd: '#a97fcb',
       rating: 5,
-      comment: 'Mükemmel oyuncu, her zaman zamanında ve çok adil. Kesinlikle tavsiye ederim.',
+      comment: l.reviewCommentSelin,
       date: DateTime.now().subtract(const Duration(days: 14)),
-      tags: ['Dakik', 'Adil oyun'],
+      tags: [l.reviewTagPunctual, l.reviewTagFairPlay],
     ),
     _Review(
       reviewerInitials: 'ZA',
@@ -37,9 +38,9 @@ class ReputationScreen extends StatelessWidget {
       gradientStart: '#5a8a00',
       gradientEnd: '#8db600',
       rating: 4,
-      comment: 'Güzel maç, çekişmeli oyun. Çok rekabetçi ama her zaman dostane.',
+      comment: l.reviewCommentZeynep,
       date: DateTime.now().subtract(const Duration(days: 28)),
-      tags: ['Rekabetçi', 'Dostane'],
+      tags: [l.reviewTagCompetitive, l.reviewTagFriendly],
     ),
     _Review(
       reviewerInitials: 'BÖ',
@@ -47,17 +48,18 @@ class ReputationScreen extends StatelessWidget {
       gradientStart: '#1a7abf',
       gradientEnd: '#5ba8e0',
       rating: 5,
-      comment: 'Maçtan gerçekten zevk aldım. Harika tavsiyeler de verdi!',
+      comment: l.reviewCommentBerk,
       date: DateTime.now().subtract(const Duration(days: 45)),
-      tags: ['Yardımsever', 'Dostane'],
+      tags: [l.reviewTagHelpful, l.reviewTagFriendly],
     ),
   ];
 
-  double get _avgRating => _reviews.fold(0.0, (s, r) => s + r.rating) / _reviews.length;
+  static double _avgRating(List<_Review> reviews) =>
+      reviews.fold(0.0, (s, r) => s + r.rating) / reviews.length;
 
-  Map<int, int> get _ratingCounts {
+  static Map<int, int> _ratingCounts(List<_Review> reviews) {
     final m = <int, int>{};
-    for (final r in _reviews) {
+    for (final r in reviews) {
       m[r.rating] = (m[r.rating] ?? 0) + 1;
     }
     return m;
@@ -65,13 +67,18 @@ class ReputationScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final name = player?.name.split(' ').first ?? 'İtibarım';
+    final l = context.l10n;
+    final reviews = _reviews(l);
+    final avgRating = _avgRating(reviews);
+    final ratingCounts = _ratingCounts(reviews);
 
     return Scaffold(
       backgroundColor: RallyColors.bg,
       appBar: AppBar(
         title: Text(
-          player == null ? 'İtibarım' : '$name İtibarı',
+          player == null
+              ? l.reputationMine
+              : l.reputationOf(player!.name.split(' ').first),
           style: const TextStyle(fontFamily: 'InstrumentSerif', fontSize: 22),
         ),
         leading: IconButton(
@@ -97,13 +104,13 @@ class ReputationScreen extends StatelessWidget {
                   Column(
                     children: [
                       Text(
-                        _avgRating.toStringAsFixed(1),
+                        avgRating.toStringAsFixed(1),
                         style: const TextStyle(fontFamily: 'InstrumentSerif', fontSize: 52, letterSpacing: -2, height: 1),
                       ),
-                      _StarRow(rating: _avgRating.round(), size: 20),
+                      _StarRow(rating: avgRating.round(), size: 20),
                       const SizedBox(height: 4),
                       Text(
-                        '${_reviews.length} değerlendirme',
+                        l.reviewsCount(reviews.length),
                         style: const TextStyle(fontSize: 12, color: RallyColors.muted),
                       ),
                     ],
@@ -113,8 +120,8 @@ class ReputationScreen extends StatelessWidget {
                     child: Column(
                       children: List.generate(5, (i) {
                         final stars = 5 - i;
-                        final count = _ratingCounts[stars] ?? 0;
-                        final pct = _reviews.isEmpty ? 0.0 : count / _reviews.length;
+                        final count = ratingCounts[stars] ?? 0;
+                        final pct = reviews.isEmpty ? 0.0 : count / reviews.length;
                         return Padding(
                           padding: const EdgeInsets.symmetric(vertical: 2),
                           child: Row(
@@ -152,8 +159,8 @@ class ReputationScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             sliver: SliverList(
               delegate: SliverChildBuilderDelegate(
-                (context, i) => _ReviewCard(review: _reviews[i]).animate().fadeIn(delay: (i * 60).ms),
-                childCount: _reviews.length,
+                (context, i) => _ReviewCard(review: reviews[i]).animate().fadeIn(delay: (i * 60).ms),
+                childCount: reviews.length,
               ),
             ),
           ),
@@ -202,7 +209,7 @@ class _ReviewCard extends StatelessWidget {
                 ),
               ),
               Text(
-                DateFormat('MMM d').format(review.date),
+                DateFormat('MMM d', context.localeName).format(review.date),
                 style: const TextStyle(fontSize: 11, color: RallyColors.muted),
               ),
             ],

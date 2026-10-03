@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import '../l10n/l10n.dart';
 import '../theme/app_theme.dart';
 import 'shared_widgets.dart';
 
@@ -14,41 +15,41 @@ class TabOnboardingContent {
   });
 }
 
-const List<TabOnboardingContent> kTabOnboardingContent = [
+List<TabOnboardingContent> tabOnboardingContent(AppLocalizations l) => [
   TabOnboardingContent(
     icon: Icons.sports_tennis,
-    title: 'Rakip Bul',
+    title: l.navFindOpponent,
     bullets: [
-      'Seviyene uygun oyuncuları bul ve maç isteği gönder.',
-      'NTRP, galibiyet oranı ve müsaitliğe göre sırala.',
-      'Filtrele, keşfet, sahaya çık.',
+      l.onboardingFind1,
+      l.onboardingFind2,
+      l.onboardingFind3,
     ],
   ),
   TabOnboardingContent(
     icon: Icons.chat_bubble,
-    title: 'Mesajlar',
+    title: l.navMessages,
     bullets: [
-      'Maç öncesi ve sonrası rakibinle doğrudan mesajlaş.',
-      'Tüm konuşmalarını tek ekranda takip et.',
-      'Kort detaylarını ve saati kolayca paylaş.',
+      l.onboardingMessages1,
+      l.onboardingMessages2,
+      l.onboardingMessages3,
     ],
   ),
   TabOnboardingContent(
     icon: Icons.notifications,
-    title: 'Bildirimler',
+    title: l.notifications,
     bullets: [
-      'Gelen maç isteklerini kabul et veya reddet.',
-      'Skor güncellemelerini ve hatırlatıcıları buradan gör.',
-      'Tüm önemli gelişmelerden anında haberdar ol.',
+      l.onboardingNotifications1,
+      l.onboardingNotifications2,
+      l.onboardingNotifications3,
     ],
   ),
   TabOnboardingContent(
     icon: Icons.person,
-    title: 'Profilim',
+    title: l.profileTitle,
     bullets: [
-      'NTRP seviyeni, istatistiklerini ve başarılarını görüntüle.',
-      'Maç geçmişini ve takvimini buradan takip et.',
-      'Bildirim tercihlerini ve hesap ayarlarını düzenle.',
+      l.onboardingProfile1,
+      l.onboardingProfile2,
+      l.onboardingProfile3,
     ],
   ),
 ];
@@ -107,7 +108,7 @@ class OnboardingOverlay extends StatelessWidget {
                       const SizedBox(height: 12),
                       ...content.bullets.map((b) => _BulletRow(text: b)),
                       const SizedBox(height: 24),
-                      RallyButton(label: 'Anladım!', onPressed: onDismiss),
+                      RallyButton(label: context.l10n.onboardingGotIt, onPressed: onDismiss),
                     ],
                   ),
                 ),

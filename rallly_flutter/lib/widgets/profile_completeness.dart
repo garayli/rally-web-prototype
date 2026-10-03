@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../theme/design_tokens.dart';
+import '../l10n/l10n.dart';
 
 /// Banner shown on Discover post-login when profile is incomplete.
 class ProfileCompletenessBanner extends StatelessWidget {
@@ -46,14 +47,14 @@ class ProfileCompletenessBanner extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Profilini tamamla',
+                        context.l10n.profileCompleteTitle,
                         style: RallyType.titleMD.copyWith(color: RallyColors.textPrimary),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         missing.isEmpty
-                            ? '%$clamped tamamlandı'
-                            : 'Eksik: $preview$extra',
+                            ? context.l10n.profilePercentDone(clamped)
+                            : context.l10n.profileMissing('$preview$extra'),
                         style: RallyType.bodySM.copyWith(color: RallyColors.textSecondary),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,

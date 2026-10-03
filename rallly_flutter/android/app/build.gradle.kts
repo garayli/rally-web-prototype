@@ -41,6 +41,13 @@ android {
         versionName = flutter.versionName
     }
 
+    // Languages the app ships. Also tells Play which languages it supports
+    // (otherwise it only sees those bundled by dependencies). Keep in sync
+    // with lib/l10n/app_*.arb and res/xml/locales_config.xml.
+    androidResources {
+        localeFilters += listOf("tr", "en")
+    }
+
     signingConfigs {
         create("release") {
             if (keystorePropertiesFile.exists()) {

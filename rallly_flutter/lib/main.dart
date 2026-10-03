@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'config/supabase_config.dart';
 import 'firebase_options.dart';
+import 'l10n/l10n.dart';
 import 'theme/app_theme.dart';
 import 'router/app_router.dart';
 
@@ -22,12 +25,13 @@ Future<void> main() async {
     ),
   );
 
+  await initializeDateFormatting();
   await courtThemeNotifier.load();
 
   runApp(
-    CourtThemeProvider(
+    const CourtThemeProvider(
       child: ThemeModeProvider(
-        child: const RallyApp(),
+        child: RallyApp(),
       ),
     ),
   );
@@ -129,8 +133,23 @@ class RallyApp extends StatelessWidget {
     final themeMode = _ThemeModeScope.of(context).mode;
 
     return MaterialApp.router(
-      title: 'RallyMatch',
+      onGenerateTitle: (context) => context.l10n.appName,
       debugShowCheckedModeBanner: false,
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: AppLocalizations.supportedLocales,
+      // Unsupported device languages fall back to Turkish (the template
+      // language and the app's home market).
+      localeResolutionCallback: (device, supported) {
+        for (final s in supported) {
+          if (s.languageCode == device?.languageCode) return s;
+        }
+        return const Locale('tr');
+      },
       theme: RallyTheme.light,
       darkTheme: RallyTheme.dark,
       themeMode: themeMode,

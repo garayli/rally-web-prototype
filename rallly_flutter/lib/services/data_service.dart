@@ -6,6 +6,18 @@ import '../utils/initials.dart';
 import '../utils/uuid.dart';
 import '../main.dart' show supabase;
 
+/// Why a DataService write failed. The UI maps these to localized text with
+/// `dataErrorMessage()` — never put user-facing strings in the data layer.
+enum DataError { notSignedIn, recipientNotRegistered, matchUpdateDenied }
+
+class DataException implements Exception {
+  final DataError error;
+  const DataException(this.error);
+
+  @override
+  String toString() => 'DataException(${error.name})';
+}
+
 // ─── Abstract data interface ──────────────────────────────────────────────────
 // All screens talk to DataService, never to MockData directly.
 // To connect Supabase: implement SupabaseDataService and swap the global below.
@@ -222,9 +234,9 @@ class MockDataService implements DataService {
     required String text,
   }) async {
     final uid = supabase.auth.currentUser?.id;
-    if (uid == null) throw StateError('Oturum açmanız gerekiyor');
+    if (uid == null) throw const DataException(DataError.notSignedIn);
     if (!isUuid(receiverId)) {
-      throw StateError('Bu oyuncu kayıtlı değil, mesaj gönderilemez');
+      throw const DataException(DataError.recipientNotRegistered);
     }
     await supabase.from('messages').insert({
       'sender_id': uid,
@@ -490,7 +502,7 @@ class MockDataService implements DataService {
         .eq('id', matchId)
         .select('player1_id, court');
     if ((updated as List).isEmpty) {
-      throw StateError('Maç durumu güncellenemedi (yetki yok)');
+      throw const DataException(DataError.matchUpdateDenied);
     }
     final match = Map<String, dynamic>.from(updated.first as Map);
     await _notifyRequesterOfResponse(
@@ -569,7 +581,7 @@ class MockDataService implements DataService {
     required List<String> timePrefs,
   }) async {
     final uid = supabase.auth.currentUser?.id;
-    if (uid == null) throw StateError('Oturum açmanız gerekiyor');
+    if (uid == null) throw const DataException(DataError.notSignedIn);
     // Only reset ntrp_rating when the self-reported level actually changes,
     // so an unrelated edit (e.g. bio) doesn't wipe a rating earned in matches.
     final levelChanged =
@@ -597,7 +609,7 @@ class MockDataService implements DataService {
     required String format,
   }) async {
     final uid = supabase.auth.currentUser?.id;
-    if (uid == null) throw StateError('Oturum açmanız gerekiyor');
+    if (uid == null) throw const DataException(DataError.notSignedIn);
     final inserted = await supabase.from('matches').insert({
       'player1_id': uid,
       if (isUuid(opponentId)) 'player2_id': opponentId,

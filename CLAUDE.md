@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 RallyMatch is a tennis/racquet sport matchmaking app built in Flutter. The Flutter project lives in `rallly_flutter/`. There is also an HTML prototype at `rallly-v3_3.html` that serves as the visual design reference.
 
-All UI strings are in Turkish (TR). Skill levels appear as "Başlangıç" / "Orta" / "İleri" throughout.
+UI strings are localized (Turkish template + English, see Localization below); Turkish is the default. Skill levels appear as "Başlangıç" / "Orta" / "İleri" throughout.
 
 ## Commands
 
@@ -77,6 +77,10 @@ The models are in `lib/models/models.dart`:
 When connecting to Supabase, replace `DataService` calls with real queries. Required DB tables: `profiles`, `matches`, `messages`, `reviews`, `notifications`, `lobbies`.
 
 Nullable FK pattern: `matches.player2_id` and `messages.receiver_id` are nullable to support unregistered (guest) opponents. Guests are identified by `opponent_phone` for future retroactive account linking (ADR-005/006 in `docs/project_notes/decisions.md`).
+
+### Localization (`lib/l10n/`)
+
+UI strings live in `lib/l10n/app_tr.arb` (template) and `app_en.arb`; use `context.l10n.key` (import `lib/l10n/l10n.dart`) — **never hardcode user-facing text**, and pass `context.localeName` to every `DateFormat`. After editing an ARB file run `flutter gen-l10n` (generated files are committed). Profile/lobby values written to Supabase (`'Başlangıç'`, `'Pzt'`, `'Sabah'`, `'Her seviye'`…) stay Turkish whatever the UI language — localize their *labels* with `lib/l10n/option_labels.dart`. `DataService` throws `DataException(DataError.x)`, shown via `dataErrorMessage()`. Known gap: notification text written to the DB (and by n8n) is Turkish only — see ADR-011.
 
 ### State Management
 

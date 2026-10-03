@@ -6,6 +6,8 @@ import '../models/models.dart';
 import '../services/data_service.dart';
 import 'reputation_screen.dart';
 import 'messages_screen.dart';
+import '../l10n/l10n.dart';
+import '../l10n/option_labels.dart';
 
 class PlayerProfileScreen extends StatelessWidget {
   final Player player;
@@ -14,6 +16,7 @@ class PlayerProfileScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     return Scaffold(
       backgroundColor: RallyColors.bg,
       body: CustomScrollView(
@@ -39,14 +42,14 @@ class PlayerProfileScreen extends StatelessWidget {
                   // Back button
                   GestureDetector(
                     onTap: () => Navigator.pop(context),
-                    child: const Row(
+                    child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.arrow_back_ios_new,
+                        const Icon(Icons.arrow_back_ios_new,
                             size: 14, color: RallyColors.textSecondary),
-                        SizedBox(width: 4),
-                        Text('Geri',
-                            style: TextStyle(
+                        const SizedBox(width: 4),
+                        Text(l.back,
+                            style: const TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w600,
                                 color: RallyColors.textSecondary)),
@@ -97,7 +100,7 @@ class PlayerProfileScreen extends StatelessWidget {
                               children: [
                                 SkillBadge(label: player.skillLabel),
                                 _Tag('NTRP ${player.ntrpDisplay}'),
-                                _Tag('🎾 ${player.matchScore}% match'),
+                                _Tag(l.matchPercentTag(player.matchScore)),
                               ],
                             ),
                           ],
@@ -120,10 +123,10 @@ class PlayerProfileScreen extends StatelessWidget {
                 children: [
                   Row(
                     children: [
-                      _StatBox(value: '${player.wins}', label: 'Galibiyet', green: true),
-                      _StatBox(value: '${player.losses}', label: 'Mağlubiyet'),
-                      _StatBox(value: '${player.matchesPlayed}', label: 'Oynandı'),
-                      _StatBox(value: '${player.winRate.round()}%', label: 'Kazanma %'),
+                      _StatBox(value: '${player.wins}', label: l.profileWins, green: true),
+                      _StatBox(value: '${player.losses}', label: l.profileLosses),
+                      _StatBox(value: '${player.matchesPlayed}', label: l.profilePlayed),
+                      _StatBox(value: '${player.winRate.round()}%', label: l.profileWinPct),
                     ],
                   ),
                   InkWell(
@@ -131,12 +134,12 @@ class PlayerProfileScreen extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 10),
                       color: RallyColors.accentLight,
-                      child: const Row(
+                      child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.star, size: 14, color: Color(0xFFFFD700)),
-                          SizedBox(width: 5),
-                          Text('4.9 · Tüm değerlendirmeleri gör', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: RallyColors.accent)),
+                          const Icon(Icons.star, size: 14, color: Color(0xFFFFD700)),
+                          const SizedBox(width: 5),
+                          Text(l.seeAllReviews, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: RallyColors.accent)),
                         ],
                       ),
                     ),
@@ -153,7 +156,7 @@ class PlayerProfileScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const _InfoTitle('HAKKINDA'),
+                  _InfoTitle(l.sectionAbout),
                   const SizedBox(height: 10),
                   Text(
                     player.about,
@@ -164,11 +167,11 @@ class PlayerProfileScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 22),
-                  const _InfoTitle('MÜSAİTLİK'),
+                  _InfoTitle(l.sectionAvailability),
                   const SizedBox(height: 12),
                   _AvailabilityGrid(availability: player.availability),
                   const SizedBox(height: 22),
-                  const _InfoTitle('TERCİH EDİLEN KORTLAR'),
+                  _InfoTitle(l.sectionPreferredCourts),
                   const SizedBox(height: 10),
                   Wrap(
                     spacing: 8,
@@ -190,7 +193,7 @@ class PlayerProfileScreen extends StatelessWidget {
                 children: [
                   Expanded(
                     child: RallyButton(
-                      label: 'Maç İste',
+                      label: l.requestMatch,
                       icon: Icons.sports_tennis,
                       onPressed: () => showMatchRequestSheet(context, player),
                     ),
@@ -228,8 +231,8 @@ class PlayerProfileScreen extends StatelessWidget {
                     height: 52,
                     child: OutlinedButton(
                       onPressed: () => ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Oyuncu kaydedildi — yakında'),
+                        SnackBar(
+                          content: Text(l.playerSavedSoon),
                           behavior: SnackBarBehavior.floating,
                         ),
                       ),
@@ -372,7 +375,7 @@ class _AvailabilityGrid extends StatelessWidget {
         return Expanded(
           child: Column(
             children: [
-              Text(day.substring(0, 1),
+              Text(dayLabel(context.l10n, day).substring(0, 1),
                   style: const TextStyle(
                       fontSize: 9,
                       fontWeight: FontWeight.w700,
@@ -389,7 +392,7 @@ class _AvailabilityGrid extends StatelessWidget {
                 ),
                 child: Center(
                   child: Text(
-                    slot,
+                    slotPartLabel(context.l10n, slot),
                     style: TextStyle(
                         fontSize: 8, fontWeight: FontWeight.w700, color: fg),
                   ),

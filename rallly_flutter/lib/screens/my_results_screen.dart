@@ -6,6 +6,7 @@ import '../widgets/shared_widgets.dart';
 import '../models/models.dart';
 import '../services/data_service.dart';
 import 'player_profile_screen.dart';
+import '../l10n/l10n.dart';
 
 class MyResultsScreen extends StatelessWidget {
   const MyResultsScreen({super.key});
@@ -62,10 +63,11 @@ class MyResultsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     return Scaffold(
       backgroundColor: RallyColors.bg,
       appBar: AppBar(
-        title: const Text('Sonuçlarım', style: TextStyle(fontFamily: 'InstrumentSerif', fontSize: 22)),
+        title: Text(l.myResults, style: const TextStyle(fontFamily: 'InstrumentSerif', fontSize: 22)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, size: 18),
           onPressed: () => Navigator.pop(context),
@@ -89,12 +91,12 @@ class MyResultsScreen extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _Stat(label: 'GALİBİYET', value: '$_wins', light: true),
+                  _Stat(label: l.statWins, value: '$_wins', light: true),
                   Container(width: 1, height: 40, color: Colors.white.withValues(alpha: 0.25)),
-                  _Stat(label: 'MAĞLUBIYET', value: '$_losses', light: true),
+                  _Stat(label: l.statLosses, value: '$_losses', light: true),
                   Container(width: 1, height: 40, color: Colors.white.withValues(alpha: 0.25)),
                   _Stat(
-                    label: 'PUAN',
+                    label: l.statRating,
                     value: '${_totalPoints > 0 ? '+' : ''}$_totalPoints',
                     light: true,
                   ),
@@ -195,7 +197,7 @@ class _ResultCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    DateFormat('d MMM y').format(match.date),
+                    DateFormat('d MMM y', context.localeName).format(match.date),
                     style: const TextStyle(fontSize: 12, color: RallyColors.muted),
                   ),
                   Text(
@@ -217,7 +219,7 @@ class _ResultCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(100),
                   ),
                   child: Text(
-                    match.won ? 'Kazandı' : 'Kaybetti',
+                    match.won ? context.l10n.resultWon : context.l10n.resultLost,
                     style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w700,
@@ -232,7 +234,7 @@ class _ResultCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '${match.ratingDelta > 0 ? '+' : ''}${match.ratingDelta} puan',
+                  context.l10n.ratingPoints('${match.ratingDelta > 0 ? '+' : ''}${match.ratingDelta}'),
                   style: TextStyle(
                     fontSize: 11,
                     fontWeight: FontWeight.w600,

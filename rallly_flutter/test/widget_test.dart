@@ -1,8 +1,18 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:rallly/l10n/app_localizations.dart';
+import 'package:rallly/l10n/option_labels.dart';
 import 'package:rallly/main.dart' show CourtThemeProvider;
 import 'package:rallly/models/models.dart';
+import 'package:rallly/screens/achievements_screen.dart';
+import 'package:rallly/screens/create_game_screen.dart';
 import 'package:rallly/screens/edit_profile_screen.dart';
+import 'package:rallly/screens/notifications_preferences_screen.dart';
+import 'package:rallly/screens/reputation_screen.dart';
 import 'package:rallly/screens/log_result_screen.dart';
 import 'package:rallly/utils/uuid.dart';
 import 'package:rallly/screens/match_screen.dart';
@@ -14,9 +24,18 @@ import 'package:rallly/theme/app_theme.dart';
 
 // CourtThemeProvider is required — RallyButton and other shared widgets read
 // CourtThemeProvider.of(context), same ancestor the real app provides in main.dart.
-Widget _wrap(Widget child) => CourtThemeProvider(
+Widget _wrap(Widget child, {Locale locale = const Locale('tr')}) =>
+    CourtThemeProvider(
       child: MaterialApp(
         theme: RallyTheme.light,
+        locale: locale,
+        localizationsDelegates: const [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
         home: child,
       ),
     );
@@ -38,19 +57,22 @@ Player _player({
 
 void main() {
   group('Player.skillLabel', () {
-    test('returns Beginner for NTRP < 3.0', () {
-      expect(_player(ntrp: 2.0).skillLabel, 'Beginner');
-      expect(_player(ntrp: 2.9).skillLabel, 'Beginner');
+    // skillLabel is the canonical value stored in profiles.skill_level — it is
+    // Turkish regardless of UI language; screens localize it for display via
+    // skillLevelLabel().
+    test('returns Başlangıç for NTRP < 3.0', () {
+      expect(_player(ntrp: 2.0).skillLabel, 'Başlangıç');
+      expect(_player(ntrp: 2.9).skillLabel, 'Başlangıç');
     });
 
-    test('returns Intermediate for NTRP 3.0–4.4', () {
-      expect(_player(ntrp: 3.0).skillLabel, 'Intermediate');
-      expect(_player(ntrp: 4.4).skillLabel, 'Intermediate');
+    test('returns Orta Seviye for NTRP 3.0–4.4', () {
+      expect(_player(ntrp: 3.0).skillLabel, 'Orta Seviye');
+      expect(_player(ntrp: 4.4).skillLabel, 'Orta Seviye');
     });
 
-    test('returns Advanced for NTRP >= 4.5', () {
-      expect(_player(ntrp: 4.5).skillLabel, 'Advanced');
-      expect(_player(ntrp: 5.0).skillLabel, 'Advanced');
+    test('returns İleri Seviye for NTRP >= 4.5', () {
+      expect(_player(ntrp: 4.5).skillLabel, 'İleri Seviye');
+      expect(_player(ntrp: 5.0).skillLabel, 'İleri Seviye');
     });
   });
 
@@ -189,16 +211,32 @@ void main() {
       await tester.enterText(fields.at(3), '3');
       await tester.pump();
 
-      // Winner banner should show "You won this match!"
+      // Winner banner should show "Bu maçı kazandınız!"
+      expect(find.text('Bu maçı kazandınız!'), findsOneWidget);
+    });
+
+    testWidgets('winner banner is localized (en)', (tester) async {
+      await tester.pumpWidget(
+          _wrap(const LogResultScreen(), locale: const Locale('en')));
+      await tester.pump();
+
+      final fields = find.byType(TextField);
+      await tester.enterText(fields.at(0), '6');
+      await tester.enterText(fields.at(1), '4');
+      await tester.enterText(fields.at(2), '6');
+      await tester.enterText(fields.at(3), '3');
+      await tester.pump();
+
       expect(find.text('You won this match!'), findsOneWidget);
+      expect(find.text('Bu maçı kazandınız!'), findsNothing);
     });
 
     testWidgets('submit button disabled until both sets filled', (tester) async {
       await tester.pumpWidget(_wrap(const LogResultScreen()));
       await tester.pump();
 
-      // Button text is "Submit Result"
-      expect(find.text('Submit Result'), findsOneWidget);
+      // Button text is "Sonucu Kaydet"
+      expect(find.text('Sonucu Kaydet'), findsOneWidget);
 
       // Find the FilledButton and verify it's disabled (no winner + no scores)
       final button = tester.widget<FilledButton>(find.byType(FilledButton));
@@ -247,13 +285,13 @@ void main() {
       await tester.pumpWidget(_wrap(const MatchScreen()));
       await tester.pump();
 
-      // Tap the 'Beginner' filter chip
-      final beginnerChip = find.text('Beginner');
+      // Tap the beginner filter chip (short label, 'Başl.' in Turkish)
+      final beginnerChip = find.text('Başl.');
       if (beginnerChip.evaluate().isNotEmpty) {
         await tester.tap(beginnerChip);
         await tester.pump();
         // After filtering, Advanced players should not appear
-        expect(find.text('Advanced'), findsNothing);
+        expect(find.text('İLERİ'), findsNothing);
       }
     });
   });
@@ -292,5 +330,62 @@ void main() {
       await tester.pump();
       expect(saveButton().onPressed, isNull);
     });
+  });
+
+// ── 8. Localization ──────────────────────────────────────────────────────────
+
+  group('Localization', () {
+    Map<String, dynamic> arb(String lang) => jsonDecode(
+        File('lib/l10n/app_$lang.arb').readAsStringSync()) as Map<String, dynamic>;
+
+    test('every Turkish string has an English translation and vice versa', () {
+      final tr = arb('tr').keys.where((k) => !k.startsWith('@')).toSet();
+      final en = arb('en').keys.where((k) => !k.startsWith('@')).toSet();
+      expect(tr.difference(en), isEmpty, reason: 'missing in app_en.arb');
+      expect(en.difference(tr), isEmpty, reason: 'missing in app_tr.arb');
+    });
+
+    test('stored profile values map to localized labels', () async {
+      final tr = await AppLocalizations.delegate.load(const Locale('tr'));
+      final en = await AppLocalizations.delegate.load(const Locale('en'));
+      expect(skillLevelLabel(tr, 'İleri Seviye'), 'İleri Seviye');
+      expect(skillLevelLabel(en, 'İleri Seviye'), 'Advanced');
+      expect(dayLabel(en, 'Cmt'), 'Sat');
+      expect(timeLabel(en, 'Akşam'), 'Evening');
+      expect(sportLabel(en, 'Tenis'), 'Tennis');
+      expect(availabilitySlotLabel(en, 'Sal ÖÖ'), 'Tue AM');
+      // Unknown values (e.g. from an older client) pass through unchanged.
+      expect(skillLevelLabel(en, 'Bilinmeyen'), 'Bilinmeyen');
+    });
+  });
+
+// ── 9. Layout in both languages ──────────────────────────────────────────────
+
+  // English and Turkish strings differ in length; render each screen on a
+  // narrow phone and fail on any overflow / build exception.
+  group('Layout at 360x740 in every supported locale', () {
+    final screens = <String, Widget Function()>{
+      'MatchScreen': () => const MatchScreen(),
+      'LogResultScreen': () => const LogResultScreen(),
+      'CreateGameScreen': () => const CreateGameScreen(),
+      'AchievementsScreen': () => const AchievementsScreen(),
+      'ReputationScreen': () => const ReputationScreen(),
+      'NotificationPreferencesScreen': () => const NotificationPreferencesScreen(),
+    };
+
+    for (final locale in AppLocalizations.supportedLocales) {
+      for (final entry in screens.entries) {
+        testWidgets('${entry.key} (${locale.languageCode})', (tester) async {
+          tester.view.physicalSize = const Size(360, 740);
+          tester.view.devicePixelRatio = 1.0;
+          addTearDown(tester.view.reset);
+
+          await tester.pumpWidget(_wrap(entry.value(), locale: locale));
+          await tester.pump(const Duration(seconds: 1));
+
+          expect(tester.takeException(), isNull);
+        });
+      }
+    }
   });
 }

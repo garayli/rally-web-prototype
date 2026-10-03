@@ -127,9 +127,53 @@ Re-verify these don't regress (see `docs/project_notes/bugs.md`):
 - [ ] **FIRST PLAY UPLOAD — add Google's app-signing SHA-1 to the Android API key.** Play re-signs every build it distributes (internal testing included) with its own certificate, and the Android key (restricted 2026-09-21) only allows the debug + upload SHA-1s. Until Play's SHA-1 is added, Firebase calls from Play-installed builds are rejected with 403. Steps + exact `gcloud` command: `docs/project_notes/key_facts.md` → "Firebase / Google Cloud".
 - [x] iOS and browser API keys deleted 2026-09-21 (unrestricted, exposed in git history). When iOS or web is set up later, create new keys restricted from day one — see `key_facts.md` → "Firebase / Google Cloud"
 
+## Phase 5b — Internationalization (i18n) before store upload
+
+Investigation findings (2026-10-03):
+- No localization infrastructure exists: no `l10n.yaml`, no `flutter_localizations`, no `supportedLocales` / `localizationsDelegates`, no `lib/l10n/`. Only `intl: ^0.19.0` is declared.
+- ~75 literal `Text('...')` call sites in `lib/`, plus more strings in `label:` / `hintText:` / `SnackBar` / data layer (not yet counted).
+- `DateFormat(...)` is used in ~15 places (schedule, match, profile, messages, notifications, my_results, reputation screens) without an explicit locale; several chain `.toUpperCase()` (Turkish `i/İ` risk).
+- Skill labels (`Başlangıç` / `Orta` / `İleri`) appear as raw strings in 8 places — should become an enum-to-label mapping in the UI layer.
+- iOS `Info.plist` has `CFBundleDevelopmentRegion` but no `CFBundleLocalizations`.
+
+Decisions / approach:
+- Use Flutter's official `gen-l10n` + ARB (no new packages, no Riverpod; consistent with ADR-003).
+- Template language = Turkish (`app_tr.arb`, current UI language); second language = English (`app_en.arb`) — **confirm target languages with user**.
+- Follow device locale first; in-app language picker (`ValueNotifier<Locale>` + `SharedPreferences`) deferred to a later iteration.
+- Never put translated strings in `DataService` / models — return enums/codes, translate in the UI layer. Presentation-only change; no backend/API logic touched (Version 2 constraint).
+
+Implemented (2026-10-03):
+- [x] `flutter_localizations` + `generate: true` in `pubspec.yaml`; `intl` bumped `^0.19.0` → `^0.20.2` (required by `flutter_localizations`); `l10n.yaml` (`arb-dir: lib/l10n`, template `app_tr.arb`, `untranslated-messages-file: build/l10n_untranslated.json`)
+- [x] `lib/l10n/app_tr.arb` + `app_en.arb` (403 keys each, ICU plurals/placeholders), `lib/l10n/l10n.dart` (`context.l10n`, `context.localeName`), generated code committed
+- [x] `main.dart`: delegates, `supportedLocales`, `onGenerateTitle`, `initializeDateFormatting()`, locale resolution (device language → fallback `tr`)
+- [x] Skill/sport/day/time/court-theme labels → `lib/l10n/option_labels.dart`. **Stored values stay Turkish** (`'Başlangıç'`, `'Pzt'`, `'Sabah'`, `'Her seviye'`, `'Belirtilmedi'`); only labels are localized. `SkillBadge` localizes its own label.
+- [x] Data layer: `StateError('<Turkish>')` → `DataException(DataError.x)`; UI maps via `lib/l10n/data_error_message.dart`
+- [x] All screens/widgets migrated (main_shell, landing, auth, signup, match, messages, notifications, notification prefs, profile, edit profile, player profile, map, games, schedule, create game, doubles organise, open lobby, log result, result card, reputation, achievements, my results, match request sheet, onboarding overlay, shared widgets, profile completeness)
+- [x] Every `DateFormat` now takes `context.localeName`; hand-built date label in `match_request_sheet.dart` replaced; 12/24h handled per locale in `schedule_screen.dart`
+- [x] Android: `androidResources.localeFilters` (tr, en), `res/xml/locales_config.xml`, `android:localeConfig` in the manifest. iOS: `CFBundleLocalizations` + `tr.lproj`/`en.lproj` `InfoPlist.strings` (permission texts)
+- [x] Tests: `flutter test` → 32 passed, 0 failed. Fixed the 5 pre-existing English-vs-Turkish failures; added ARB key-parity test, option-label test, and a 360x740 layout test per supported locale (also caught a real overflow in `_CourtHero`, fixed with `maxLines`/ellipsis)
+- [x] `flutter analyze`: 0 errors; 13 issues (was 19 before this work — all pre-existing lints)
+- [x] ADR-011 in `docs/project_notes/decisions.md`; Localization section in `CLAUDE.md`
+
+Copy fixes made while migrating (the old Turkish copy was wrong/English): notifications filter chips `Sıralama`/`Mesaj` → `Maçlar`/`Diğer` (they filter match vs. other notifications); `MATCH` badge → `EŞLEŞME`; `🎾 N% match` tag → `🎾 %N eşleşme`; `'$n of $m'` in Achievements → `{n} / {m}`; share text was English-only.
+
+Still open:
+- [ ] **Notification text is Turkish-only for English users**: title/body are written to the DB by the app (`data_service.dart`) and by n8n, then shown verbatim. Proper fix = store `type` + params and render in the client (needs a `notifications` schema change + n8n update). Also the guest placeholder name `'Misafir Oyuncu'`.
+- [ ] **Android build not verified here** (no Android SDK in this environment) — run `flutter build apk --release` on the dev machine to confirm the `localeFilters` / `localeConfig` changes
+- [ ] iOS: when the Xcode project is created, add `tr.lproj/en.lproj/InfoPlist.strings` to the Runner target and set Localizations (Turkish, English) in project info
+- [ ] Manual pass on a device with the language set to English and to Turkish (real fonts — the layout test uses fallback glyph widths); also check Android 13+ per-app language
+- [ ] Store listings per language (title, description, screenshots, release notes) + privacy policy/terms in both languages
+- [ ] Optional later: in-app language picker (`ValueNotifier<Locale>` + `SharedPreferences`)
+
+Found while migrating (not i18n, not fixed):
+- `MyResultsScreen` crashes with `RangeError` when fewer than 5 players are cached (`my_results_screen.dart:18`, hardcoded mock results index `players[...]`); it is reachable from Profile → Sonuçlarım / Skor Talepleri
+- `DoublesOrganiseScreen._submit` only shows a "request sent" SnackBar after a fake delay — nothing is written (reachable via Maç Oluştur → Maç Başlat)
+- `ResultCardScreen` always shows the initials/colors `LG` / purple for "you"; Profile stats (18 wins, 4.8★…), Reputation reviews, Achievements and Landing stats (2.400+ players) are hardcoded demo data — review before store submission (Play/App Store reject misleading content)
+
 ## Phase 6 — Final sign-off
 - [ ] `flutter analyze` clean
 - [ ] `flutter test` clean
+- [ ] i18n (Phase 5b) complete and verified in every supported language
 - [ ] Full Phase 3 QA pass repeated once more on the actual release build artifact
 - [ ] Update `docs/project_notes/bugs.md` / `decisions.md` with anything new discovered during this pass
 

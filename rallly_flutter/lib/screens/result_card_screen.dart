@@ -6,6 +6,7 @@ import 'dart:ui' as ui;
 import '../theme/app_theme.dart';
 import '../widgets/shared_widgets.dart';
 import '../models/models.dart';
+import '../l10n/l10n.dart';
 
 class ResultCardScreen extends StatefulWidget {
   final Player opponent;
@@ -34,6 +35,7 @@ class _ResultCardScreenState extends State<ResultCardScreen> {
   }
 
   Future<void> _shareCard() async {
+    final l = context.l10n;
     setState(() => _sharing = true);
     try {
       final boundary = _cardKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
@@ -43,11 +45,11 @@ class _ResultCardScreenState extends State<ResultCardScreen> {
       if (byteData == null) return;
       final bytes = byteData.buffer.asUint8List();
       final xFile = XFile.fromData(bytes, mimeType: 'image/png', name: 'rallly-result.png');
-      await Share.shareXFiles([xFile], text: 'Match result on Rallly 🎾');
+      await Share.shareXFiles([xFile], text: l.shareText);
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Paylaşılamadı. Tekrar deneyin.')),
+          SnackBar(content: Text(l.shareFailed)),
         );
       }
     } finally {
@@ -65,9 +67,9 @@ class _ResultCardScreenState extends State<ResultCardScreen> {
           icon: const Icon(Icons.close, color: Colors.white70),
           onPressed: () => Navigator.popUntil(context, (r) => r.isFirst || r.settings.name == '/'),
         ),
-        title: const Text(
-          'Maç Sonucu',
-          style: TextStyle(fontFamily: 'InstrumentSerif', fontSize: 22, color: Colors.white),
+        title: Text(
+          context.l10n.matchResultTitle,
+          style: const TextStyle(fontFamily: 'InstrumentSerif', fontSize: 22, color: Colors.white),
         ),
       ),
       body: SafeArea(
@@ -96,7 +98,7 @@ class _ResultCardScreenState extends State<ResultCardScreen> {
               child: Column(
                 children: [
                   RallyButton(
-                    label: _sharing ? 'Paylaşılıyor…' : 'Sonucu Paylaş 🎾',
+                    label: _sharing ? context.l10n.sharing : context.l10n.shareResult,
                     onPressed: _sharing ? null : _shareCard,
                     loading: _sharing,
                   ).animate().fadeIn(delay: 400.ms),
@@ -110,7 +112,7 @@ class _ResultCardScreenState extends State<ResultCardScreen> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       textStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
                     ),
-                    child: const Text('Tamam'),
+                    child: Text(context.l10n.done),
                   ).animate().fadeIn(delay: 450.ms),
                 ],
               ),
@@ -168,7 +170,7 @@ class _ResultCard extends StatelessWidget {
                   border: Border.all(color: iWon ? RallyColors.accent : RallyColors.accent2),
                 ),
                 child: Text(
-                  iWon ? 'Zafer 🏆' : 'Yenilgi',
+                  iWon ? context.l10n.victory : context.l10n.defeat,
                   style: TextStyle(
                     fontWeight: FontWeight.w700,
                     fontSize: 13,
@@ -185,7 +187,7 @@ class _ResultCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _CardPlayer(label: 'Sen', initials: 'LG', gradientStart: '#7b4fa6', gradientEnd: '#a97fcb', isWinner: iWon),
+              _CardPlayer(label: context.l10n.logYou, initials: 'LG', gradientStart: '#7b4fa6', gradientEnd: '#a97fcb', isWinner: iWon),
               Column(
                 children: [
                   Text(
@@ -227,7 +229,7 @@ class _ResultCard extends StatelessWidget {
               ),
               const SizedBox(width: 6),
               Text(
-                '${result.ratingDelta > 0 ? '+' : ''}${result.ratingDelta.toInt()} puan',
+                context.l10n.ratingPoints('${result.ratingDelta > 0 ? '+' : ''}${result.ratingDelta.toInt()}'),
                 style: TextStyle(
                   fontFamily: 'InstrumentSerif',
                   fontSize: 18,

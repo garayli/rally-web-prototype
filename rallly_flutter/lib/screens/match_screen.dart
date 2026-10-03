@@ -13,6 +13,8 @@ import 'map_screen.dart';
 import 'notifications_screen.dart';
 import 'profile_screen.dart';
 import 'open_lobby_screen.dart';
+import '../l10n/l10n.dart';
+import '../l10n/option_labels.dart';
 
 class MatchScreen extends StatefulWidget {
   const MatchScreen({super.key});
@@ -94,6 +96,7 @@ class _MatchScreenState extends State<MatchScreen> {
 
   Widget _buildScaffold(BuildContext context) {
     final cp = CourtThemeProvider.of(context);
+    final l = context.l10n;
     final upcoming = dataService.getUpcomingSessions().take(5).toList();
     final players = _filteredPlayers;
 
@@ -175,7 +178,7 @@ class _MatchScreenState extends State<MatchScreen> {
                       Expanded(
                         child: _ActionChip(
                           icon: Icons.swap_vert,
-                          label: 'Sıralama',
+                          label: l.sort,
                           active: _sortBy != 'Mesafe',
                           cp: cp,
                           onTap: () => _showSortSheet(context, cp),
@@ -185,7 +188,7 @@ class _MatchScreenState extends State<MatchScreen> {
                       Expanded(
                         child: _ActionChip(
                           icon: Icons.tune,
-                          label: 'Filtre',
+                          label: l.filter,
                           active: _filter != 'Tümü',
                           cp: cp,
                           onTap: () => _showFilterSheet(context, cp),
@@ -199,8 +202,8 @@ class _MatchScreenState extends State<MatchScreen> {
                 if (upcoming.isNotEmpty) ...[
                   _SectionHeader(
                     cp: cp,
-                    title: 'YAKLAŞAN MAÇLAR',
-                    action: 'Tümünü gör',
+                    title: l.upcomingMatchesHeader,
+                    action: l.seeAll,
                     onAction: () => Navigator.push(context,
                         MaterialPageRoute(builder: (_) => const ProfileScreen())),
                   ),
@@ -220,8 +223,8 @@ class _MatchScreenState extends State<MatchScreen> {
                 // ── Players header ─────────────────────────────────────────
                 _SectionHeader(
                   cp: cp,
-                  title: '${players.length} YAKINDA OYUNCU',
-                  action: 'Harita',
+                  title: l.nearbyPlayersHeader(players.length),
+                  action: l.map,
                   onAction: () => Navigator.push(context,
                       MaterialPageRoute(builder: (_) => const MapScreen())),
                 ),
@@ -257,8 +260,8 @@ class _MatchScreenState extends State<MatchScreen> {
                 children: [
                   _SectionHeader(
                     cp: cp,
-                    title: 'AÇIK LOBİLER',
-                    action: 'Lobi Oluştur',
+                    title: l.openLobbiesHeader,
+                    action: l.createLobby,
                     onAction: () => Navigator.push(context,
                         MaterialPageRoute(
                             builder: (_) => const OpenLobbyScreen()))
@@ -397,17 +400,21 @@ class _CourtHero extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('YAKINDAKI OYUNCULAR',
+                  Text(context.l10n.nearbyPlayersEyebrow,
                       style: RallyType.eyebrow
                           .copyWith(color: Colors.white.withValues(alpha: 0.78))),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Rakip Bul',
+                      Text(context.l10n.navFindOpponent,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: RallyType.displayMD.copyWith(
                               color: Colors.white, letterSpacing: -1.2)),
                       const SizedBox(height: 4),
-                      Text('$playerCount oyuncu sizi bekliyor',
+                      Text(context.l10n.playersWaiting(playerCount),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: RallyType.bodySM.copyWith(
                               color: Colors.white.withValues(alpha: 0.82))),
                     ],
@@ -485,7 +492,7 @@ class _SearchBarState extends State<_SearchBar> {
               onChanged: widget.onChanged,
               style: RallyType.body.copyWith(color: cp.text),
               decoration: InputDecoration(
-                hintText: 'İsim veya konum ara…',
+                hintText: context.l10n.searchNameOrLocation,
                 hintStyle: RallyType.body.copyWith(color: cp.muted2),
                 border: InputBorder.none,
                 focusedBorder: InputBorder.none,
@@ -661,7 +668,7 @@ class _PlayerCardV2 extends StatelessWidget {
                               BorderRadius.circular(RallyRadius.pill),
                         ),
                         child: Text(
-                          _abbrevSkill(player.skillLabel),
+                          _abbrevSkill(context.l10n, player.skillLabel),
                           style: RallyType.micro.copyWith(color: cp.skillFg),
                         ),
                       ),
@@ -694,13 +701,13 @@ class _PlayerCardV2 extends StatelessWidget {
                         size: 12, color: cp.accent),
                     const SizedBox(width: 3),
                     Text(
-                      '${player.winRate}% galibiyet',
+                      context.l10n.winRatePercent(player.winRate.round()),
                       style: RallyType.bodySM.copyWith(
                           color: cp.text2, fontWeight: FontWeight.w600),
                     ),
                     const SizedBox(width: 10),
                     Text(
-                      '${player.matchesPlayed} maç',
+                      context.l10n.matchesCount(player.matchesPlayed),
                       style: RallyType.bodySM.copyWith(color: cp.muted),
                     ),
                   ]),
@@ -720,7 +727,7 @@ class _PlayerCardV2 extends StatelessWidget {
                                       RallyRadius.pill),
                                 ),
                                 child: Text(
-                                  slot,
+                                  availabilitySlotLabel(context.l10n, slot),
                                   style: RallyType.micro.copyWith(
                                       color: cp.accentStrong, fontSize: 10),
                                 ),
@@ -741,7 +748,7 @@ class _PlayerCardV2 extends StatelessWidget {
                             BorderRadius.circular(RallyRadius.pill),
                       ),
                       child: Text(
-                        'Maç İste',
+                        context.l10n.requestMatch,
                         style: RallyType.micro.copyWith(
                             color: Colors.white, fontWeight: FontWeight.w700),
                       ),
@@ -756,14 +763,16 @@ class _PlayerCardV2 extends StatelessWidget {
     );
   }
 
-  String _abbrevSkill(String skill) {
+  String _abbrevSkill(AppLocalizations l, String skill) {
     switch (skill) {
       case 'Başlangıç':
-        return 'BAŞL.';
+        return l.skillShortBeginner.toUpperCase();
       case 'Orta Seviye':
-        return 'ORTA';
+        return l.skillShortIntermediate.toUpperCase();
       case 'İleri Seviye':
-        return 'İLERİ';
+        return l.skillShortAdvanced.toUpperCase();
+      case 'Uzman':
+        return l.skillShortExpert.toUpperCase();
       default:
         return skill.toUpperCase();
     }
@@ -779,8 +788,8 @@ class _UpcomingCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dt = session.dateTime;
-    final dayStr = DateFormat('EEE').format(dt).toUpperCase();
-    final timeStr = DateFormat('HH:mm').format(dt);
+    final dayStr = DateFormat('EEE', context.localeName).format(dt).toUpperCase();
+    final timeStr = DateFormat('HH:mm', context.localeName).format(dt);
 
     return Container(
       width: 160,
@@ -802,7 +811,7 @@ class _UpcomingCard extends StatelessWidget {
               color: cp.accentTint,
               borderRadius: BorderRadius.circular(RallyRadius.pill),
             ),
-            child: Text('🎾 TENİS',
+            child: Text(context.l10n.tennisBadge,
                 style: RallyType.micro
                     .copyWith(color: cp.accentStrong, letterSpacing: 0.4)),
           ),
@@ -810,7 +819,7 @@ class _UpcomingCard extends StatelessWidget {
           Text('$dayStr $timeStr',
               style: RallyType.displaySM.copyWith(color: cp.text)),
           const SizedBox(height: 2),
-          Text('vs ${session.opponent.name}',
+          Text(context.l10n.vsOpponent(session.opponent.name),
               style: RallyType.bodySM
                   .copyWith(color: cp.text2, fontWeight: FontWeight.w600),
               overflow: TextOverflow.ellipsis),
@@ -835,6 +844,12 @@ class _SortSheet extends StatefulWidget {
 class _SortSheetState extends State<_SortSheet> {
   late String _sort;
   static const _options = ['Mesafe', 'NTRP', 'Galibiyet'];
+
+  static String _label(AppLocalizations l, String opt) => switch (opt) {
+        'Mesafe' => l.sortDistance,
+        'Galibiyet' => l.sortWins,
+        _ => opt,
+      };
 
   @override
   void initState() {
@@ -867,10 +882,10 @@ class _SortSheetState extends State<_SortSheet> {
             ),
           ),
           const SizedBox(height: 20),
-          Text('Sıralama',
+          Text(context.l10n.sort,
               style: RallyType.displaySM.copyWith(color: cp.text)),
           const SizedBox(height: 4),
-          Text('Oyuncuları sıralama kriteri',
+          Text(context.l10n.sortSheetSubtitle,
               style: RallyType.bodySM.copyWith(color: cp.text2)),
           const SizedBox(height: 20),
           ..._options.map((opt) {
@@ -891,7 +906,7 @@ class _SortSheetState extends State<_SortSheet> {
                 ),
                 child: Row(
                   children: [
-                    Text(opt,
+                    Text(_label(context.l10n, opt),
                         style: RallyType.titleMD.copyWith(
                             color: active ? cp.accentStrong : cp.text)),
                     const Spacer(),
@@ -914,7 +929,7 @@ class _SortSheetState extends State<_SortSheet> {
                 backgroundColor: cp.accent,
                 minimumSize: const Size(double.infinity, 50),
               ),
-              child: const Text('Uygula'),
+              child: Text(context.l10n.apply),
             ),
           ),
         ],
@@ -939,12 +954,16 @@ class _FilterSheetState extends State<_FilterSheet> {
   late String _skill;
   String _distance = '5 km';
 
-  static const _skills = {
-    'Tümü': 'Tümü',
-    'Başl.': 'Başlangıç',
-    'Orta': 'Orta Seviye',
-    'İleri': 'İleri Seviye',
-  };
+  // Values are the canonical skill labels used to filter players.
+  static const _skills = ['Tümü', 'Başlangıç', 'Orta Seviye', 'İleri Seviye'];
+
+  static String _skillChip(AppLocalizations l, String v) => switch (v) {
+        'Tümü' => l.all,
+        'Başlangıç' => l.skillShortBeginner,
+        'Orta Seviye' => l.skillShortIntermediate,
+        'İleri Seviye' => l.skillShortAdvanced,
+        _ => v,
+      };
   static const _distances = ['1 km', '3 km', '5 km', '10 km'];
 
   @override
@@ -980,20 +999,20 @@ class _FilterSheetState extends State<_FilterSheet> {
           const SizedBox(height: 20),
           Row(
             children: [
-              Text('Filtrele',
+              Text(context.l10n.filterTitle,
                   style: RallyType.displaySM.copyWith(color: cp.text)),
               const Spacer(),
               GestureDetector(
                 onTap: () =>
                     setState(() { _skill = 'Tümü'; _distance = '5 km'; }),
-                child: Text('Temizle',
+                child: Text(context.l10n.clear,
                     style: RallyType.bodySM.copyWith(
                         color: cp.accent, fontWeight: FontWeight.w600)),
               ),
             ],
           ),
           const SizedBox(height: 20),
-          Text('Seviye', style: RallyType.titleSM.copyWith(color: cp.text)),
+          Text(context.l10n.level, style: RallyType.titleSM.copyWith(color: cp.text)),
           const SizedBox(height: 10),
           Container(
             padding: const EdgeInsets.all(4),
@@ -1002,11 +1021,11 @@ class _FilterSheetState extends State<_FilterSheet> {
               borderRadius: BorderRadius.circular(RallyRadius.md),
             ),
             child: Row(
-              children: _skills.entries.map((e) {
-                final active = _skill == e.value;
+              children: _skills.map((value) {
+                final active = _skill == value;
                 return Expanded(
                   child: GestureDetector(
-                    onTap: () => setState(() => _skill = e.value),
+                    onTap: () => setState(() => _skill = value),
                     child: AnimatedContainer(
                       duration: const Duration(milliseconds: 180),
                       padding: const EdgeInsets.symmetric(vertical: 10),
@@ -1016,7 +1035,7 @@ class _FilterSheetState extends State<_FilterSheet> {
                         boxShadow: active ? RallyElevation.hairline : null,
                       ),
                       child: Text(
-                        e.key,
+                        _skillChip(context.l10n, value),
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 13,
@@ -1031,7 +1050,7 @@ class _FilterSheetState extends State<_FilterSheet> {
             ),
           ),
           const SizedBox(height: 20),
-          Text('Mesafe', style: RallyType.titleSM.copyWith(color: cp.text)),
+          Text(context.l10n.distance, style: RallyType.titleSM.copyWith(color: cp.text)),
           const SizedBox(height: 10),
           Row(
             children: _distances.map((d) {
@@ -1077,7 +1096,7 @@ class _FilterSheetState extends State<_FilterSheet> {
                 backgroundColor: cp.accent,
                 minimumSize: const Size(double.infinity, 50),
               ),
-              child: const Text('Uygula'),
+              child: Text(context.l10n.apply),
             ),
           ),
         ],
@@ -1126,7 +1145,7 @@ class _LobbyCard extends StatelessWidget {
                 style: const TextStyle(fontSize: 18)),
             const SizedBox(width: 6),
             Expanded(
-              child: Text(sport,
+              child: Text(sportLabel(context.l10n, sport),
                   style: RallyType.titleSM.copyWith(color: cp.text),
                   overflow: TextOverflow.ellipsis),
             ),
@@ -1139,7 +1158,7 @@ class _LobbyCard extends StatelessWidget {
               color: cp.accentTint,
               borderRadius: BorderRadius.circular(RallyRadius.pill),
             ),
-            child: Text(skill,
+            child: Text(skillLevelLabel(context.l10n, skill),
                 style: RallyType.micro.copyWith(color: cp.accentStrong)),
           ),
           const SizedBox(height: 8),
@@ -1149,7 +1168,7 @@ class _LobbyCard extends StatelessWidget {
               overflow: TextOverflow.ellipsis),
           if (dt != null) ...[
             const SizedBox(height: 3),
-            Text(DateFormat('EEE d MMM, HH:mm').format(dt),
+            Text(DateFormat('EEE d MMM, HH:mm', context.localeName).format(dt),
                 style: RallyType.caption
                     .copyWith(fontWeight: FontWeight.w600, color: cp.text)),
           ],
@@ -1160,7 +1179,7 @@ class _LobbyCard extends StatelessWidget {
               onPressed: () =>
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(
                 content:
-                    Text('$sport lobisine katılma isteği gönderildi!'),
+                    Text(context.l10n.lobbyJoinSent(sportLabel(context.l10n, sport))),
                 backgroundColor: RallyColors.accent,
                 behavior: SnackBarBehavior.floating,
                 shape: RoundedRectangleBorder(
@@ -1175,7 +1194,7 @@ class _LobbyCard extends StatelessWidget {
                 textStyle: const TextStyle(
                     fontSize: 12, fontWeight: FontWeight.w600),
               ),
-              child: const Text('Katıl'),
+              child: Text(context.l10n.join),
             ),
           ),
         ],

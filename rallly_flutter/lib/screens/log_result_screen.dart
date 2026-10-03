@@ -8,6 +8,8 @@ import '../services/data_service.dart';
 import '../main.dart' show supabase;
 import '../utils/uuid.dart';
 import 'result_card_screen.dart';
+import '../l10n/l10n.dart';
+import '../l10n/data_error_message.dart';
 
 class LogResultScreen extends StatefulWidget {
   final Player? opponent;
@@ -89,7 +91,7 @@ class _LogResultScreenState extends State<LogResultScreen> {
         if (!mounted) return;
         setState(() => _loading = false);
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: const Text('Oturum açmanız gerekiyor'),
+          content: Text(context.l10n.errorNotSignedIn),
           backgroundColor: RallyColors.accent2,
           behavior: SnackBarBehavior.floating,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -120,7 +122,7 @@ class _LogResultScreenState extends State<LogResultScreen> {
       if (!mounted) return;
       setState(() => _loading = false);
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Sonuç kaydedilemedi: $e'),
+        content: Text(context.l10n.logResultFailed(dataErrorMessage(context.l10n, e))),
         backgroundColor: RallyColors.accent2,
         behavior: SnackBarBehavior.floating,
         duration: const Duration(seconds: 8),
@@ -160,10 +162,11 @@ class _LogResultScreenState extends State<LogResultScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l = context.l10n;
     return Scaffold(
       backgroundColor: RallyColors.bg,
       appBar: AppBar(
-        title: const Text('Sonuç Kaydet', style: TextStyle(fontFamily: 'InstrumentSerif', fontSize: 22)),
+        title: Text(l.logResult, style: const TextStyle(fontFamily: 'InstrumentSerif', fontSize: 22)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, size: 18),
           onPressed: () => Navigator.pop(context),
@@ -175,7 +178,7 @@ class _LogResultScreenState extends State<LogResultScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Opponent selector
-            const _SLabel('RAKİP'),
+            _SLabel(l.logOpponentLabel),
             const SizedBox(height: 10),
             SizedBox(
               height: 56,
@@ -201,7 +204,7 @@ class _LogResultScreenState extends State<LogResultScreen> {
                             Icon(Icons.person_add_outlined, size: 15,
                                 color: _guestMode ? Colors.white : RallyColors.accent),
                             const SizedBox(width: 6),
-                            Text('Kayıtsız Oyuncu',
+                            Text(l.logGuestPlayer,
                                 style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700,
                                     color: _guestMode ? Colors.white : RallyColors.textPrimary)),
                           ],
@@ -252,18 +255,18 @@ class _LogResultScreenState extends State<LogResultScreen> {
                   FilteringTextInputFormatter.digitsOnly,
                   LengthLimitingTextInputFormatter(11),
                 ],
-                decoration: const InputDecoration(
-                  hintText: 'Telefon numarası (zorunlu)',
-                  prefixIcon: Icon(Icons.phone_outlined),
+                decoration: InputDecoration(
+                  hintText: l.logGuestPhoneHint,
+                  prefixIcon: const Icon(Icons.phone_outlined),
                 ),
               ),
               const SizedBox(height: 10),
               TextField(
                 controller: _guestNameCtrl,
                 onChanged: (_) => setState(() {}),
-                decoration: const InputDecoration(
-                  hintText: 'İsim (opsiyonel)',
-                  prefixIcon: Icon(Icons.person_outline),
+                decoration: InputDecoration(
+                  hintText: l.logGuestNameHint,
+                  prefixIcon: const Icon(Icons.person_outline),
                 ),
               ),
             ],
@@ -272,32 +275,32 @@ class _LogResultScreenState extends State<LogResultScreen> {
 
             // Score entry
             _ScoreHeader(
-              myLabel: 'Sen',
+              myLabel: l.logYou,
               opponentLabel: _guestMode
                   ? (_guestNameCtrl.text.trim().isNotEmpty
                       ? _guestNameCtrl.text.trim().split(' ').first
-                      : 'Rakip')
-                  : (_opponent?.name.split(' ').first ?? 'Rakip'),
+                      : l.logOpponentShort)
+                  : (_opponent?.name.split(' ').first ?? l.logOpponentShort),
             ),
             const SizedBox(height: 12),
-            _SetRow(label: 'SET 1', controllers: _s1).animate().fadeIn(delay: 120.ms),
+            _SetRow(label: l.logSetN(1), controllers: _s1).animate().fadeIn(delay: 120.ms),
             const SizedBox(height: 10),
-            _SetRow(label: 'SET 2', controllers: _s2).animate().fadeIn(delay: 140.ms),
+            _SetRow(label: l.logSetN(2), controllers: _s2).animate().fadeIn(delay: 140.ms),
             if (_showSet3) ...[
               const SizedBox(height: 10),
-              _SetRow(label: 'SET 3', controllers: _s3).animate().fadeIn(),
+              _SetRow(label: l.logSetN(3), controllers: _s3).animate().fadeIn(),
             ],
 
             if (!_showSet3) ...[
               const SizedBox(height: 14),
               GestureDetector(
                 onTap: () => setState(() => _showSet3 = true),
-                child: const Row(
+                child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(Icons.add_circle_outline, size: 16, color: RallyColors.accent),
-                    SizedBox(width: 6),
-                    Text('3. seti ekle', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: RallyColors.accent)),
+                    const Icon(Icons.add_circle_outline, size: 16, color: RallyColors.accent),
+                    const SizedBox(width: 6),
+                    Text(l.logAddSet3, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: RallyColors.accent)),
                   ],
                 ),
               ),
@@ -306,7 +309,7 @@ class _LogResultScreenState extends State<LogResultScreen> {
             // Winner selector
             if (_winner == null && _canSubmit) ...[
               const SizedBox(height: 24),
-              const _SLabel('KAZANAN'),
+              _SLabel(l.logWinnerLabel),
               const SizedBox(height: 10),
               Row(
                 children: [
@@ -320,7 +323,7 @@ class _LogResultScreenState extends State<LogResultScreen> {
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(color: _winner == 'me' ? RallyColors.accent : RallyColors.border2, width: 1.5),
                         ),
-                        child: Center(child: Text('Ben kazandım 🏆', style: TextStyle(fontWeight: FontWeight.w700, color: _winner == 'me' ? RallyColors.accent : RallyColors.textPrimary))),
+                        child: Center(child: Text(l.logIWon, style: TextStyle(fontWeight: FontWeight.w700, color: _winner == 'me' ? RallyColors.accent : RallyColors.textPrimary))),
                       ),
                     ),
                   ),
@@ -335,7 +338,7 @@ class _LogResultScreenState extends State<LogResultScreen> {
                           borderRadius: BorderRadius.circular(14),
                           border: Border.all(color: _winner == 'opponent' ? RallyColors.accent2 : RallyColors.border2, width: 1.5),
                         ),
-                        child: Center(child: Text('Rakip kazandı', style: TextStyle(fontWeight: FontWeight.w700, color: _winner == 'opponent' ? RallyColors.accent2 : RallyColors.textPrimary))),
+                        child: Center(child: Text(l.logOpponentWon, style: TextStyle(fontWeight: FontWeight.w700, color: _winner == 'opponent' ? RallyColors.accent2 : RallyColors.textPrimary))),
                       ),
                     ),
                   ),
@@ -357,14 +360,14 @@ class _LogResultScreenState extends State<LogResultScreen> {
                     const SizedBox(width: 10),
                     Text(
                       _winner == 'me'
-                          ? 'Bu maçı kazandınız!'
-                          : '${(_guestMode ? _guestNameCtrl.text.trim().split(' ').firstOrNull : _opponent?.name.split(' ').first) ?? 'Rakip'} kazandı',
+                          ? l.logYouWonMatch
+                          : l.logNameWon((_guestMode ? _guestNameCtrl.text.trim().split(' ').firstOrNull : _opponent?.name.split(' ').first) ?? l.logOpponentShort),
                       style: TextStyle(fontWeight: FontWeight.w700, color: _winner == 'me' ? RallyColors.accent : RallyColors.accent2),
                     ),
                     const Spacer(),
                     GestureDetector(
                       onTap: () => setState(() => _winner = null),
-                      child: const Text('Değiştir', style: TextStyle(fontSize: 12, color: RallyColors.muted)),
+                      child: Text(l.change, style: const TextStyle(fontSize: 12, color: RallyColors.muted)),
                     ),
                   ],
                 ),
@@ -373,7 +376,7 @@ class _LogResultScreenState extends State<LogResultScreen> {
 
             const SizedBox(height: 32),
             RallyButton(
-              label: 'Sonucu Kaydet',
+              label: l.logSaveResult,
               onPressed: (_canSubmit && _winner != null) ? _submit : null,
               loading: _loading,
               icon: Icons.check,

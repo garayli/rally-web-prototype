@@ -192,4 +192,26 @@ Set `applicationId = "com.rallymatch.app"` in `android/app/build.gradle.kts`. Le
 - **Negative:** The keystore and its password exist only on the machine that generated them (not yet backed up elsewhere as of this writing) — if lost, this Play Store listing can never be updated again. `namespace` and `applicationId` now permanently differ, which is harmless but can look odd to someone unfamiliar with the distinction.
 - **How to apply:** Before any release build/store upload, confirm `android/app/upload-keystore.jks` still exists and its password (in `android/key.properties`) is backed up outside this machine. Never regenerate the keystore to "fix" a missing one — a new keystore is a different signing identity and Google Play will reject it as an update to the existing app.
 
+## ADR-011: Internationalization with gen-l10n (ARB), canonical Turkish values in the data layer
+**Date:** 2026-10-03
+**Status:** Accepted
+
+### Context
+All UI strings were hardcoded Turkish literals spread across ~30 files, and `DateFormat` calls had no locale. The app is going to the stores with Turkish and English. Several Turkish strings are not display text at all — they are values written to Supabase and used as logic keys (`profiles.skill_level` = `'Başlangıç'`, `available_days` = `'Pzt'`, `time_prefs` = `'Sabah'`, `lobbies.skill_level` = `'Her seviye'`, `matches.court` = `'Belirtilmedi'`).
+
+### Decision
+- Use Flutter's official `gen-l10n`: `lib/l10n/app_tr.arb` is the template, `app_en.arb` the translation, config in `l10n.yaml`, generated code committed under `lib/l10n/`. Screens use `context.l10n.<key>` (extension in `lib/l10n/l10n.dart`) and `context.localeName` for every `DateFormat`. No new package; `intl` bumped to `^0.20.2` as `flutter_localizations` requires.
+- **Stored values stay Turkish and never change with the UI language.** `lib/l10n/option_labels.dart` maps each canonical value to a localized label (`skillLevelLabel`, `dayLabel`, `timeLabel`, `sportLabel`, `availabilitySlotLabel`, `courtDisplay`); unknown values fall back to the raw string.
+- The data layer holds no user-facing text. `DataService` throws `DataException(DataError.x)`; the UI converts it with `dataErrorMessage(l10n, e)`.
+- Locale follows the device; unsupported languages fall back to `tr`. No in-app language picker yet.
+- Android: `androidResources.localeFilters` + `res/xml/locales_config.xml` (per-app language on Android 13+). iOS: `CFBundleLocalizations` + `InfoPlist.strings`.
+- `test/widget_test.dart` checks that both ARB files have identical keys and renders key screens at 360x740 in every supported locale.
+
+### Consequences
+- **Positive:** Adding a language = one ARB file + one entry in the Android locale lists. A missing translation fails a test.
+- **Negative:** Text written to the DB by the app or by n8n is stored in one language and shown as-is to the recipient: notification title/body (`data_service.dart` `_notifyMatchRequest`, `_notifyRequesterOfResponse`, `respondToMatchRequest`; the n8n result-confirmation workflow) and the guest placeholder name `'Misafir Oyuncu'`. These are still Turkish for English users. Real fix: store `type` + params (name, court) and render in the client — needs a `notifications` schema change, so deliberately not done here.
+- **How to apply:** Never put a literal user-facing string in a widget or in `DataService`; add a key to both ARB files, run `flutter gen-l10n`. Never localize a value you write to Supabase — localize only its label.
+
+---
+
 <!-- Add new ADRs above this line -->

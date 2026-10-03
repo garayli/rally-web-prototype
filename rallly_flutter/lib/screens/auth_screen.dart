@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import '../theme/app_theme.dart';
 import '../widgets/shared_widgets.dart';
 import '../main.dart' show supabase;
+import '../l10n/l10n.dart';
 
 // ─── Step 1: Enter email ──────────────────────────────────────────────────────
 class AuthEmailScreen extends StatefulWidget {
@@ -28,20 +29,21 @@ class _AuthEmailScreenState extends State<AuthEmailScreen> {
   bool _loading = false;
   String? _error;
 
-  String _translateError(String msg) {
+  String _translateError(AppLocalizations l, String msg) {
     final lower = msg.toLowerCase();
     if (lower.contains('rate limit') ||
         lower.contains('email rate') ||
         lower.contains('too many')) {
-      return 'Çok fazla kod isteği gönderildi. Lütfen birkaç dakika bekleyip tekrar deneyin.';
+      return l.authErrorRateLimit;
     }
-    return 'Bir şeyler yanlış gitti. Lütfen tekrar deneyin.';
+    return l.authErrorGeneric;
   }
 
   Future<void> _submit() async {
+    final l = context.l10n;
     final email = _emailCtrl.text.trim();
     if (!email.contains('@')) {
-      setState(() => _error = 'Lütfen geçerli bir e-posta adresi girin.');
+      setState(() => _error = l.authErrorInvalidEmail);
       return;
     }
     setState(() {
@@ -58,11 +60,10 @@ class _AuthEmailScreenState extends State<AuthEmailScreen> {
       if (mounted) widget.onOtpSent(email);
     } on AuthException catch (e) {
       debugPrint('OTP SEND AUTH ERROR: ${e.statusCode} ${e.message}');
-      setState(() => _error = _translateError(e.message));
+      setState(() => _error = _translateError(l, e.message));
     } catch (e) {
       debugPrint('OTP SEND ERROR: $e');
-      setState(
-          () => _error = 'Bir şeyler yanlış gitti. Lütfen tekrar deneyin.');
+      setState(() => _error = l.authErrorGeneric);
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -130,7 +131,9 @@ class _AuthEmailScreenState extends State<AuthEmailScreen> {
                   children: [
                     const SizedBox(height: 20),
                     Text(
-                      widget.isSignUp ? 'Hesap oluştur' : 'Tekrar hoş geldiniz',
+                      widget.isSignUp
+                          ? context.l10n.authCreateAccount
+                          : context.l10n.authWelcomeBack,
                       style: const TextStyle(
                         fontFamily: 'InstrumentSerif',
                         fontSize: 36,
@@ -141,8 +144,8 @@ class _AuthEmailScreenState extends State<AuthEmailScreen> {
                     const SizedBox(height: 8),
                     Text(
                       widget.isSignUp
-                          ? 'E-posta adresinizi girin, size tek kullanımlık kod göndereceğiz'
-                          : 'E-posta adresinize giriş kodu göndereceğiz',
+                          ? context.l10n.authEmailPromptSignUp
+                          : context.l10n.authEmailPromptSignIn,
                       style: const TextStyle(
                         color: RallyColors.textSecondary,
                         fontSize: 15,
@@ -158,10 +161,10 @@ class _AuthEmailScreenState extends State<AuthEmailScreen> {
                       autofillHints: const [AutofillHints.email],
                       textInputAction: TextInputAction.done,
                       onFieldSubmitted: (_) => _submit(),
-                      decoration: const InputDecoration(
-                        labelText: 'E-POSTA ADRESİ',
-                        hintText: 'siz@ornek.com',
-                        prefixIcon: Icon(Icons.mail_outline, size: 18),
+                      decoration: InputDecoration(
+                        labelText: context.l10n.authEmailLabel,
+                        hintText: context.l10n.authEmailHint,
+                        prefixIcon: const Icon(Icons.mail_outline, size: 18),
                       ),
                     ).animate().fadeIn(delay: 150.ms),
 
@@ -178,7 +181,7 @@ class _AuthEmailScreenState extends State<AuthEmailScreen> {
 
                     const SizedBox(height: 20),
                     RallyButton(
-                      label: 'Kodu gönder',
+                      label: context.l10n.authSendCode,
                       onPressed: _loading ? null : _submit,
                       loading: _loading,
                       icon: Icons.send_outlined,
@@ -191,8 +194,8 @@ class _AuthEmailScreenState extends State<AuthEmailScreen> {
                         children: [
                           Text(
                             widget.isSignUp
-                                ? 'Zaten hesabın var mı? '
-                                : 'Hesabın yok mu? ',
+                                ? context.l10n.authHaveAccount
+                                : context.l10n.authNoAccount,
                             style: const TextStyle(
                               color: RallyColors.muted,
                               fontSize: 13,
@@ -201,7 +204,9 @@ class _AuthEmailScreenState extends State<AuthEmailScreen> {
                           GestureDetector(
                             onTap: widget.onBack,
                             child: Text(
-                              widget.isSignUp ? 'Giriş yap' : 'Kayıt ol',
+                              widget.isSignUp
+                                  ? context.l10n.authSignIn
+                                  : context.l10n.authSignUp,
                               style: const TextStyle(
                                 color: RallyColors.accent,
                                 fontSize: 13,
@@ -269,17 +274,17 @@ class _AuthOtpScreenState extends State<AuthOtpScreen>
     _startResendTimer();
   }
 
-  String _translateError(String msg) {
+  String _translateError(AppLocalizations l, String msg) {
     final lower = msg.toLowerCase();
     if (lower.contains('rate limit') ||
         lower.contains('email rate') ||
         lower.contains('too many')) {
-      return 'Çok fazla kod isteği gönderildi. Lütfen birkaç dakika bekleyip tekrar deneyin.';
+      return l.authErrorRateLimit;
     }
     if (lower.contains('invalid') ||
         lower.contains('expired') ||
         lower.contains('otp')) {
-      return 'Kod geçersiz veya süresi dolmuş. Lütfen yeni kod isteyin.';
+      return l.authErrorCodeInvalidOrExpired;
     }
     return msg;
   }
@@ -307,6 +312,7 @@ class _AuthOtpScreenState extends State<AuthOtpScreen>
 
   Future<void> _verify() async {
     if (_loading) return;
+    final l = context.l10n;
     setState(() {
       _loading = true;
       _error = null;
@@ -323,13 +329,13 @@ class _AuthOtpScreenState extends State<AuthOtpScreen>
       _triggerShake();
       setState(() {
         _loading = false;
-        _error = e.message;
+        _error = _translateError(l, e.message);
       });
     } catch (_) {
       _triggerShake();
       setState(() {
         _loading = false;
-        _error = 'Geçersiz kod. Lütfen tekrar deneyin.';
+        _error = l.authErrorInvalidCode;
       });
     }
   }
@@ -374,9 +380,9 @@ class _AuthOtpScreenState extends State<AuthOtpScreen>
                 padding: EdgeInsets.zero,
               ),
               const SizedBox(height: 28),
-              const Text(
-                'E-postanı kontrol et',
-                style: TextStyle(
+              Text(
+                context.l10n.authCheckEmail,
+                style: const TextStyle(
                   fontFamily: 'InstrumentSerif',
                   fontSize: 36,
                   letterSpacing: -1.5,
@@ -392,8 +398,7 @@ class _AuthOtpScreenState extends State<AuthOtpScreen>
                     height: 1.5,
                   ),
                   children: [
-                    const TextSpan(
-                        text: 'E-posta adresinize 8 haneli kod gönderdik:\n'),
+                    TextSpan(text: context.l10n.authCodeSentTo),
                     TextSpan(
                       text: widget.email,
                       style: const TextStyle(
@@ -485,7 +490,7 @@ class _AuthOtpScreenState extends State<AuthOtpScreen>
 
               const SizedBox(height: 32),
               RallyButton(
-                label: 'Doğrula',
+                label: context.l10n.authVerify,
                 onPressed: _code.length == _codeLength ? _verify : null,
                 loading: _loading,
               ),
@@ -495,6 +500,7 @@ class _AuthOtpScreenState extends State<AuthOtpScreen>
                 child: _canResend
                     ? TextButton(
                         onPressed: () async {
+                          final l = context.l10n;
                           setState(() {
                             _resendTimer = 60;
                             _canResend = false;
@@ -511,23 +517,22 @@ class _AuthOtpScreenState extends State<AuthOtpScreen>
                           } on AuthException catch (e) {
                             if (mounted)
                               setState(
-                                  () => _error = _translateError(e.message));
+                                  () => _error = _translateError(l, e.message));
                           } catch (_) {
                             if (mounted)
-                              setState(() => _error =
-                                  'Kod gönderilemedi. Lütfen tekrar deneyin.');
+                              setState(() => _error = l.authErrorResendFailed);
                           }
                         },
-                        child: const Text(
-                          'Kodu tekrar gönder',
-                          style: TextStyle(
+                        child: Text(
+                          context.l10n.authResendCode,
+                          style: const TextStyle(
                             color: RallyColors.accent,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
                       )
                     : Text(
-                        '$_resendTimer saniye sonra tekrar gönder',
+                        context.l10n.authResendIn(_resendTimer),
                         style: const TextStyle(
                           color: RallyColors.muted,
                           fontSize: 13,

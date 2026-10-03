@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../models/models.dart';
 import '../main.dart' show CourtThemeProvider;
+import '../l10n/l10n.dart';
+import '../l10n/option_labels.dart';
 
 // ─── Gradient Avatar ─────────────────────────────────────────────────────────
 class PlayerAvatar extends StatelessWidget {
@@ -86,7 +88,7 @@ class SkillBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(100),
       ),
       child: Text(
-        label,
+        skillLevelLabel(context.l10n, label),
         style: TextStyle(
           fontSize: 11,
           fontWeight: FontWeight.w700,
@@ -118,9 +120,9 @@ class MatchScoreBadge extends StatelessWidget {
             height: 1,
           ),
         ),
-        const Text(
-          'MATCH',
-          style: TextStyle(
+        Text(
+          context.l10n.matchBadgeLabel,
+          style: const TextStyle(
             fontSize: 9,
             color: RallyColors.muted,
             letterSpacing: 0.5,
@@ -232,9 +234,9 @@ class PlayerCard extends StatelessWidget {
                       color: cp.accent,
                       borderRadius: BorderRadius.circular(100),
                     ),
-                    child: const Text(
-                      'İste',
-                      style: TextStyle(
+                    child: Text(
+                      context.l10n.requestShort,
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 12,
                         fontWeight: FontWeight.w700,

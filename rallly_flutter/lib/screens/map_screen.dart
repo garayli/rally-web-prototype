@@ -9,6 +9,7 @@ import '../models/models.dart';
 import '../services/data_service.dart';
 import '../main.dart' show CourtThemeProvider;
 import 'player_profile_screen.dart';
+import '../l10n/l10n.dart';
 
 class MapScreen extends StatefulWidget {
   const MapScreen({super.key});
@@ -53,7 +54,7 @@ class _MapScreenState extends State<MapScreen> {
     return Scaffold(
       backgroundColor: RallyColors.bg,
       appBar: AppBar(
-        title: const Text('Yakındaki Oyuncular', style: TextStyle(fontFamily: 'InstrumentSerif', fontSize: 22)),
+        title: Text(context.l10n.nearbyPlayersTitle, style: const TextStyle(fontFamily: 'InstrumentSerif', fontSize: 22)),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_ios_new, size: 18),
           onPressed: () => Navigator.pop(context),
@@ -223,8 +224,8 @@ class _YouMarker extends StatelessWidget {
         border: Border.all(color: Colors.white, width: 3),
         boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 6)],
       ),
-      child: const Center(
-        child: Text('Ben', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 10)),
+      child: Center(
+        child: Text(context.l10n.mapMeMarker, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 10)),
       ),
     );
   }
@@ -295,7 +296,7 @@ class _PlayerMapSheet extends StatelessWidget {
                   children: [
                     Expanded(
                       child: RallyButton(
-                        label: 'Profili Gör',
+                        label: context.l10n.viewProfile,
                         outlined: true,
                         onPressed: onViewProfile,
                       ),
@@ -303,7 +304,7 @@ class _PlayerMapSheet extends StatelessWidget {
                     const SizedBox(width: 10),
                     Expanded(
                       child: RallyButton(
-                        label: 'Maç İste',
+                        label: context.l10n.requestMatch,
                         onPressed: onRequest,
                       ),
                     ),
