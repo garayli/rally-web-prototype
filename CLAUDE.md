@@ -24,6 +24,8 @@ flutter test test/widget_test.dart      # run a single test file
 
 **Firebase config is gitignored** (`lib/firebase_options.dart`, `android/app/google-services.json`) because GitHub secret scanning flags the API keys. On a fresh clone run `flutterfire configure` (or copy `lib/firebase_options.dart.example` and fill it in) before `flutter run`. The Android API key is restricted to the debug + upload SHA-1s — **add the Play app-signing SHA-1 at the first Play upload** or Firebase calls from Play-installed builds get 403 (steps in `docs/project_notes/key_facts.md` → Firebase / Google Cloud; remind the user before any Play upload). The iOS and browser keys were deleted (2026-09-21) — create new, restricted ones when iOS/web are set up; until then `flutter run -d chrome` has no working Firebase key.
 
+**Lessons (non-obvious):** `Firebase.initializeApp` in `main.dart` must tolerate `duplicate-app` — with `google-services.json` present Android creates `[DEFAULT]` natively, and an uncaught throw there means a blank screen. Each dev machine needs its own debug SHA-1 on the Android API key (403 `API_KEY_ANDROID_APP_BLOCKED` otherwise). Flutter isn't on PATH by default (`~/development/flutter/bin`). Details in `docs/project_notes/bugs.md`.
+
 ## Architecture
 
 ### Auth Flow (`lib/main.dart` + `lib/router/app_router.dart`)

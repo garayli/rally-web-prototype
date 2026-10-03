@@ -49,7 +49,7 @@ SHA-1 fingerprints the Android key allows, and where each comes from (`keytool` 
 | Upload | `keytool -list -v -keystore android/app/upload-keystore.jks -alias upload` (password is in `android/key.properties`) |
 | **Play app signing** | **⚠ NOT ADDED YET — required at first Play upload (below)** |
 
-A different PC has a different debug keystore, so its debug builds are blocked until that machine's SHA-1 is added too.
+A different PC has a different debug keystore, so its debug builds are blocked until that machine's SHA-1 is added too. The MacBook's (M1 Pro) debug SHA-1 was added on 2026-10-03 via Cloud Console. On macOS, `keytool` is at `/Applications/Android Studio.app/Contents/jbr/Contents/Home/bin/keytool`.
 
 #### ⚠ At first Play Store upload: add Play's app-signing SHA-1
 

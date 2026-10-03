@@ -418,6 +418,73 @@ A related hazard came up the same evening. A `flutter build`/`run` started at 22
 
 ---
 
+## 2026-10-03 Device-Test Batch (iOS + Android, 3 accounts)
+**Severity:** High (lost profiles, lobby join did nothing, crash)
+
+| Symptom | Root cause | Fix |
+|---|---|---|
+| Profiles "not saved", signup repeated on every login | `SignupScreen._finish` swallowed the upsert error and called `onComplete()` in `finally`, so a failed save still entered the app; "Başla" on an existing account re-ran the wizard | Save failure now stays on the wizard with a snackbar. `/home` is wrapped in `_ProfileGate` (`hasCompletedProfile()`): no finished profile → `/signup`, finished → straight in, whichever button was used. `isProfileComplete()` treats the trigger's `'New Player'` placeholder as incomplete |
+| "Tümünü gör" opened Profile | `onAction` pushed `ProfileScreen` | Opens `GamesScreen` |
+| "LG" avatar vs real name | `match_screen` AppBar avatar was hardcoded | Uses `getCurrentPlayer()` |
+| Surname shown as location | Wizard asked for "AD SOYAD" and "MAHALLE / ŞEHİR"; a lone first name was followed by the surname in the location field | Step 1 requires first **and** last name |
+| No back button on iOS in Bildirimler | Same screen is a tab and a pushed route; header had no leading button | Back button when `Navigator.canPop` |
+| "Yakındaki Oyuncular" card | Meaningless hero on the Match tab | Removed; count now a tile at the top of Bildirimler |
+| "Bekleyen (2)" with nothing sent | Pending tab mixed incoming requests (user = player2) with sent ones | `MatchSession.isRequester`; labels say "Sana gelen istek" vs "Yanıt bekleniyor" |
+| Upcoming cards not tappable / past & cancelled shown | Rail showed every status; cards had no handler | Rail/list use `isUpcoming`; all match cards open `showMatchDetailSheet` |
+| Lobby "Katıl" notified nobody; own lobby joinable | Button only showed a snackbar | `joinLobby()` = a `matches` request to the lobby creator (existing RLS, notification and Kabul/Reddet flow, no migration). Own lobby shows "Senin lobin", disabled; repeat request is rejected |
+| Sender sees newest message on top | `sendMessage` bumps the cache before `_deliver` clears `_pending` → every sent message rendered twice for a moment | Dedupe pending vs server twin; list always sorted by timestamp. **Not reproduced on a device** |
+| "Sonuçlarım" RangeError | `static final` list indexed `players[0..3]` of placeholder matches | Built from real completed sessions; empty state. `GamesScreen` Geçmiş tab had the same fake data |
+| `DoublesOrganiseScreen` "sent" but nothing written | `Future.delayed` + snackbar only | Calls `sendMatchRequest`. `matches` has no partner column, so a doubles partner isn't stored (screen is only reachable as singles today) |
+| Fake stats | Profile 18/7/25/4.8★, landing 2.400+/98%/4.9★ | Profile derives record from logged results + NTRP; landing stats row removed |
+
+### Still open (store review)
+- `ReputationScreen` reviews and `AchievementsScreen` badges are static demo data.
+- A lobby stays open after its creator accepts a request (no `lobby_id` on `matches`; only the creator can update `lobbies`).
+- `winner_id` is stored only when player1 wins; `wonBy()` compensates, but a real `result` model would be cleaner.
+
+### Prevention
+- Never `finally { onComplete() }` after a write that can fail.
+- A `static final` that reads `dataService` runs once, at first access — never index into it.
+- Grep for `Future.delayed` + snackbar when auditing "fake success" flows.
+
+---
+
+## Blank screen on Android after adding google-services.json
+**Date:** 2026-10-03
+**Severity:** High (app unusable, no visible error)
+
+### Problem
+On a fresh Mac the app built and installed on the phone, but showed a blank screen. `adb logcat` had `Unhandled Exception: [core/duplicate-app] A Firebase App named "[DEFAULT]" already exists` at `main.dart` → `Firebase.initializeApp`.
+
+### Root Cause
+The `com.google.gms.google-services` Gradle plugin creates the `[DEFAULT]` Firebase app natively at startup once `android/app/google-services.json` exists. The Dart `Firebase.initializeApp(options: ...)` then throws, and since it is the first `await` in `main()`, `runApp` is never reached. Before the file existed the build failed earlier, which hid this. A `Firebase.apps.isEmpty` guard does **not** work: the Dart side reports no apps even though the native one exists.
+
+### Solution
+Wrap the call in `try { ... } on FirebaseException catch (e) { if (e.code != 'duplicate-app') rethrow; }` in `lib/main.dart`.
+
+### Prevention
+- Keep anything that can throw out of the path before `runApp`, or catch it, so a failure shows an error instead of a blank screen.
+- On a blank screen, read `adb logcat | grep -E " E flutter|Unhandled"` first.
+
+---
+
+## New machine setup: build / Firebase 403 / Android Studio (checklist)
+**Date:** 2026-10-03
+**Severity:** Medium
+
+| Symptom | Cause | Fix |
+|---------|-------|-----|
+| Android Studio: `Failed to load 'libjli.dylib' … incompatible architecture (have 'x86_64', need 'arm64')` | Intel build of Android Studio on an Apple Silicon Mac | Reinstall the "Mac with Apple chip" (`mac_arm`) build |
+| `flutter: command not found` | Flutter SDK (`~/development/flutter/bin`) not on PATH | Add it to PATH, or `export PATH="$HOME/development/flutter/bin:$PATH"` |
+| `:app:processDebugGoogleServices` — `google-services.json is missing` | File is gitignored | Download it from Firebase console (Android app) into `android/app/`; its `package_name` must be `com.rallymatch.app` |
+| Logcat: `403 … API_KEY_ANDROID_APP_BLOCKED` | The Android API key allows only registered SHA-1s; each machine has its own debug keystore | Add this machine's debug SHA-1 (see `key_facts.md`) in Cloud Console → Credentials → Android key |
+| Blank screen | See entry above | — |
+
+### Prevention
+Treat "new machine" as: arm64 Android Studio → PATH → `google-services.json` + `firebase_options.dart` → register debug SHA-1. `adb` screenshots of a locked phone are black, so unlock it before judging the UI.
+
+---
+
 <!-- Add new bugs above this line -->
 
 ## OTP Screen Overflows When Keyboard Is Open
